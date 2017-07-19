@@ -1,5 +1,6 @@
 package ua.com.juja.microservices.teams.slackbot.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import me.ramswaroop.jbot.core.slack.models.RichMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(value = "/v1")
+@Slf4j
 public class TeamSlackbotController {
 
     @PostMapping(value = "/commands/teams/create", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
@@ -29,7 +31,7 @@ public class TeamSlackbotController {
     }
 
     @PostMapping(value = "/commands/team", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public RichMessage onReceiveSlashCommandGetAllTeams(@RequestParam("token") String token,
+    public RichMessage onReceiveSlashCommandGetTeam(@RequestParam("token") String token,
                                                               @RequestParam("user_name") String fromUser,
                                                               @RequestParam("text") String text) {
         //TODO Should be implemented feature SLB-F3
