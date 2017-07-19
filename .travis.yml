@@ -15,4 +15,4 @@ before_script:
   - sleep 15
 script:
   - ./gradlew test
-  - ./gradlew test --tests "juja.microservices.integration.*"
+  - ./gradlew test --tests "ua.com.juja.microservices.integration.*"
