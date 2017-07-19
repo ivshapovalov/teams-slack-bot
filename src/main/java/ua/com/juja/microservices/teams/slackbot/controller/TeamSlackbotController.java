@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class TeamSlackbotController {
 
-    @PostMapping(value = "/commands/teams/create", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @PostMapping(value = "/commands/teams/activate", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public RichMessage onReceiveSlashCommandCreateTeam(@RequestParam("token") String token,
                                                        @RequestParam("user_name") String fromUser,
                                                        @RequestParam("text") String text) {
