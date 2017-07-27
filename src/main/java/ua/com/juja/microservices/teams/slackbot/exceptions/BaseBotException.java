@@ -20,4 +20,8 @@ public class BaseBotException extends RuntimeException {
     public String getMessage() {
         return error.getClientMessage();
     }
+
+    public ApiError getError() {
+        return error;
+    }
 }

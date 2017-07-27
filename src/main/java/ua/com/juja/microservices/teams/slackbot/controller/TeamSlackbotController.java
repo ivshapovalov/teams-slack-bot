@@ -8,15 +8,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ua.com.juja.microservices.teams.slackbot.model.SlackParsedCommand;
-import ua.com.juja.microservices.teams.slackbot.model.Team;
-import ua.com.juja.microservices.teams.slackbot.model.TeamRequest;
 import ua.com.juja.microservices.teams.slackbot.service.TeamSlackbotService;
 import ua.com.juja.microservices.teams.slackbot.service.impl.SlackNameHandlerService;
 
 import javax.inject.Inject;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.concurrent.ExecutorService;
+
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
 @RestController
 @RequestMapping(value = "/v1/commands")
@@ -28,19 +26,25 @@ public class TeamSlackbotController {
     private String slackToken;
     private TeamSlackbotService teamSlackbotService;
 
+    private BackgroundJobController backgroundJobController;
+    private ExecutorService backgroundExecutor = newSingleThreadExecutor();
+
     @Inject
     public TeamSlackbotController(TeamSlackbotService teamSlackbotService,
-                                  SlackNameHandlerService slackNameHandlerService) {
+                                  SlackNameHandlerService slackNameHandlerService,
+                                  BackgroundJobController backgroundJobController) {
         this.teamSlackbotService = teamSlackbotService;
         this.slackNameHandlerService = slackNameHandlerService;
+        this.backgroundJobController = backgroundJobController;
     }
 
     @PostMapping(value = "/teams/activate", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public RichMessage onReceiveSlashCommandActivateTeam(@RequestParam("token") String token,
                                                          @RequestParam("user_name") String fromUser,
-                                                         @RequestParam("text") String text) {
-        log.debug("Received slash command 'Activate team' from user: '{}' text: '{}' token: '{}'",
-                fromUser, text, token);
+                                                         @RequestParam("text") String text,
+                                                         @RequestParam("response_url") String responseUrl) {
+        log.debug("Received slash command 'Activate team' from user: '{}' text: '{}' token: '{}' response_url: '{}'",
+                fromUser, text, token, responseUrl);
 
         if (!token.equals(slackToken)) {
             log.warn("Received invalid slack token: '{}' in command 'Activate team' from user: '{}'. Returns to " +
@@ -48,31 +52,12 @@ public class TeamSlackbotController {
                     token, fromUser);
             return getRichMessageInvalidSlackCommand();
         }
-        String response = "ERROR. Something wrong and new team didn't activated.";
-
-        log.debug("Started create slackParsedCommand from user '{}' and text '{}'", fromUser, text);
-        SlackParsedCommand slackParsedCommand = slackNameHandlerService.createSlackParsedCommand(fromUser, text);
-        log.debug("Finished create slackParsedCommand");
-
-        log.debug("Started create TeamRequest");
-        TeamRequest teamRequest = new TeamRequest(slackParsedCommand);
-        log.debug("Finished create TeamRequest");
-
-        log.debug("Send activate team request to Teams service. Team: '{}'", teamRequest.toString());
-        Team activatedTeam = teamSlackbotService.activateTeam(teamRequest);
-        log.debug("Received response from Teams service: '{}'", activatedTeam.toString());
-
-        log.debug("Started getTeamMemberSlackNames for team '{}' ", activatedTeam.toString());
-        Set<String> slackNames = slackNameHandlerService.getTeamMemberSlackNames(activatedTeam);
-        log.debug("Finished getTeamMemberSlackNames for team '{}'. slacknames is '{}' ", activatedTeam.toString()
-                , slackNames);
-
-        response = String.format("Thanks, new Team for users '%s' activated",
-                slackNames.stream().collect(Collectors.joining(",")));
-
-        log.info("'Activate team' command processed : user: '{}' text: '{}' and sent response into slack: '{}'",
+        log.debug("Start background activate team task");
+        backgroundExecutor.execute((() -> backgroundJobController.activateTeam(fromUser, text, responseUrl)));
+        //new Thread((() -> backgroundJobService.activateTeam(fromUser, text, responseUrl))).run();
+        String response = String.format("Thanks, Activate Team job started!");
+        log.info("'Activate team' job started : user: '{}' text: '{}' and sent response into slack: '{}'",
                 fromUser, text, response);
-
         return new RichMessage(response);
     }
 

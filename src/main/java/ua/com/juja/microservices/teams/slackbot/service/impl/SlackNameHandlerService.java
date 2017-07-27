@@ -54,10 +54,10 @@ public class SlackNameHandlerService {
 
     private Map<String, UserDTO> createUsersMapFromSlackNames(String fromSlackName, String text) {
         log.debug("Started creating users map for user '{}' and text '{}'", fromSlackName, text);
-        List<String> slackNames = extractAllSlackNames(text);
-        slackNames.add(fromSlackName);
-        log.debug("Started find slack names: '{}' in User service", slackNames);
-        List<UserDTO> userDTOs = userService.findUsersBySlackNames(slackNames);
+        List<String> slackNamesInText = extractSlackNamesFromText(text);
+        slackNamesInText.add(fromSlackName);
+        log.debug("Started find slack names: '{}' in User service", slackNamesInText);
+        List<UserDTO> userDTOs = userService.findUsersBySlackNames(slackNamesInText);
         log.debug("Finished find slack names: '{}' in User service", userDTOs.toString());
         log.debug("Convert users '{}' to map", userDTOs.toString());
         Map<String, UserDTO> users = userDTOs.stream()
@@ -66,15 +66,7 @@ public class SlackNameHandlerService {
         return users;
     }
 
-
-    public Set<String> getTeamMemberSlackNames(Team activatedTeam) {
-        log.debug("Started converting uuids '{}' to slackNames", activatedTeam.toString());
-        Set<String> slackNames = createUsersSetFromUuids(activatedTeam.getMembers());
-        log.debug("Finished converting uuids '{}' to slackNames '{} ", activatedTeam.toString(), slackNames);
-        return slackNames;
-    }
-
-    private Set<String> createUsersSetFromUuids(Set<String> members) {
+    public Set<String> createUsersSetFromUuids(Set<String> members) {
         log.debug("Started creating users slackName list for team members '{} ", members);
         log.debug("Started find uuids '{}' in User service", members);
         List<UserDTO> userDTOs = userService.findUsersByUuids(new ArrayList<>(members));
@@ -86,7 +78,7 @@ public class SlackNameHandlerService {
         return slackNames;
     }
 
-    private List<String> extractAllSlackNames(String text) {
+    private List<String> extractSlackNamesFromText(String text) {
         log.debug("Started extract slackNames from text '{}'", text);
         List<String> slackNames = new ArrayList<>();
         Pattern pattern = Pattern.compile(SLACK_NAME_PATTERN);
