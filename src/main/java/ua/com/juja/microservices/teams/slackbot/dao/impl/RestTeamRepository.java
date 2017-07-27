@@ -53,7 +53,6 @@ public class RestTeamRepository extends AbstractRestRepository implements TeamRe
         } catch (HttpClientErrorException ex) {
             ApiError error = convertToApiError(ex);
             log.warn("Teams service returned an error: '{}'", error);
-            //TODO get users from error
             throw new TeamExchangeException(error, ex);
         }
         log.info("Team activated: '{}'", activatedTeam.toString());

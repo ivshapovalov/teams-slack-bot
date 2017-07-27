@@ -24,6 +24,7 @@ public class TeamRequest {
 
     @JsonProperty("from")
     private String fromUuid;
+    private String responceUrl;
 
     @NotEmpty
     private Set<String> members;
@@ -33,14 +34,15 @@ public class TeamRequest {
         this.members = members;
     }
 
-    public TeamRequest(SlackParsedCommand parsedCommand) {
+    public TeamRequest(SlackParsedCommand parsedCommand, String responceUrl) {
         log.debug("Started creating TeamRequest");
+        this.responceUrl = responceUrl;
         this.fromUuid = parsedCommand.getFromUser().getUuid();
         log.debug("Map UserDTO to uuid");
         Set<String> members = parsedCommand.getUsers()
                 .stream().map(user -> user.getUuid())
                 .collect(Collectors.toSet());
-        if (members.size()!=TEAM_SIZE) {
+        if (members.size() != TEAM_SIZE) {
             members.remove(fromUuid);
         }
         if (members.size() == 0) {

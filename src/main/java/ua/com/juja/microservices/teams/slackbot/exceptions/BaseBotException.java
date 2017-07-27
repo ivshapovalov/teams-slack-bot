@@ -24,4 +24,5 @@ public class BaseBotException extends RuntimeException {
     public ApiError getError() {
         return error;
     }
+
 }
