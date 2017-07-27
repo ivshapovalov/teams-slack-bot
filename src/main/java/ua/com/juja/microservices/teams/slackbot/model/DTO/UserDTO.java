@@ -1,16 +1,19 @@
-package ua.com.juja.microservices.teams.slackbot.model;
+package ua.com.juja.microservices.teams.slackbot.model.DTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
 
+/**
+ * @author Nikolay Horushko
+ */
 @Getter
 @AllArgsConstructor
 @ToString
 public class UserDTO {
     @JsonProperty
-    private String uuid;
+    String uuid;
     @JsonProperty
-    private String slack;
+    String slack;
 }

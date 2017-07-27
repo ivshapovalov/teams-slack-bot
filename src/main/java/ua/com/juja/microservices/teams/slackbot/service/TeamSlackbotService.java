@@ -1,10 +1,12 @@
 package ua.com.juja.microservices.teams.slackbot.service;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ua.com.juja.microservices.teams.slackbot.model.Team;
+import ua.com.juja.microservices.teams.slackbot.model.TeamRequest;
 
 @Service
-@Slf4j
-public class TeamSlackbotService {
+public interface TeamSlackbotService {
+
+    Team activateTeam(TeamRequest teamRequest);
 
 }
