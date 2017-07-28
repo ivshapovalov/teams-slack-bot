@@ -28,7 +28,7 @@ public class DefaultTeamSlackbotService implements TeamSlackbotService {
         log.debug("Started Activate Team: '{}'", teamRequest.toString());
         Team activatedTeam = teamRepository.activateTeam(teamRequest);
         log.debug("Finished Activate Team: '{}'", activatedTeam.toString());
-        log.info("Activate team finished correctly: '{}'", activatedTeam.toString());
+        log.info("Activate team finished correctly: '{}'", activatedTeam.getId());
         return activatedTeam;
     }
 }

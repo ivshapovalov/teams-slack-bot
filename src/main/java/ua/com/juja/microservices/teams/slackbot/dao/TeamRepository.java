@@ -5,6 +5,9 @@ import ua.com.juja.microservices.teams.slackbot.model.TeamRequest;
 
 import java.util.List;
 
+/**
+ * @author Ivan Shapovalov
+ */
 public interface TeamRepository {
 
     Team activateTeam(TeamRequest teamRequest);

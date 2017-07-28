@@ -8,7 +8,7 @@ import org.springframework.web.client.RestTemplate;
  */
 public class Util {
 
-    public static void sendResultRichMessage(String responseUrl, RichMessage richMessage){
+    public static void sendPostResponseAsRichMessage(String responseUrl, RichMessage richMessage) {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.postForObject(responseUrl, richMessage, String.class);
     }

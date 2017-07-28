@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ua.com.juja.microservices.teams.slackbot.model.DTO.UserDTO;
 import ua.com.juja.microservices.teams.slackbot.model.SlackParsedCommand;
-import ua.com.juja.microservices.teams.slackbot.model.Team;
 import ua.com.juja.microservices.teams.slackbot.service.UserService;
 
 import javax.inject.Inject;
@@ -19,7 +18,6 @@ import java.util.stream.Collectors;
 /**
  * @author Ivan Shapovalov
  */
-
 @Service
 @Slf4j
 public class SlackNameHandlerService {
@@ -39,42 +37,45 @@ public class SlackNameHandlerService {
     }
 
     public SlackParsedCommand createSlackParsedCommand(String fromSlackName, String text) {
+
         if (!fromSlackName.startsWith("@")) {
-            log.debug("Add '@' to slack name: [{}]", fromSlackName);
+            log.debug("Add '@' to slack name: '{}'", fromSlackName);
             fromSlackName = "@" + fromSlackName;
         }
-        log.debug("Started create users map for'{}': text '{}", fromSlackName, text);
-        Map<String, UserDTO> users = createUsersMapFromSlackNames(fromSlackName, text);
-        log.debug("Finished create users map for'{}': text '{}", fromSlackName, text);
+        log.debug("Started convertSlackNamesToMap for user '{}': text '{}", fromSlackName, text);
+        Map<String, UserDTO> users = convertSlackNamesToMap(fromSlackName, text);
+        log.debug("Finished convertSlackNamesToMap for user '{}': text '{}", fromSlackName, text);
         log.debug("Started create slackParsedCommand from user '{}': text '{}", fromSlackName, text);
         SlackParsedCommand slackParsedCommand = new SlackParsedCommand(fromSlackName, text, users);
-        log.debug("Finished create slackParsedCommand by user [{}] from text '[{}]", fromSlackName, text);
+        log.debug("Finished create slackParsedCommand by user '{}' from text '{}'", fromSlackName, text);
+        log.info("Create slackParsedCommand by user '{}' from text '{}", fromSlackName, text);
         return slackParsedCommand;
     }
 
-    private Map<String, UserDTO> createUsersMapFromSlackNames(String fromSlackName, String text) {
+    private Map<String, UserDTO> convertSlackNamesToMap(String fromSlackName, String text) {
         log.debug("Started creating users map for user '{}' and text '{}'", fromSlackName, text);
-        List<String> slackNamesInText = extractSlackNamesFromText(text);
-        slackNamesInText.add(fromSlackName);
-        log.debug("Started find slack names: '{}' in User service", slackNamesInText);
-        List<UserDTO> userDTOs = userService.findUsersBySlackNames(slackNamesInText);
-        log.debug("Finished find slack names: '{}' in User service", userDTOs.toString());
-        log.debug("Convert users '{}' to map", userDTOs.toString());
+        List<String> slackNames = extractSlackNamesFromText(text);
+        slackNames.add(fromSlackName);
+        log.debug("Started finding slack names: '{}' in User service", slackNames);
+        List<UserDTO> userDTOs = userService.findUsersBySlackNames(slackNames);
+        log.debug("Finished finding slack names: '{}' in User service", userDTOs.toString());
+        log.debug("Started convert users '{}' to map", userDTOs.toString());
         Map<String, UserDTO> users = userDTOs.stream()
                 .collect(Collectors.toMap(userDTO -> userDTO.getSlack(), user -> user));
-        log.info("Create users map '{}'", users.toString());
+        log.debug("Finished convert users '{}' to map", users.toString());
+        log.info("Created users map for slacknames'", slackNames.toString());
         return users;
     }
 
-    public Set<String> createUsersSetFromUuids(Set<String> members) {
-        log.debug("Started creating users slackName list for team members '{} ", members);
+    public Set<String> convertUuidsToSlackNames(Set<String> members) {
         log.debug("Started find uuids '{}' in User service", members);
         List<UserDTO> userDTOs = userService.findUsersByUuids(new ArrayList<>(members));
         log.debug("Finished find uuids '{}' in User service", userDTOs.toString());
-        log.debug("Convert usersDTO '{}' to set", userDTOs.toString());
+        log.debug("Start Convert usersDTO '{}' to set", userDTOs.toString());
         Set<String> slackNames = userDTOs.stream().map(user -> user.getSlack())
                 .collect(Collectors.toSet());
-        log.info("Create users set '{}'", slackNames.toString());
+        log.debug("Finished Convert usersDTO '{}' to set '{}'", userDTOs.toString(),slackNames.toString());
+        log.info("Created users set '{}'", slackNames.toString());
         return slackNames;
     }
 

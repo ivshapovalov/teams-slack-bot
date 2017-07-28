@@ -16,6 +16,9 @@ import ua.com.juja.microservices.teams.slackbot.model.TeamRequest;
 
 import javax.inject.Inject;
 
+/**
+ * @author Ivan Shapovalov
+ */
 @Repository
 @Slf4j
 public class RestTeamRepository extends AbstractRestRepository implements TeamRepository {
@@ -24,13 +27,13 @@ public class RestTeamRepository extends AbstractRestRepository implements TeamRe
     @Value("${rest.api.version}")
     private String restApiVersion;
     @Value("${teams.baseURL}")
-    private String urlBase;
+    private String teamsBaseUrl;
     @Value("${endpoint.activateTeam}")
-    private String urlActivateTeam;
+    private String teamsActivateTeamUrl;
     @Value("${endpoint.deactivateTeam}")
-    private String urlDeactivateTeam;
+    private String teamsDeactivateTeamUrl;
     @Value("${endpoint.getTeam}")
-    private String urlGetTeam;
+    private String teamsGetTeamUrl;
 
     @Inject
     public RestTeamRepository(RestTemplate restTemplate) {
@@ -43,7 +46,7 @@ public class RestTeamRepository extends AbstractRestRepository implements TeamRe
         HttpEntity<TeamRequest> request = new HttpEntity<>(teamRequest, setupBaseHttpHeaders());
         Team activatedTeam;
         try {
-            String teamsServiceURL = urlBase + restApiVersion + urlActivateTeam;
+            String teamsServiceURL = teamsBaseUrl + restApiVersion + teamsActivateTeamUrl;
             log.debug("Started request to Teams service url '{}'. Request is : '{}'", teamsServiceURL, request
                     .toString());
             ResponseEntity<Team> response = restTemplate.exchange(teamsServiceURL,
@@ -55,7 +58,7 @@ public class RestTeamRepository extends AbstractRestRepository implements TeamRe
             log.warn("Teams service returned an error: '{}'", error);
             throw new TeamExchangeException(error, ex);
         }
-        log.info("Team activated: '{}'", activatedTeam.toString());
+        log.info("Team activated: '{}'", activatedTeam.getId());
         return activatedTeam;
     }
 

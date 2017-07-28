@@ -9,6 +9,9 @@ import ua.com.juja.microservices.teams.slackbot.exceptions.ApiError;
 import java.io.IOException;
 import java.util.Arrays;
 
+/**
+ * @author Ivan Shapovalov
+ */
 public class AbstractRestRepository {
 
     protected HttpHeaders setupBaseHttpHeaders() {

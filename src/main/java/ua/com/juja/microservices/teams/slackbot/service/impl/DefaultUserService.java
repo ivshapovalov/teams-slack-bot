@@ -11,33 +11,35 @@ import javax.inject.Inject;
 import java.util.List;
 
 /**
- * @author Artem
+ * @author Ivan Shapovalov
  */
 @Service
 @Slf4j
 public class DefaultUserService implements UserService {
 
-    @Qualifier ("fake")
+    @Qualifier("fake")
     private final UserRepository userRepository;
 
     @Inject
-    public DefaultUserService(@Qualifier ("fake") UserRepository userRepository) {
+    public DefaultUserService(@Qualifier("fake") UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
     @Override
     public List<UserDTO> findUsersBySlackNames(List<String> slackNames) {
-        log.debug("Received slackNames: '{}' for convert", slackNames.toString());
+        log.debug("Received slackNames: '{}' to search in User repo", slackNames.toString());
         List<UserDTO> users = userRepository.findUsersBySlackNames(slackNames);
-        log.info("Found users '{}' by slackNames {}", users.toString(), slackNames.toString());
+        log.debug("Found users '{}' by slackNames '{}' in User repo", users.toString(), slackNames.toString());
+        log.info("Found users '{}' in User repo", users.toString());
         return users;
     }
 
     @Override
     public List<UserDTO> findUsersByUuids(List<String> uuids) {
-        log.debug("Received uuids: '{}' for convert", uuids.toString());
+        log.debug("Received uuids: '{}' to search in User repo", uuids.toString());
         List<UserDTO> users = userRepository.findUsersByUuids(uuids);
-        log.info("Found users '{}' by uuids {}", users.toString(), uuids.toString());
+        log.debug("Found users '{}' by uuids '{}' in User repo", users.toString(), uuids.toString());
+        log.info("Found users '{}' in User repo", users.toString());
         return users;
     }
 }
