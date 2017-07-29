@@ -1,10 +1,9 @@
 package ua.com.juja.microservices.teams.slackbot.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ua.com.juja.microservices.teams.slackbot.dao.UserRepository;
-import ua.com.juja.microservices.teams.slackbot.model.DTO.UserDTO;
+import ua.com.juja.microservices.teams.slackbot.model.UserDTO;
 import ua.com.juja.microservices.teams.slackbot.service.UserService;
 
 import javax.inject.Inject;

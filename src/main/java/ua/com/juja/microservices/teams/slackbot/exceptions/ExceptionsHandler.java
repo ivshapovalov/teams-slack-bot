@@ -5,7 +5,7 @@ import me.ramswaroop.jbot.core.slack.models.RichMessage;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ua.com.juja.microservices.teams.slackbot.service.impl.SlackNameHandlerService;
-import ua.com.juja.microservices.teams.slackbot.util.Util;
+import ua.com.juja.microservices.teams.slackbot.util.Utils;
 
 import javax.inject.Inject;
 import java.util.Arrays;
@@ -35,19 +35,19 @@ public class ExceptionsHandler {
     @ExceptionHandler(Exception.class)
     public void handleAllOtherExceptions(Exception ex) {
         log.warn("Other Exception': {}", ex.getMessage());
-        Util.sendPostResponseAsRichMessage(responseUrl, new RichMessage(ex.getMessage()));
+        Utils.sendPostResponseAsRichMessage(responseUrl, new RichMessage(ex.getMessage()));
     }
 
     @ExceptionHandler(WrongCommandFormatException.class)
     public void handleWrongCommandFormatException(Exception ex) {
         log.warn("WrongCommandFormatException: {}", ex.getMessage());
-        Util.sendPostResponseAsRichMessage(responseUrl, new RichMessage(ex.getMessage()));
+        Utils.sendPostResponseAsRichMessage(responseUrl, new RichMessage(ex.getMessage()));
     }
 
     @ExceptionHandler(UserExchangeException.class)
     public void handleUserExchangeException(UserExchangeException ex) {
         log.warn("UserExchangeException: {}", ex.detailMessage());
-        Util.sendPostResponseAsRichMessage(responseUrl, new RichMessage(ex.getMessage()));
+        Utils.sendPostResponseAsRichMessage(responseUrl, new RichMessage(ex.getMessage()));
     }
 
     @ExceptionHandler(TeamExchangeException.class)
@@ -57,7 +57,7 @@ public class ExceptionsHandler {
             message = replaceUuidsBySlackNamesInMessage(ex.getError().getExceptionMessage());
         }
         log.warn("TeamExchangeException : {}", ex.detailMessage());
-        Util.sendPostResponseAsRichMessage(responseUrl, new RichMessage(message));
+        Utils.sendPostResponseAsRichMessage(responseUrl, new RichMessage(message));
     }
 
     private String replaceUuidsBySlackNamesInMessage(String message) {

@@ -1,11 +1,10 @@
 package ua.com.juja.microservices.teams.slackbot.dao.impl;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 import ua.com.juja.microservices.teams.slackbot.dao.UserRepository;
-import ua.com.juja.microservices.teams.slackbot.model.DTO.UserDTO;
+import ua.com.juja.microservices.teams.slackbot.model.UserDTO;
 
 import java.util.HashMap;
 import java.util.List;

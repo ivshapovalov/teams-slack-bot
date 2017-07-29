@@ -25,7 +25,7 @@ public class RestTeamRepository extends AbstractRestRepository implements TeamRe
 
     private final RestTemplate restTemplate;
     @Value("${rest.api.version}")
-    private String restApiVersion;
+    private String restApiVersion="v1";
     @Value("${teams.baseURL}")
     private String teamsBaseUrl;
     @Value("${endpoint.activateTeam}")

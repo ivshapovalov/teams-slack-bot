@@ -1,6 +1,6 @@
 package ua.com.juja.microservices.teams.slackbot.service;
 
-import ua.com.juja.microservices.teams.slackbot.model.DTO.UserDTO;
+import ua.com.juja.microservices.teams.slackbot.model.UserDTO;
 
 import java.util.List;
 

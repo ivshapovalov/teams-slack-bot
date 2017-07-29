@@ -9,12 +9,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ua.com.juja.microservices.teams.slackbot.exceptions.ExceptionsHandler;
-import ua.com.juja.microservices.teams.slackbot.model.SlackParsedCommand;
 import ua.com.juja.microservices.teams.slackbot.model.Team;
 import ua.com.juja.microservices.teams.slackbot.model.TeamRequest;
 import ua.com.juja.microservices.teams.slackbot.service.TeamSlackbotService;
 import ua.com.juja.microservices.teams.slackbot.service.impl.SlackNameHandlerService;
-import ua.com.juja.microservices.teams.slackbot.util.Util;
+import ua.com.juja.microservices.teams.slackbot.util.Utils;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
@@ -64,15 +63,15 @@ public class TeamSlackbotController {
 
         String message = String.format("Thanks, Activate Team job started!");
         log.debug("Started send first response message to slack '{}' ", message);
-        //sendResponseMessage(response, message);
+        sendResponseMessage(response, message);
         log.debug("Finished send first response message to slack '{}' ", message);
 
-        log.debug("Started create slackParsedCommand from user '{}' and text '{}'", fromUser, text);
-        SlackParsedCommand slackParsedCommand = slackNameHandlerService.createSlackParsedCommand(fromUser, text);
-        log.debug("Finished create slackParsedCommand");
+        log.debug("Started extract members from text '{}'", text);
+        Set<String> members = slackNameHandlerService.getUuidsFromText(text);
+        log.debug("Finished extract members '{}' from text '{}'", members,text);
 
         log.debug("Started create TeamRequest");
-        TeamRequest teamRequest = new TeamRequest(slackParsedCommand);
+        TeamRequest teamRequest = new TeamRequest(members);
         log.debug("Finished create TeamRequest");
 
         log.debug("Send activate team request to Teams service. Team: '{}'", teamRequest.toString());
@@ -84,12 +83,12 @@ public class TeamSlackbotController {
         log.debug("Finished convertUuidsToSlackNames for team '{}'. slacknames is '{}' ", activatedTeam.toString()
                 , slackNames);
 
-        message = String.format("Thanks, new Team for users '%s' activated",
+        message = String.format("Thanks, new Team for members '%s' activated",
                 slackNames.stream().collect(Collectors.joining(",")));
         log.info("'Activate team' command processed : user: '{}' text: '{}' and sent message into slack: '{}'",
                 fromUser, text, message);
         RichMessage richMessage = new RichMessage(message);
-        //Util.sendPostResponseAsRichMessage(responseUrl, richMessage);
+        Utils.sendPostResponseAsRichMessage(responseUrl, richMessage);
     }
 
     private void sendResponseMessage(HttpServletResponse response, String message) throws IOException {
