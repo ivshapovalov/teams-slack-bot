@@ -12,8 +12,8 @@ import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.dao.UserRepository;
 import ua.com.juja.microservices.teams.slackbot.exceptions.ApiError;
 import ua.com.juja.microservices.teams.slackbot.exceptions.UserExchangeException;
-import ua.com.juja.microservices.teams.slackbot.model.DTO.SlackNameRequest;
-import ua.com.juja.microservices.teams.slackbot.model.DTO.UserDTO;
+import ua.com.juja.microservices.teams.slackbot.model.SlackNameRequest;
+import ua.com.juja.microservices.teams.slackbot.model.UserDTO;
 
 import javax.inject.Inject;
 import java.util.Arrays;
