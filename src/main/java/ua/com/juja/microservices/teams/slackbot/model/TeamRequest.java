@@ -1,7 +1,5 @@
 package ua.com.juja.microservices.teams.slackbot.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -15,14 +13,14 @@ import java.util.stream.Collectors;
  * @author Ivan Shapovalov
  */
 @Getter
-@ToString (exclude = "TEAM_SIZE")
+@ToString(exclude = "TEAM_SIZE")
 @Slf4j
 public class TeamRequest {
     private static final int TEAM_SIZE = 4;
     @NotEmpty
     private Set<String> members;
 
-    public TeamRequest(SlackParsedCommand parsedCommand, String responceUrl) {
+    public TeamRequest(SlackParsedCommand parsedCommand) {
         log.debug("Started creating TeamRequest");
         String fromUuid = parsedCommand.getFromUser().getUuid();
         log.debug("Map UserDTO to uuid");
@@ -45,7 +43,7 @@ public class TeamRequest {
         }
 
         this.members = members;
-        log.debug("Finished creating new TeamRequest '{}'",this);
+        log.debug("Finished creating new TeamRequest '{}'", this);
         log.info("Finished creating new TeamRequest");
     }
 }

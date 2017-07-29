@@ -2,6 +2,7 @@ package ua.com.juja.microservices.teams.slackbot.dao.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 import ua.com.juja.microservices.teams.slackbot.dao.UserRepository;
 import ua.com.juja.microservices.teams.slackbot.model.DTO.UserDTO;
@@ -15,15 +16,14 @@ import java.util.stream.Collectors;
  * @author Ivan Shapovalov
  */
 @Repository
-@Qualifier("fake")
 @Slf4j
+@Profile("test")
 public class FakeUserRepository extends AbstractRestRepository implements UserRepository {
 
     private static final Map<String, String> users = new HashMap<>();
 
     static {
         users.put("1", "@a");
-        users.put("100", "@ivan.shapovalov");
         users.put("2", "@b");
         users.put("3", "@c");
         users.put("4", "@d");
@@ -34,7 +34,8 @@ public class FakeUserRepository extends AbstractRestRepository implements UserRe
         users.put("9", "@i");
         users.put("10", "@j");
         users.put("11", "@k");
-        users.put("12", "@l");    }
+        users.put("12", "@l");
+    }
 
     @Override
     public List<UserDTO> findUsersBySlackNames(List<String> slackNames) {

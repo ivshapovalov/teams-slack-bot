@@ -6,8 +6,10 @@ import ua.com.juja.microservices.teams.slackbot.exceptions.WrongCommandFormatExc
 import ua.com.juja.microservices.teams.slackbot.model.DTO.UserDTO;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Nikolay Horushko
@@ -16,11 +18,11 @@ import java.util.Set;
 @ToString
 @Slf4j
 public class SlackParsedCommand {
-    private String fromSlackName;
-    private String text;
-    private Map<String, UserDTO> users;
+    private final String fromSlackName;
+    private final String text;
+    private final Set<UserDTO> users;
 
-    public SlackParsedCommand(String fromSlackName, String text, Map<String, UserDTO> users) {
+    public SlackParsedCommand(String fromSlackName, String text, Set<UserDTO> users) {
         this.fromSlackName = fromSlackName;
         this.text = text;
         this.users = users;
@@ -31,14 +33,19 @@ public class SlackParsedCommand {
     }
 
     public UserDTO getFromUser() {
-        return users.get(fromSlackName);
+        List<UserDTO> resultUserList = users.stream()
+                .filter(user -> user.getSlack().equals(fromSlackName))
+                .collect(Collectors.toList());
+        if (resultUserList.size() != 1) {
+            throw new IllegalArgumentException("Not one fromSlackName found in users");
+        }
+        return resultUserList.get(0);
     }
 
     public Set<UserDTO> getUsers() {
         checkIsTextContainsSlackName();
-        Set<UserDTO> result = new LinkedHashSet<>(users.values());
-        log.debug("Found '{}' team members in the text: '{}'", result.size(), text);
-        return result;
+        log.debug("Found '{}' team members in the text: '{}'", users.size(), text);
+        return users;
     }
 
     public void checkIsTextContainsSlackName() {

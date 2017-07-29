@@ -8,6 +8,7 @@ import ua.com.juja.microservices.teams.slackbot.service.UserService;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,29 +43,17 @@ public class SlackNameHandlerService {
             log.debug("Add '@' to slack name: '{}'", fromSlackName);
             fromSlackName = "@" + fromSlackName;
         }
-        log.debug("Started convertSlackNamesToMap for user '{}': text '{}", fromSlackName, text);
-        Map<String, UserDTO> users = convertSlackNamesToMap(fromSlackName, text);
-        log.debug("Finished convertSlackNamesToMap for user '{}': text '{}", fromSlackName, text);
+        log.debug("Started creating users map for user '{}' and text '{}'", fromSlackName, text);
+        List<String> slackNames = extractSlackNamesFromText(text);
+        slackNames.add(fromSlackName);
+        log.debug("Started finding slack names: '{}' in User service", slackNames);
+        Set<UserDTO> users = new HashSet<>(userService.findUsersBySlackNames(slackNames));
+        log.debug("Finished finding slack names: '{}' in User service", users.toString());
         log.debug("Started create slackParsedCommand from user '{}': text '{}", fromSlackName, text);
         SlackParsedCommand slackParsedCommand = new SlackParsedCommand(fromSlackName, text, users);
         log.debug("Finished create slackParsedCommand by user '{}' from text '{}'", fromSlackName, text);
         log.info("Create slackParsedCommand by user '{}' from text '{}", fromSlackName, text);
         return slackParsedCommand;
-    }
-
-    private Map<String, UserDTO> convertSlackNamesToMap(String fromSlackName, String text) {
-        log.debug("Started creating users map for user '{}' and text '{}'", fromSlackName, text);
-        List<String> slackNames = extractSlackNamesFromText(text);
-        slackNames.add(fromSlackName);
-        log.debug("Started finding slack names: '{}' in User service", slackNames);
-        List<UserDTO> userDTOs = userService.findUsersBySlackNames(slackNames);
-        log.debug("Finished finding slack names: '{}' in User service", userDTOs.toString());
-        log.debug("Started convert users '{}' to map", userDTOs.toString());
-        Map<String, UserDTO> users = userDTOs.stream()
-                .collect(Collectors.toMap(userDTO -> userDTO.getSlack(), user -> user));
-        log.debug("Finished convert users '{}' to map", users.toString());
-        log.info("Created users map for slacknames'", slackNames.toString());
-        return users;
     }
 
     public Set<String> convertUuidsToSlackNames(Set<String> members) {

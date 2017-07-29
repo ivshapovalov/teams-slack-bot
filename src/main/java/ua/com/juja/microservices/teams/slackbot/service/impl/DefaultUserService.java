@@ -17,11 +17,10 @@ import java.util.List;
 @Slf4j
 public class DefaultUserService implements UserService {
 
-    @Qualifier("fake")
     private final UserRepository userRepository;
 
     @Inject
-    public DefaultUserService(@Qualifier("fake") UserRepository userRepository) {
+    public DefaultUserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 

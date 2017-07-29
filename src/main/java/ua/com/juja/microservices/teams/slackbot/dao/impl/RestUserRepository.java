@@ -1,8 +1,8 @@
 package ua.com.juja.microservices.teams.slackbot.dao.impl;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -23,8 +23,8 @@ import java.util.List;
  * @author Ivan Shapovalov
  */
 @Repository
-@Qualifier("rest")
 @Slf4j
+@Profile({"production", "default"})
 public class RestUserRepository extends AbstractRestRepository implements UserRepository {
 
     private final RestTemplate restTemplate;

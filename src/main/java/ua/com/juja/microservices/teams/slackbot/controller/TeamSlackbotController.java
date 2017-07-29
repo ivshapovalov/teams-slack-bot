@@ -29,10 +29,10 @@ import java.util.stream.Collectors;
 public class TeamSlackbotController {
 
     private final SlackNameHandlerService slackNameHandlerService;
+    private final String SORRY_MESSAGE = "Sorry! You're not lucky enough to use our slack command";
     @Value("${slack.slashCommandToken}")
     private String slackToken;
     private TeamSlackbotService teamSlackbotService;
-
     private ExceptionsHandler exceptionsHandler;
 
     @Inject
@@ -59,12 +59,12 @@ public class TeamSlackbotController {
             log.warn("Received invalid slack token: '{}' in command 'Activate team' from user: '{}'. Returns to " +
                             "slack!",
                     token, fromUser);
-            sendResponseMessage(response, getMessageInvalidSlackCommand());
+            sendResponseMessage(response, SORRY_MESSAGE);
         }
 
         String message = String.format("Thanks, Activate Team job started!");
         log.debug("Started send first response message to slack '{}' ", message);
-        sendResponseMessage(response, message);
+        //sendResponseMessage(response, message);
         log.debug("Finished send first response message to slack '{}' ", message);
 
         log.debug("Started create slackParsedCommand from user '{}' and text '{}'", fromUser, text);
@@ -72,7 +72,7 @@ public class TeamSlackbotController {
         log.debug("Finished create slackParsedCommand");
 
         log.debug("Started create TeamRequest");
-        TeamRequest teamRequest = new TeamRequest(slackParsedCommand, responseUrl);
+        TeamRequest teamRequest = new TeamRequest(slackParsedCommand);
         log.debug("Finished create TeamRequest");
 
         log.debug("Send activate team request to Teams service. Team: '{}'", teamRequest.toString());
@@ -89,7 +89,7 @@ public class TeamSlackbotController {
         log.info("'Activate team' command processed : user: '{}' text: '{}' and sent message into slack: '{}'",
                 fromUser, text, message);
         RichMessage richMessage = new RichMessage(message);
-        Util.sendPostResponseAsRichMessage(responseUrl, richMessage);
+        //Util.sendPostResponseAsRichMessage(responseUrl, richMessage);
     }
 
     private void sendResponseMessage(HttpServletResponse response, String message) throws IOException {
@@ -123,10 +123,6 @@ public class TeamSlackbotController {
                                                       @RequestParam("text") String text) {
         //TODO Should be implemented feature SLB-F4
         return null;
-    }
-
-    private String getMessageInvalidSlackCommand() {
-        return "Sorry! You're not lucky enough to use our slack command.";
     }
 
 }
