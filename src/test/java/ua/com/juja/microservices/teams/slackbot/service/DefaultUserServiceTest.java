@@ -13,11 +13,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
@@ -42,9 +39,9 @@ public class DefaultUserServiceTest {
                 new UserDTO("uuid2", "user2")});
         given(userRepository.findUsersBySlackNames(slackNamesRequest)).willReturn(expected);
         //when
-        List<UserDTO> result = userService.findUsersBySlackNames(slackNamesRequest);
+        List<UserDTO> actual = userService.findUsersBySlackNames(slackNamesRequest);
         //then
-        assertThat(expected, is(result));
+        assertThat(actual, is(expected));
         verify(userRepository).findUsersBySlackNames(slackNamesRequest);
         verifyNoMoreInteractions(userRepository);
     }
@@ -57,9 +54,9 @@ public class DefaultUserServiceTest {
                 new UserDTO("uuid2", "user2")});
         given(userRepository.findUsersByUuids(uuidsRequest)).willReturn(expected);
         //when
-        List<UserDTO> result = userService.findUsersByUuids(uuidsRequest);
+        List<UserDTO> actual = userService.findUsersByUuids(uuidsRequest);
         //then
-        assertThat(expected, is(result));
+        assertThat(actual, is(expected));
         verify(userRepository).findUsersByUuids(uuidsRequest);
         verifyNoMoreInteractions(userRepository);
     }

@@ -32,28 +32,26 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-
 /**
  * @author Ivan Shapovalov
  */
-
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class RestUserRepositoryTest {
 
     @Rule
-    public ExpectedException thrown = ExpectedException.none();
+    final public ExpectedException expectedException = ExpectedException.none();
     @Inject
     private UserRepository userRepository;
     @Inject
     private RestTemplate restTemplate;
     private MockRestServiceServer mockServer;
     @Value("${user.baseURL}")
-    private String userUrlBase;
+    private String userBaseUrl;
     @Value("${endpoint.userSearchBySlackName}")
-    private String userUrlFindUsersBySlackNames;
+    private String userFindUsersBySlackNamesUrl;
     @Value("${endpoint.userSearchByUuids}")
-    private String userUrlFindUsersByUuids;
+    private String userFindUsersByUuidsUrl;
 
     @Before
     public void setup() {
@@ -63,7 +61,6 @@ public class RestUserRepositoryTest {
     @Test
     public void findUsersBySlackNamesReturnUserDTOCorrectly() throws IOException {
 
-        //given
         List<String> slackNames = new ArrayList<>();
         slackNames.add("@user1");
         slackNames.add("@user2");
@@ -74,20 +71,20 @@ public class RestUserRepositoryTest {
                 .collect(Collectors.toList());
 
         String jsonContentRequest = Utils.convertToString(ResourceUtils.resource
-                ("datasets/requestUserRepositoryGetUsersBySlacknames.json"));
+                ("request/requestUserRepositoryGetUsersBySlacknames.json"));
 
         String jsonContentExpectedResponse = Utils.convertToString(
-                resource("datasets/responseUserRepositoryGetUsersBySlacknames.json"));
-        mockServer.expect(requestTo(userUrlBase + userUrlFindUsersBySlackNames))
+                resource("response/responseUserRepositoryGetUsersBySlacknames.json"));
+        mockServer.expect(requestTo(userBaseUrl + userFindUsersBySlackNamesUrl))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8))
                 .andExpect(content().string(jsonContentRequest))
                 .andRespond(withSuccess(jsonContentExpectedResponse, MediaType.APPLICATION_JSON_UTF8));
-        //when
-        List<UserDTO> result = userRepository.findUsersBySlackNames(slackNames);
-        // then
+
+        List<UserDTO> actual = userRepository.findUsersBySlackNames(slackNames);
+
         mockServer.verify();
-        assertThat(expected, is(result));
+        assertThat(actual, is(expected));
     }
 
     @Test
@@ -103,19 +100,19 @@ public class RestUserRepositoryTest {
                 .collect(Collectors.toList());
 
         String jsonContentRequest = Utils.convertToString(ResourceUtils.resource
-                ("datasets/requestUserRepositoryGetUsersByUuids.json"));
+                ("request/requestUserRepositoryGetUsersByUuids.json"));
 
         String jsonContentExpectedResponse = Utils.convertToString(
-                resource("datasets/responseUserRepositoryGetUsersByUuids.json"));
-        mockServer.expect(requestTo(userUrlBase + userUrlFindUsersByUuids))
+                resource("response/responseUserRepositoryGetUsersByUuids.json"));
+        mockServer.expect(requestTo(userBaseUrl + userFindUsersByUuidsUrl))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8))
                 .andExpect(content().string(jsonContentRequest))
                 .andRespond(withSuccess(jsonContentExpectedResponse, MediaType.APPLICATION_JSON_UTF8));
         //when
-        List<UserDTO> result = userRepository.findUsersByUuids(uuids);
+        List<UserDTO> actual = userRepository.findUsersByUuids(uuids);
         // then
         mockServer.verify();
-        assertThat(expected, is(result));
+        assertThat(actual, is(expected));
     }
 }

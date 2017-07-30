@@ -30,4 +30,10 @@ public class Utils {
         }
         return buffer.toString();
     }
+
+    public static <T> void checkNull(T parameter, String message) {
+        if (parameter == null) {
+            throw new IllegalArgumentException(message);
+        }
+    }
 }

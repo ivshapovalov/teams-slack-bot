@@ -65,7 +65,7 @@ public class ExceptionsHandler {
         String[] array = message.split("#");
         if (array.length > 1) {
             Set<String> uuids = new HashSet<>(Arrays.asList(array[1].split(",")));
-            Set<String> slackNames = slackNameHandlerService.convertUuidsToSlackNames(uuids);
+            Set<String> slackNames = slackNameHandlerService.getSlackNamesFromUuids(uuids);
             array[1] = slackNames.stream().collect(Collectors.joining(","));
             message = Arrays.asList(array).stream().collect(Collectors.joining(""));
         }

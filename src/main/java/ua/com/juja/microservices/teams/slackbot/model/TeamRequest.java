@@ -6,12 +6,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.constraints.NotEmpty;
 import ua.com.juja.microservices.teams.slackbot.exceptions.WrongCommandFormatException;
 
+import java.util.Collections;
 import java.util.Set;
 
 /**
  * @author Ivan Shapovalov
  */
-@Getter
 @ToString(exclude = "TEAM_SIZE")
 @Slf4j
 public class TeamRequest {
@@ -33,5 +33,9 @@ public class TeamRequest {
         this.members = members;
         log.debug("Finished creating new TeamRequest '{}'", this);
         log.info("Finished creating new TeamRequest");
+    }
+
+    public Set<String> getMembers() {
+        return Collections.unmodifiableSet(members);
     }
 }

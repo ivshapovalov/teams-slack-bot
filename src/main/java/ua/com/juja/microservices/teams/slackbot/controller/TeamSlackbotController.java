@@ -78,9 +78,9 @@ public class TeamSlackbotController {
         Team activatedTeam = teamSlackbotService.activateTeam(teamRequest);
         log.debug("Received response from Teams service: '{}'", activatedTeam.toString());
 
-        log.debug("Started convertUuidsToSlackNames for team '{}' ", activatedTeam.toString());
-        Set<String> slackNames = slackNameHandlerService.convertUuidsToSlackNames(activatedTeam.getMembers());
-        log.debug("Finished convertUuidsToSlackNames for team '{}'. slacknames is '{}' ", activatedTeam.toString()
+        log.debug("Started getSlackNamesFromUuids for team '{}' ", activatedTeam.toString());
+        Set<String> slackNames = slackNameHandlerService.getSlackNamesFromUuids(activatedTeam.getMembers());
+        log.debug("Finished getSlackNamesFromUuids for team '{}'. slacknames is '{}' ", activatedTeam.toString()
                 , slackNames);
 
         message = String.format("Thanks, new Team for members '%s' activated",

@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ua.com.juja.microservices.teams.slackbot.model.UserDTO;
 import ua.com.juja.microservices.teams.slackbot.service.UserService;
+import ua.com.juja.microservices.teams.slackbot.util.Utils;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -36,6 +37,7 @@ public class SlackNameHandlerService {
     }
 
     public Set<String> getUuidsFromText(String text) {
+        Utils.checkNull(text,"Text must not be null!");
         log.debug("Started creating users set for text '{}'", text);
         List<String> slackNames = getSlackNamesFromText(text);
         log.debug("Finished creating users set for text '{}'. Set is '{}'", text, slackNames);
@@ -49,7 +51,8 @@ public class SlackNameHandlerService {
         return users;
     }
 
-    public Set<String> convertUuidsToSlackNames(Set<String> members) {
+    public Set<String> getSlackNamesFromUuids(Set<String> members) {
+        Utils.checkNull(members,"Team members must not be null!");
         log.debug("Started find uuids '{}' in User service", members);
         List<UserDTO> userDTOs = userService.findUsersByUuids(new ArrayList<>(members));
         log.debug("Finished find uuids '{}' in User service", userDTOs.toString());

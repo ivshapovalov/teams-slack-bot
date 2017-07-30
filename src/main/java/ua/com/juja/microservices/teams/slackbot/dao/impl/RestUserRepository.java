@@ -14,6 +14,7 @@ import ua.com.juja.microservices.teams.slackbot.exceptions.ApiError;
 import ua.com.juja.microservices.teams.slackbot.exceptions.UserExchangeException;
 import ua.com.juja.microservices.teams.slackbot.model.SlackNameRequest;
 import ua.com.juja.microservices.teams.slackbot.model.UserDTO;
+import ua.com.juja.microservices.teams.slackbot.util.Utils;
 
 import javax.inject.Inject;
 import java.util.Arrays;
@@ -77,7 +78,6 @@ public class RestUserRepository extends AbstractRestRepository implements UserRe
     @Override
     public List<UserDTO> findUsersByUuids(List<String> uuids) {
         log.debug("Received uids to convert : '{}'", uuids);
-
         log.debug("Started creating slackNameRequest and HttpEntity");
         SlackNameRequest slackNameRequest = new SlackNameRequest(uuids);
         HttpEntity<SlackNameRequest> request = new HttpEntity<>(slackNameRequest, setupBaseHttpHeaders());
