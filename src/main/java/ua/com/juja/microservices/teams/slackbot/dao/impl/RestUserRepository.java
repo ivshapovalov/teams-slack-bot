@@ -14,7 +14,6 @@ import ua.com.juja.microservices.teams.slackbot.exceptions.ApiError;
 import ua.com.juja.microservices.teams.slackbot.exceptions.UserExchangeException;
 import ua.com.juja.microservices.teams.slackbot.model.SlackNameRequest;
 import ua.com.juja.microservices.teams.slackbot.model.UserDTO;
-import ua.com.juja.microservices.teams.slackbot.util.Utils;
 
 import javax.inject.Inject;
 import java.util.Arrays;
@@ -27,7 +26,6 @@ import java.util.List;
 @Slf4j
 @Profile({"production", "default"})
 public class RestUserRepository extends AbstractRestRepository implements UserRepository {
-
     private final RestTemplate restTemplate;
 
     @Value("${user.baseURL}")
@@ -67,6 +65,7 @@ public class RestUserRepository extends AbstractRestRepository implements UserRe
             log.debug("Finished request to Users service. Response is: '{}'", response.toString());
             users = Arrays.asList(response.getBody());
         } catch (HttpClientErrorException ex) {
+            //TODO покрыть тестами
             ApiError error = convertToApiError(ex);
             log.warn("Users service returned an error: '{}'", error);
             throw new UserExchangeException(error, ex);
@@ -93,6 +92,7 @@ public class RestUserRepository extends AbstractRestRepository implements UserRe
             log.debug("Finished request to Users service. Response is: '{}'", response.toString());
             result = Arrays.asList(response.getBody());
         } catch (HttpClientErrorException ex) {
+            //TODO покрыть тестами
             ApiError error = convertToApiError(ex);
             log.warn("Users service returned an error: '{}'", error);
             throw new UserExchangeException(error, ex);
