@@ -13,10 +13,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
+import ua.com.juja.microservices.teams.slackbot.exceptions.UserExchangeException;
 import ua.com.juja.microservices.teams.slackbot.model.User;
 import ua.com.juja.microservices.teams.slackbot.repository.UserRepository;
-import ua.com.juja.microservices.teams.slackbot.exceptions.UserExchangeException;
-import ua.com.juja.microservices.teams.slackbot.util.Utils;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -79,10 +78,10 @@ public class RestUserRepositoryTest {
         List<User> expected = correctSlackNames.stream().map(slackName -> new User(String.valueOf(number[0]++), slackName))
                 .collect(Collectors.toList());
 
-        String jsonContentRequest = Utils.convertToString(ResourceUtils.resource
+        String jsonContentRequest = TestUtils.convertToString(ResourceUtils.resource
                 ("request/requestUserRepositoryGetUsersBySlacknames.json"));
 
-        String jsonContentExpectedResponse = Utils.convertToString(
+        String jsonContentExpectedResponse = TestUtils.convertToString(
                 resource("response/responseUserRepositoryGetUsersBySlacknames.json"));
         mockServer.expect(requestTo(userBaseUrl + userFindUsersBySlackNamesUrl))
                 .andExpect(method(HttpMethod.POST))
@@ -96,7 +95,6 @@ public class RestUserRepositoryTest {
         assertThat(actual, is(expected));
     }
 
-
     @Test
     public void findUsersBySlackNamesUserServerReturnException() throws IOException {
 
@@ -106,10 +104,10 @@ public class RestUserRepositoryTest {
         slackNames.add("user3");
         slackNames.add("@user4");
 
-        String jsonContentRequest = Utils.convertToString(ResourceUtils.resource
+        String jsonContentRequest = TestUtils.convertToString(ResourceUtils.resource
                 ("request/requestUserRepositoryGetUsersBySlacknames.json"));
 
-        String jsonContentExpectedResponse = Utils.convertToString(
+        String jsonContentExpectedResponse = TestUtils.convertToString(
                 resource("response/responseUserRepositoryThrowsException.json"));
         mockServer.expect(requestTo(userBaseUrl + userFindUsersBySlackNamesUrl))
                 .andExpect(method(HttpMethod.POST))
@@ -135,10 +133,10 @@ public class RestUserRepositoryTest {
         List<User> expected = uuids.stream().map(uuid -> new User(uuid, "@user" + uuid))
                 .collect(Collectors.toList());
 
-        String jsonContentRequest = Utils.convertToString(ResourceUtils.resource
+        String jsonContentRequest = TestUtils.convertToString(ResourceUtils.resource
                 ("request/requestUserRepositoryGetUsersByUuids.json"));
 
-        String jsonContentExpectedResponse = Utils.convertToString(
+        String jsonContentExpectedResponse = TestUtils.convertToString(
                 resource("response/responseUserRepositoryGetUsersByUuids.json"));
         mockServer.expect(requestTo(userBaseUrl + userFindUsersByUuidsUrl))
                 .andExpect(method(HttpMethod.POST))
@@ -161,10 +159,10 @@ public class RestUserRepositoryTest {
         uuids.add("3");
         uuids.add("4");
 
-        String jsonContentRequest = Utils.convertToString(ResourceUtils.resource
+        String jsonContentRequest = TestUtils.convertToString(ResourceUtils.resource
                 ("request/requestUserRepositoryGetUsersByUuids.json"));
 
-        String jsonContentExpectedResponse = Utils.convertToString(
+        String jsonContentExpectedResponse = TestUtils.convertToString(
                 resource("response/responseUserRepositoryThrowsException.json"));
         mockServer.expect(requestTo(userBaseUrl + userFindUsersByUuidsUrl))
                 .andExpect(method(HttpMethod.POST))

@@ -11,7 +11,9 @@ import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-
+/**
+ * @author Ivan Shapovalov
+ */
 public class TeamRequestTest {
     private static final int TEAM_SIZE = 4;
     @Rule

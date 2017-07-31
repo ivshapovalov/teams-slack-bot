@@ -13,11 +13,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
-import ua.com.juja.microservices.teams.slackbot.repository.TeamRepository;
 import ua.com.juja.microservices.teams.slackbot.exceptions.TeamExchangeException;
 import ua.com.juja.microservices.teams.slackbot.model.Team;
 import ua.com.juja.microservices.teams.slackbot.model.TeamRequest;
-import ua.com.juja.microservices.teams.slackbot.util.Utils;
+import ua.com.juja.microservices.teams.slackbot.repository.TeamRepository;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -67,9 +66,9 @@ public class RestTeamRepositoryTest {
         Set<String> members = new LinkedHashSet<>(Arrays.asList(new String[]{"uuid1", "uuid2", "uuid3", "uuid4"}));
         TeamRequest teamRequest = new TeamRequest(members);
 
-        String expectedJsonRequestBody = Utils.convertToString(ResourceUtils.resource
+        String expectedJsonRequestBody = TestUtils.convertToString(ResourceUtils.resource
                 ("request/requestTeamRepositoryActivateTeamIfUsersNotInActiveTeam.json"));
-        String expectedJsonResponseBody = Utils.convertToString(ResourceUtils.resource
+        String expectedJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
                 ("response/responseTeamRepositoryActivateTeamIfUsersNotInActiveTeam.json"));
         String expectedRequestHeader = "application/json";
         mockServer.expect(requestTo(teamsServiceURL))
@@ -93,9 +92,9 @@ public class RestTeamRepositoryTest {
                 "uuid4"}));
         TeamRequest teamRequest = new TeamRequest(members);
 
-        String expectedJsonRequestBody = Utils.convertToString(ResourceUtils.resource
+        String expectedJsonRequestBody = TestUtils.convertToString(ResourceUtils.resource
                 ("request/requestTeamRepositoryActivateTeamIfUsersNotInActiveTeam.json"));
-        String expectedJsonResponseBody = Utils.convertToString(ResourceUtils.resource
+        String expectedJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
                 ("response/responseTeamRepositoryActivateTeamIfUsersInActiveTeamThrowsException.json"));
         String expectedRequestHeader = "application/json";
         mockServer.expect(requestTo(teamsServiceURL))
@@ -110,4 +109,5 @@ public class RestTeamRepositoryTest {
         teamRepository.activateTeam(teamRequest);
 
     }
+
 }

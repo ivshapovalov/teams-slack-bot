@@ -62,11 +62,11 @@ public class ExceptionsHandler {
 
     @ExceptionHandler(TeamExchangeException.class)
     public void handleTeamExchangeException(TeamExchangeException ex) {
+        log.warn("TeamExchangeException : {}", ex.detailMessage());
         String message = ex.getMessage();
         if (ex.getError() != null && ex.getError().getExceptionMessage().contains("#")) {
             message = replaceUuidsBySlackNamesInMessage(ex.getError().getExceptionMessage());
         }
-        log.warn("TeamExchangeException : {}", ex.detailMessage());
         sendPostResponseAsRichMessage(responseUrl, new RichMessage(message));
     }
 

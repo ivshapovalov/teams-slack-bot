@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.exceptions.ExceptionsHandler;
-import ua.com.juja.microservices.teams.slackbot.model.Team;
 import ua.com.juja.microservices.teams.slackbot.service.TeamSlackbotService;
 
 import javax.inject.Inject;
@@ -49,18 +48,16 @@ public class TeamSlackbotController {
         log.debug("Received slash command 'Activate team' from user: '{}' text: '{}' token: '{}' response_url: '{}'",
                 fromUser, text, token, responseUrl);
         exceptionsHandler.setResponseUrl(responseUrl);
-
         if (!isTokenCorrect(token, fromUser, response)) {
             return;
         }
-
         log.debug("Started send first response message to slack '{}' ", ACTIVATE_TEAM_MESSAGE);
-        sendResponseMessage(response, ACTIVATE_TEAM_MESSAGE, HttpServletResponse.SC_OK);
+        sendFirstResponseMessage(response, ACTIVATE_TEAM_MESSAGE, HttpServletResponse.SC_OK);
         log.debug("Finished send first response message to slack '{}' ", ACTIVATE_TEAM_MESSAGE);
 
         log.debug("Started activate team request to Team Slackbot service. Text: '{}'", text);
         RichMessage message = teamSlackbotService.activateTeam(text);
-        log.debug("Finished activate team in Team Slackbot service. Message from service: '{}'",message);
+        log.debug("Finished activate team in Team Slackbot service. Message from service: '{}'", message);
 
         log.debug("Started send last response message to slack '{}' ", message);
         restTemplate.postForObject(responseUrl, message, String.class);
@@ -74,14 +71,14 @@ public class TeamSlackbotController {
                                    HttpServletResponse response) throws IOException {
         if (!token.equals(slackToken)) {
             log.warn("Received invalid slack token: '{}' in command 'Activate team' from user: '{}'. Returns to " +
-                            "slack!",token, fromUser);
-            sendResponseMessage(response, SORRY_MESSAGE, HttpServletResponse.SC_BAD_REQUEST);
+                    "slack!", token, fromUser);
+            sendFirstResponseMessage(response, SORRY_MESSAGE, HttpServletResponse.SC_BAD_REQUEST);
             return false;
         }
         return true;
     }
 
-    private void sendResponseMessage(HttpServletResponse response, String message, int status) throws IOException {
+    private void sendFirstResponseMessage(HttpServletResponse response, String message, int status) throws IOException {
         PrintWriter printWriter = response.getWriter();
         response.setStatus(status);
         printWriter.print(message);

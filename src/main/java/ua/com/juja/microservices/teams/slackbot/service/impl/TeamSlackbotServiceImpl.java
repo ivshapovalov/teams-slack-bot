@@ -7,7 +7,6 @@ import ua.com.juja.microservices.teams.slackbot.model.Team;
 import ua.com.juja.microservices.teams.slackbot.model.TeamRequest;
 import ua.com.juja.microservices.teams.slackbot.service.TeamService;
 import ua.com.juja.microservices.teams.slackbot.service.TeamSlackbotService;
-import ua.com.juja.microservices.teams.slackbot.util.Utils;
 
 import javax.inject.Inject;
 import java.util.Set;
@@ -34,7 +33,7 @@ public class TeamSlackbotServiceImpl implements TeamSlackbotService {
 
         log.debug("Started extract members from text '{}'", text);
         Set<String> members = slackNameHandlerService.getUuidsFromText(text);
-        log.debug("Finished extract members '{}' from text '{}'", members,text);
+        log.debug("Finished extract members '{}' from text '{}'", members, text);
 
         log.debug("Started create TeamRequest");
         TeamRequest teamRequest = new TeamRequest(members);

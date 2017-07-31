@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.ToString;
 
 /**
- * @author Nikolay Horushko
+ * @author Ivan Shapovalov
  */
 @Getter
 @AllArgsConstructor

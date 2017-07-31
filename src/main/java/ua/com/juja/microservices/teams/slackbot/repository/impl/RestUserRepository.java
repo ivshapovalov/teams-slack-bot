@@ -9,12 +9,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import ua.com.juja.microservices.teams.slackbot.model.User;
-import ua.com.juja.microservices.teams.slackbot.model.UserUuidRequest;
-import ua.com.juja.microservices.teams.slackbot.repository.UserRepository;
 import ua.com.juja.microservices.teams.slackbot.exceptions.ApiError;
 import ua.com.juja.microservices.teams.slackbot.exceptions.UserExchangeException;
+import ua.com.juja.microservices.teams.slackbot.model.User;
 import ua.com.juja.microservices.teams.slackbot.model.UserSlackNameRequest;
+import ua.com.juja.microservices.teams.slackbot.model.UserUuidRequest;
+import ua.com.juja.microservices.teams.slackbot.repository.UserRepository;
 
 import javax.inject.Inject;
 import java.util.Arrays;

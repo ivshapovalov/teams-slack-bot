@@ -13,7 +13,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.exceptions.ExceptionsHandler;
-import ua.com.juja.microservices.teams.slackbot.exceptions.WrongCommandFormatException;
 import ua.com.juja.microservices.teams.slackbot.model.Team;
 import ua.com.juja.microservices.teams.slackbot.model.User;
 import ua.com.juja.microservices.teams.slackbot.service.TeamSlackbotService;
@@ -32,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * @author Nikolay Horushko
+ * @author Ivan Shapovalov
  */
 @RunWith(SpringRunner.class)
 @WebMvcTest(TeamSlackbotController.class)
@@ -40,7 +39,6 @@ public class TeamSlackbotControllerTest {
 
     private final static String SORRY_MESSAGE = "Sorry! You're not lucky enough to use our slack command";
     private final static String ACTIVATE_TEAM_MESSAGE = "Thanks, Activate Team job started!";
-    private final static String WRONG_COMMAND_MESSAGE = "Wrong command";
 
     @Value("${rest.api.version}")
     private String restApiVersion;

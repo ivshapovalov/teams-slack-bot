@@ -7,7 +7,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * @author Nikolay Horushko
+ * @author Ivan Shapovalov
  */
 @AllArgsConstructor
 public class UserSlackNameRequest {
