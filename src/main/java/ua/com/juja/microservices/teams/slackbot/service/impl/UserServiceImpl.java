@@ -15,12 +15,12 @@ import java.util.List;
  */
 @Service
 @Slf4j
-public class DefaultUserService implements UserService {
+public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
 
     @Inject
-    public DefaultUserService(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 

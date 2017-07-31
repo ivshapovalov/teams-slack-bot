@@ -1,6 +1,5 @@
 package ua.com.juja.microservices.teams.slackbot.service;
 
-import me.ramswaroop.jbot.core.slack.models.RichMessage;
 import org.springframework.stereotype.Service;
 import ua.com.juja.microservices.teams.slackbot.model.Team;
 import ua.com.juja.microservices.teams.slackbot.model.TeamRequest;
@@ -9,8 +8,8 @@ import ua.com.juja.microservices.teams.slackbot.model.TeamRequest;
  * @author Ivan Shapovalov
  */
 @Service
-public interface TeamSlackbotService {
+public interface TeamService {
 
-    RichMessage activateTeam(String text);
+    Team activateTeam(TeamRequest teamRequest);
 
 }

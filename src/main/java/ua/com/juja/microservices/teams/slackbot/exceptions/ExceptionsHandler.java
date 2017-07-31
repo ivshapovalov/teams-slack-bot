@@ -2,8 +2,10 @@ package ua.com.juja.microservices.teams.slackbot.exceptions;
 
 import lombok.extern.slf4j.Slf4j;
 import me.ramswaroop.jbot.core.slack.models.RichMessage;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.service.impl.SlackNameHandlerService;
 import ua.com.juja.microservices.teams.slackbot.util.Utils;
 
@@ -20,12 +22,20 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ExceptionsHandler {
 
+    private final RestTemplate restTemplate;
+
     private SlackNameHandlerService slackNameHandlerService;
     private String responseUrl;
 
     @Inject
-    public ExceptionsHandler(SlackNameHandlerService slackNameHandlerService) {
+    public ExceptionsHandler(SlackNameHandlerService slackNameHandlerService,
+                             RestTemplate restTemplate) {
         this.slackNameHandlerService = slackNameHandlerService;
+        this.restTemplate = restTemplate;
+    }
+
+    public void sendPostResponseAsRichMessage(String responseUrl, RichMessage richMessage) {
+        restTemplate.postForObject(responseUrl, richMessage, String.class);
     }
 
     public void setResponseUrl(String responseUrl) {
@@ -35,19 +45,19 @@ public class ExceptionsHandler {
     @ExceptionHandler(Exception.class)
     public void handleAllOtherExceptions(Exception ex) {
         log.warn("Other Exception': {}", ex.getMessage());
-        Utils.sendPostResponseAsRichMessage(responseUrl, new RichMessage(ex.getMessage()));
+        sendPostResponseAsRichMessage(responseUrl, new RichMessage(ex.getMessage()));
     }
 
     @ExceptionHandler(WrongCommandFormatException.class)
     public void handleWrongCommandFormatException(Exception ex) {
         log.warn("WrongCommandFormatException: {}", ex.getMessage());
-        Utils.sendPostResponseAsRichMessage(responseUrl, new RichMessage(ex.getMessage()));
+        sendPostResponseAsRichMessage(responseUrl, new RichMessage(ex.getMessage()));
     }
 
     @ExceptionHandler(UserExchangeException.class)
     public void handleUserExchangeException(UserExchangeException ex) {
         log.warn("UserExchangeException: {}", ex.detailMessage());
-        Utils.sendPostResponseAsRichMessage(responseUrl, new RichMessage(ex.getMessage()));
+        sendPostResponseAsRichMessage(responseUrl, new RichMessage(ex.getMessage()));
     }
 
     @ExceptionHandler(TeamExchangeException.class)
@@ -57,7 +67,7 @@ public class ExceptionsHandler {
             message = replaceUuidsBySlackNamesInMessage(ex.getError().getExceptionMessage());
         }
         log.warn("TeamExchangeException : {}", ex.detailMessage());
-        Utils.sendPostResponseAsRichMessage(responseUrl, new RichMessage(message));
+        sendPostResponseAsRichMessage(responseUrl, new RichMessage(message));
     }
 
     private String replaceUuidsBySlackNamesInMessage(String message) {

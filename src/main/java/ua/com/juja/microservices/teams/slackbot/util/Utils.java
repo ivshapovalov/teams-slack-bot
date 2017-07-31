@@ -16,11 +16,6 @@ import java.io.Reader;
 @Slf4j
 public class Utils {
 
-    public static void sendPostResponseAsRichMessage(String responseUrl, RichMessage richMessage) {
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.postForObject(responseUrl, richMessage, String.class);
-    }
-
     public static String convertToString(Reader reader) throws IOException {
         char[] arr = new char[8 * 1024];
         StringBuilder buffer = new StringBuilder();

@@ -23,7 +23,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class DefaultUserServiceTest {
+public class UserServiceImplTest {
 
     @Inject
     private UserService userService;

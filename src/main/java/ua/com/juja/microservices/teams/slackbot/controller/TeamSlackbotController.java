@@ -8,27 +8,24 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.exceptions.ExceptionsHandler;
 import ua.com.juja.microservices.teams.slackbot.model.Team;
-import ua.com.juja.microservices.teams.slackbot.model.TeamRequest;
 import ua.com.juja.microservices.teams.slackbot.service.TeamSlackbotService;
-import ua.com.juja.microservices.teams.slackbot.service.impl.SlackNameHandlerService;
-import ua.com.juja.microservices.teams.slackbot.util.Utils;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/v1/commands")
 @Slf4j
 public class TeamSlackbotController {
 
-    private final SlackNameHandlerService slackNameHandlerService;
     private final String SORRY_MESSAGE = "Sorry! You're not lucky enough to use our slack command";
+    private final String ACTIVATE_TEAM_MESSAGE = "Thanks, Activate Team job started!";
+    private final RestTemplate restTemplate;
     @Value("${slack.slashCommandToken}")
     private String slackToken;
     private TeamSlackbotService teamSlackbotService;
@@ -36,12 +33,11 @@ public class TeamSlackbotController {
 
     @Inject
     public TeamSlackbotController(TeamSlackbotService teamSlackbotService,
-                                  SlackNameHandlerService slackNameHandlerService,
-                                  ExceptionsHandler exceptionsHandler) {
+                                  ExceptionsHandler exceptionsHandler,
+                                  RestTemplate restTemplate) {
         this.teamSlackbotService = teamSlackbotService;
-        this.slackNameHandlerService = slackNameHandlerService;
         this.exceptionsHandler = exceptionsHandler;
-
+        this.restTemplate = restTemplate;
     }
 
     @PostMapping(value = "/teams/activate", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
@@ -54,53 +50,43 @@ public class TeamSlackbotController {
                 fromUser, text, token, responseUrl);
         exceptionsHandler.setResponseUrl(responseUrl);
 
-        checkToken(token, fromUser, response);
+        if (!isTokenCorrect(token, fromUser, response)) {
+            return;
+        }
 
-        String message = String.format("Thanks, Activate Team job started!");
-        log.debug("Started send first response message to slack '{}' ", message);
-        sendResponseMessage(response, message);
-        log.debug("Finished send first response message to slack '{}' ", message);
+        log.debug("Started send first response message to slack '{}' ", ACTIVATE_TEAM_MESSAGE);
+        sendResponseMessage(response, ACTIVATE_TEAM_MESSAGE, HttpServletResponse.SC_OK);
+        log.debug("Finished send first response message to slack '{}' ", ACTIVATE_TEAM_MESSAGE);
 
-        log.debug("Started extract members from text '{}'", text);
-        Set<String> members = slackNameHandlerService.getUuidsFromText(text);
-        log.debug("Finished extract members '{}' from text '{}'", members,text);
+        log.debug("Started activate team request to Team Slackbot service. Text: '{}'", text);
+        RichMessage message = teamSlackbotService.activateTeam(text);
+        log.debug("Finished activate team in Team Slackbot service. Message from service: '{}'",message);
 
-        log.debug("Started create TeamRequest");
-        TeamRequest teamRequest = new TeamRequest(members);
-        log.debug("Finished create TeamRequest");
+        log.debug("Started send last response message to slack '{}' ", message);
+        restTemplate.postForObject(responseUrl, message, String.class);
+        log.debug("Finished send last response message to slack '{}' ", message);
 
-        log.debug("Send activate team request to Teams service. Team: '{}'", teamRequest.toString());
-        Team activatedTeam = teamSlackbotService.activateTeam(teamRequest);
-        log.debug("Received response from Teams service: '{}'", activatedTeam.toString());
-
-        log.debug("Started getSlackNamesFromUuids for team '{}' ", activatedTeam.toString());
-        Set<String> slackNames = slackNameHandlerService.getSlackNamesFromUuids(activatedTeam.getMembers());
-        log.debug("Finished getSlackNamesFromUuids for team '{}'. slacknames is '{}' ", activatedTeam.toString()
-                , slackNames);
-
-        message = String.format("Thanks, new Team for members '%s' activated",
-                slackNames.stream().collect(Collectors.joining(",")));
         log.info("'Activate team' command processed : user: '{}' text: '{}' and sent message into slack: '{}'",
                 fromUser, text, message);
-        RichMessage richMessage = new RichMessage(message);
-        Utils.sendPostResponseAsRichMessage(responseUrl, richMessage);
     }
 
-    private void checkToken(@RequestParam("token") String token, @RequestParam("user_name") String fromUser, HttpServletResponse response) throws IOException {
+    private boolean isTokenCorrect(@RequestParam("token") String token, @RequestParam("user_name") String fromUser,
+                                   HttpServletResponse response) throws IOException {
         if (!token.equals(slackToken)) {
             log.warn("Received invalid slack token: '{}' in command 'Activate team' from user: '{}'. Returns to " +
-                            "slack!",
-                    token, fromUser);
-            sendResponseMessage(response, SORRY_MESSAGE);
+                            "slack!",token, fromUser);
+            sendResponseMessage(response, SORRY_MESSAGE, HttpServletResponse.SC_BAD_REQUEST);
+            return false;
         }
+        return true;
     }
 
-    private void sendResponseMessage(HttpServletResponse response, String message) throws IOException {
-        PrintWriter wr = response.getWriter();
-        response.setStatus(200);
-        wr.print(message);
-        wr.flush();
-        wr.close();
+    private void sendResponseMessage(HttpServletResponse response, String message, int status) throws IOException {
+        PrintWriter printWriter = response.getWriter();
+        response.setStatus(status);
+        printWriter.print(message);
+        printWriter.flush();
+        printWriter.close();
         log.info("Sent first response message to slack '{}' ", message);
     }
 

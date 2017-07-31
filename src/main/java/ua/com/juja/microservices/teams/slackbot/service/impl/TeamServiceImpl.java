@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import ua.com.juja.microservices.teams.slackbot.repository.TeamRepository;
 import ua.com.juja.microservices.teams.slackbot.model.Team;
 import ua.com.juja.microservices.teams.slackbot.model.TeamRequest;
-import ua.com.juja.microservices.teams.slackbot.service.TeamSlackbotService;
+import ua.com.juja.microservices.teams.slackbot.service.TeamService;
 import ua.com.juja.microservices.teams.slackbot.util.Utils;
 
 import javax.inject.Inject;
@@ -15,12 +15,12 @@ import javax.inject.Inject;
  */
 @Service
 @Slf4j
-public class DefaultTeamSlackbotService implements TeamSlackbotService {
+public class TeamServiceImpl implements TeamService {
 
     private final TeamRepository teamRepository;
 
     @Inject
-    public DefaultTeamSlackbotService(TeamRepository teamRepository) {
+    public TeamServiceImpl(TeamRepository teamRepository) {
         this.teamRepository = teamRepository;
     }
 
