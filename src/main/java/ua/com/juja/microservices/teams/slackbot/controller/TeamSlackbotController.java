@@ -27,8 +27,8 @@ public class TeamSlackbotController {
     private final RestTemplate restTemplate;
     @Value("${slack.slashCommandToken}")
     private String slackToken;
-    private TeamSlackbotService teamSlackbotService;
-    private ExceptionsHandler exceptionsHandler;
+    private final TeamSlackbotService teamSlackbotService;
+    private final ExceptionsHandler exceptionsHandler;
 
     @Inject
     public TeamSlackbotController(TeamSlackbotService teamSlackbotService,
@@ -62,7 +62,6 @@ public class TeamSlackbotController {
         log.debug("Started send last response message to slack '{}' ", message);
         restTemplate.postForObject(responseUrl, message, String.class);
         log.debug("Finished send last response message to slack '{}' ", message);
-
         log.info("'Activate team' command processed : user: '{}' text: '{}' and sent message into slack: '{}'",
                 fromUser, text, message);
     }

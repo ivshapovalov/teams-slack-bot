@@ -55,7 +55,7 @@ public class SlackNameHandlerServiceTest {
 
         String text = "text without slack name TexT text.";
         List<String> requestToUserService = Arrays.asList(new String[]{});
-        List<User> responseFromUserService = Arrays.asList();
+        List<User> responseFromUserService = Collections.emptyList();
         when(userService.findUsersBySlackNames(requestToUserService)).thenReturn(responseFromUserService);
 
         Set<String> actual = slackNameHandlerService.getUuidsFromText(text);
@@ -101,11 +101,10 @@ public class SlackNameHandlerServiceTest {
 
     @Test
     public void getUuidsFromTextIfMembersIsNullThrowsException() throws Exception {
-        String text = null;
         expectedException.expect(IllegalArgumentException.class);
         expectedException.expectMessage("Text must not be null!");
 
-        slackNameHandlerService.getUuidsFromText(text);
+        slackNameHandlerService.getUuidsFromText(null);
 
         verifyNoMoreInteractions(userService);
     }
@@ -134,7 +133,7 @@ public class SlackNameHandlerServiceTest {
         List<String> requestToUserService = Arrays.asList(new String[]{});
         Set<String> members = new LinkedHashSet<>();
         Set<String> expected = new LinkedHashSet<>();
-        List<User> responseFromUserService = Arrays.asList();
+        List<User> responseFromUserService = Collections.emptyList();
         when(userService.findUsersByUuids(requestToUserService)).thenReturn(responseFromUserService);
 
         Set<String> actual = slackNameHandlerService.getSlackNamesFromUuids(members);
@@ -148,11 +147,10 @@ public class SlackNameHandlerServiceTest {
     public void getSlackNamesFromUuidsIfMembersIsNullThrowsException() throws Exception {
 
         List<String> requestToUserService = Arrays.asList(new String[]{});
-        Set<String> members = null;
         expectedException.expect(IllegalArgumentException.class);
         expectedException.expectMessage("Team members must not be null!");
 
-        slackNameHandlerService.getSlackNamesFromUuids(members);
+        slackNameHandlerService.getSlackNamesFromUuids(null);
 
         verify(userService).findUsersByUuids(requestToUserService);
         verifyNoMoreInteractions(userService);

@@ -12,7 +12,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import ua.com.juja.microservices.teams.slackbot.model.Team;
 import ua.com.juja.microservices.teams.slackbot.model.TeamRequest;
-import ua.com.juja.microservices.teams.slackbot.repository.TeamRepository;
 import ua.com.juja.microservices.teams.slackbot.service.impl.SlackNameHandlerService;
 
 import javax.inject.Inject;
@@ -53,7 +52,7 @@ public class TeamSlackbotServiceTest {
     @Test
     public void activateTeamExecutedCorrectly() {
 
-        String text= "@slack1 @slack2 @slack3 @slack4";
+        String text = "@slack1 @slack2 @slack3 @slack4";
 
         Set<String> members = new LinkedHashSet<>(Arrays.asList(new String[]{"uuid1", "uuid2", "uuid3", "uuid4"}));
 
@@ -67,7 +66,7 @@ public class TeamSlackbotServiceTest {
         assertThat(actual.getText(), equalTo(expected.getText()));
         verify(slackNameHandlerService).getUuidsFromText(text);
         verify(teamService).activateTeam(any(TeamRequest.class));
-        verifyNoMoreInteractions(slackNameHandlerService,teamService);
+        verifyNoMoreInteractions(slackNameHandlerService, teamService);
     }
 
 

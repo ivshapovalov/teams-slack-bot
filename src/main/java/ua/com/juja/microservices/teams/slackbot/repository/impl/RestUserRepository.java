@@ -57,19 +57,8 @@ public class RestUserRepository extends AbstractRestRepository implements UserRe
         log.debug("Finished creating userSlackNameRequest and HttpEntity");
 
         List<User> users;
-        try {
-            String userServiceURL = userUrlBase + userUrlFindUsersBySlackNames;
-            log.debug("Started request to Users service url '{}'. Request is : '{}'", userServiceURL, request.toString
-                    ());
-            ResponseEntity<User[]> response = restTemplate.exchange(userServiceURL,
-                    HttpMethod.POST, request, User[].class);
-            log.debug("Finished request to Users service. Response is: '{}'", response.toString());
-            users = Arrays.asList(response.getBody());
-        } catch (HttpClientErrorException ex) {
-            ApiError error = convertToApiError(ex);
-            log.warn("Users service returned an error: '{}'", error);
-            throw new UserExchangeException(error, ex);
-        }
+        String userServiceURL = userUrlBase + userUrlFindUsersBySlackNames;
+        users = getUsers(request, userServiceURL);
         log.info("Found User: '{}' for slackNames: {}", users, slackNames);
         return users;
     }
@@ -81,22 +70,27 @@ public class RestUserRepository extends AbstractRestRepository implements UserRe
         UserUuidRequest userUuidRequest = new UserUuidRequest(uuids);
         HttpEntity<UserUuidRequest> request = new HttpEntity<>(userUuidRequest, setupBaseHttpHeaders());
         log.debug("Finished creating userUuidsRequest and HttpEntity");
+        List<User> users;
+        String userServiceURL = userUrlBase + userUrlFindUsersByUuids;
+        users = getUsers(request, userServiceURL);
+        log.info("Found User:{} for uuids: {}", users, uuids);
+        return users;
+    }
 
-        List<User> result;
+    private <T> List<User> getUsers(HttpEntity<T> request, String userServiceURL) {
+        List<User> users;
         try {
-            String userServiceURL = userUrlBase + userUrlFindUsersByUuids;
             log.debug("Started request to Users service url '{}'. Request is : '{}'", userServiceURL, request.toString
                     ());
             ResponseEntity<User[]> response = restTemplate.exchange(userServiceURL,
                     HttpMethod.POST, request, User[].class);
             log.debug("Finished request to Users service. Response is: '{}'", response.toString());
-            result = Arrays.asList(response.getBody());
+            users = Arrays.asList(response.getBody());
         } catch (HttpClientErrorException ex) {
             ApiError error = convertToApiError(ex);
             log.warn("Users service returned an error: '{}'", error);
             throw new UserExchangeException(error, ex);
         }
-        log.info("Found User:{} for uuids: {}", result, uuids);
-        return result;
+        return users;
     }
 }

@@ -24,7 +24,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anySet;
+import static org.mockito.Matchers.anySetOf;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -82,14 +82,14 @@ public class ExceptionHandlerTest {
                 "You cannot get/deactivate team if user in several teams",
                 "The reason of the exception is that user in several teams",
                 message,
-                Collections.EMPTY_LIST
+                Collections.emptyList()
         );
 
         TeamExchangeException exception = new TeamExchangeException(apiError, new RuntimeException("exception"));
         when(teamSlackbotService.activateTeam(activateTeamCommandText))
                 .thenThrow(exception);
         when(restTemplate.postForObject(anyString(), anyObject(), anyObject())).thenReturn("");
-        when(slackNameHandlerService.getSlackNamesFromUuids(anySet())).thenReturn(slackNames);
+        when(slackNameHandlerService.getSlackNamesFromUuids(anySetOf(String.class))).thenReturn(slackNames);
 
         mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(ACTIVATE_TEAM_URL),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate", activateTeamCommandText,
@@ -99,7 +99,7 @@ public class ExceptionHandlerTest {
                 .andExpect(content().string(ACTIVATE_TEAM_MESSAGE));
 
         verify(teamSlackbotService).activateTeam(activateTeamCommandText);
-        verify(slackNameHandlerService).getSlackNamesFromUuids(anySet());
+        verify(slackNameHandlerService).getSlackNamesFromUuids(anySetOf(String.class));
         verify(restTemplate).postForObject(anyString(), anyObject(), anyObject());
         verifyNoMoreInteractions(teamSlackbotService, restTemplate);
     }
@@ -112,7 +112,7 @@ public class ExceptionHandlerTest {
                 "User not found",
                 "User not found",
                 "Something went wrong",
-                Collections.EMPTY_LIST
+                Collections.emptyList()
         );
 
         UserExchangeException exception = new UserExchangeException(apiError, new RuntimeException("exception"));

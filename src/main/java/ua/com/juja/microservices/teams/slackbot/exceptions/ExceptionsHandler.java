@@ -2,12 +2,10 @@ package ua.com.juja.microservices.teams.slackbot.exceptions;
 
 import lombok.extern.slf4j.Slf4j;
 import me.ramswaroop.jbot.core.slack.models.RichMessage;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.service.impl.SlackNameHandlerService;
-import ua.com.juja.microservices.teams.slackbot.util.Utils;
 
 import javax.inject.Inject;
 import java.util.Arrays;
@@ -24,7 +22,7 @@ public class ExceptionsHandler {
 
     private final RestTemplate restTemplate;
 
-    private SlackNameHandlerService slackNameHandlerService;
+    private final SlackNameHandlerService slackNameHandlerService;
     private String responseUrl;
 
     @Inject
@@ -77,7 +75,7 @@ public class ExceptionsHandler {
             Set<String> uuids = new HashSet<>(Arrays.asList(array[1].split(",")));
             Set<String> slackNames = slackNameHandlerService.getSlackNamesFromUuids(uuids);
             array[1] = slackNames.stream().collect(Collectors.joining(","));
-            message = Arrays.asList(array).stream().collect(Collectors.joining(""));
+            message = Arrays.stream(array).collect(Collectors.joining(""));
         }
         log.debug("Finished find and replace uuids by slackNames in message {}", message);
         return message;

@@ -2,9 +2,6 @@ package ua.com.juja.microservices.teams.slackbot.util;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
-import java.io.Reader;
-
 /**
  * @author Ivan Shapovalov
  */

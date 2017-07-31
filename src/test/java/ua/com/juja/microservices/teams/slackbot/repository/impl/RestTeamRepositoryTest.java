@@ -41,7 +41,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 public class RestTeamRepositoryTest {
 
     @Rule
-    public ExpectedException expectedException = ExpectedException.none();
+    public final ExpectedException expectedException = ExpectedException.none();
     @Inject
     private TeamRepository teamRepository;
     @Inject

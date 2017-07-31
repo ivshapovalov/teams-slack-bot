@@ -29,7 +29,7 @@ public class SlackNameHandlerService {
      * quick test regExp http://regexr.com/
      */
     private final String SLACK_NAME_PATTERN = "@([a-zA-z0-9\\.\\_\\-]){1,21}";
-    private UserService userService;
+    private final UserService userService;
 
     @Inject
     public SlackNameHandlerService(UserService userService) {
@@ -45,7 +45,7 @@ public class SlackNameHandlerService {
         Set<User> usersDTO = new HashSet<>(userService.findUsersBySlackNames(slackNames));
         log.debug("Finished finding slack names: '{}' in User service", usersDTO.toString());
         Set<String> users = usersDTO.stream()
-                .map(user -> user.getUuid())
+                .map(User::getUuid)
                 .collect(Collectors.toSet());
         log.info("Create users set '{}' from text '{}", slackNames, text);
         return users;
@@ -57,7 +57,7 @@ public class SlackNameHandlerService {
         List<User> users = userService.findUsersByUuids(new ArrayList<>(members));
         log.debug("Finished find uuids '{}' in User service", users.toString());
         log.debug("Start Convert usersDTO '{}' to set", users.toString());
-        Set<String> slackNames = users.stream().map(user -> user.getSlack())
+        Set<String> slackNames = users.stream().map(User::getSlack)
                 .collect(Collectors.toSet());
         log.debug("Finished Convert usersDTO '{}' to set '{}'", users.toString(), slackNames.toString());
         log.info("Created users set '{}'", slackNames.toString());
