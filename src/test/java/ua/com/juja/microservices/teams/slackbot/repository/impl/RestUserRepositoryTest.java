@@ -1,4 +1,4 @@
-package ua.com.juja.microservices.teams.slackbot.dao.impl;
+package ua.com.juja.microservices.teams.slackbot.repository.impl;
 
 import net.javacrumbs.jsonunit.core.util.ResourceUtils;
 import org.junit.Before;
@@ -13,9 +13,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
-import ua.com.juja.microservices.teams.slackbot.dao.UserRepository;
+import ua.com.juja.microservices.teams.slackbot.model.User;
+import ua.com.juja.microservices.teams.slackbot.repository.UserRepository;
 import ua.com.juja.microservices.teams.slackbot.exceptions.UserExchangeException;
-import ua.com.juja.microservices.teams.slackbot.model.UserDTO;
 import ua.com.juja.microservices.teams.slackbot.util.Utils;
 
 import javax.inject.Inject;
@@ -76,7 +76,7 @@ public class RestUserRepositoryTest {
         correctSlackNames.add("@user4");
 
         final int[] number = {1};
-        List<UserDTO> expected = correctSlackNames.stream().map(slackName -> new UserDTO(String.valueOf(number[0]++), slackName))
+        List<User> expected = correctSlackNames.stream().map(slackName -> new User(String.valueOf(number[0]++), slackName))
                 .collect(Collectors.toList());
 
         String jsonContentRequest = Utils.convertToString(ResourceUtils.resource
@@ -90,7 +90,7 @@ public class RestUserRepositoryTest {
                 .andExpect(content().string(jsonContentRequest))
                 .andRespond(withSuccess(jsonContentExpectedResponse, MediaType.APPLICATION_JSON_UTF8));
 
-        List<UserDTO> actual = userRepository.findUsersBySlackNames(incorrectSlackNames);
+        List<User> actual = userRepository.findUsersBySlackNames(incorrectSlackNames);
 
         mockServer.verify();
         assertThat(actual, is(expected));
@@ -132,7 +132,7 @@ public class RestUserRepositoryTest {
         uuids.add("2");
         uuids.add("3");
         uuids.add("4");
-        List<UserDTO> expected = uuids.stream().map(uuid -> new UserDTO(uuid, "@user" + uuid))
+        List<User> expected = uuids.stream().map(uuid -> new User(uuid, "@user" + uuid))
                 .collect(Collectors.toList());
 
         String jsonContentRequest = Utils.convertToString(ResourceUtils.resource
@@ -146,7 +146,7 @@ public class RestUserRepositoryTest {
                 .andExpect(content().string(jsonContentRequest))
                 .andRespond(withSuccess(jsonContentExpectedResponse, MediaType.APPLICATION_JSON_UTF8));
 
-        List<UserDTO> actual = userRepository.findUsersByUuids(uuids);
+        List<User> actual = userRepository.findUsersByUuids(uuids);
 
         mockServer.verify();
         assertThat(actual, is(expected));

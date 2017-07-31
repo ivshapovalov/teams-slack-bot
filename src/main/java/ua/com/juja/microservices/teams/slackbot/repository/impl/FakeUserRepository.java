@@ -1,10 +1,10 @@
-package ua.com.juja.microservices.teams.slackbot.dao.impl;
+package ua.com.juja.microservices.teams.slackbot.repository.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
-import ua.com.juja.microservices.teams.slackbot.dao.UserRepository;
-import ua.com.juja.microservices.teams.slackbot.model.UserDTO;
+import ua.com.juja.microservices.teams.slackbot.model.User;
+import ua.com.juja.microservices.teams.slackbot.repository.UserRepository;
 
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +37,7 @@ public class FakeUserRepository extends AbstractRestRepository implements UserRe
     }
 
     @Override
-    public List<UserDTO> findUsersBySlackNames(List<String> slackNames) {
+    public List<User> findUsersBySlackNames(List<String> slackNames) {
         log.debug("Received slackNames to search : '{}' in Fake repo", slackNames);
         for (int i = 0; i < slackNames.size(); i++) {
             if (!slackNames.get(i).startsWith("@")) {
@@ -46,9 +46,9 @@ public class FakeUserRepository extends AbstractRestRepository implements UserRe
                 slackNames.set(i, "@" + slackName);
             }
         }
-        List<UserDTO> users = FakeUserRepository.users.entrySet().stream()
+        List<User> users = FakeUserRepository.users.entrySet().stream()
                 .filter(user -> slackNames.contains(user.getValue()))
-                .map(user -> new UserDTO(user.getKey(), user.getValue()))
+                .map(user -> new User(user.getKey(), user.getValue()))
                 .collect(Collectors.toList());
         log.debug("Finished searching in Fake Users service. Users is: [{}]", users.toString());
         log.info("Found '{}' users in Fake repo by slackNames", users.size());
@@ -56,14 +56,14 @@ public class FakeUserRepository extends AbstractRestRepository implements UserRe
     }
 
     @Override
-    public List<UserDTO> findUsersByUuids(List<String> uuids) {
+    public List<User> findUsersByUuids(List<String> uuids) {
         log.debug("Received uuids to convert : '{}'", uuids);
-        List<UserDTO> result = users.entrySet().stream()
+        List<User> result = users.entrySet().stream()
                 .filter(user -> uuids.contains(user.getKey()))
-                .map(user -> new UserDTO(user.getKey(), user.getValue()))
+                .map(user -> new User(user.getKey(), user.getValue()))
                 .collect(Collectors.toList());
         log.debug("Finished request to Fake Users service. Response is: '{}'", result.toString());
-        log.info("Found UserDTO: '{}' by uuids '{}'", result, uuids);
+        log.info("Found User: '{}' by uuids '{}'", result, uuids);
         return result;
     }
 }

@@ -1,4 +1,4 @@
-package ua.com.juja.microservices.teams.slackbot.service;
+package ua.com.juja.microservices.teams.slackbot.repository;
 
 import ua.com.juja.microservices.teams.slackbot.model.User;
 
@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * @author Ivan Shapovalov
  */
-public interface UserService {
+public interface UserRepository {
 
     List<User> findUsersBySlackNames(List<String> slackNames);
 

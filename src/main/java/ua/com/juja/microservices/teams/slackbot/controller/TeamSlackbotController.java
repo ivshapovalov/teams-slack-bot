@@ -54,12 +54,7 @@ public class TeamSlackbotController {
                 fromUser, text, token, responseUrl);
         exceptionsHandler.setResponseUrl(responseUrl);
 
-        if (!token.equals(slackToken)) {
-            log.warn("Received invalid slack token: '{}' in command 'Activate team' from user: '{}'. Returns to " +
-                            "slack!",
-                    token, fromUser);
-            sendResponseMessage(response, SORRY_MESSAGE);
-        }
+        checkToken(token, fromUser, response);
 
         String message = String.format("Thanks, Activate Team job started!");
         log.debug("Started send first response message to slack '{}' ", message);
@@ -89,6 +84,15 @@ public class TeamSlackbotController {
                 fromUser, text, message);
         RichMessage richMessage = new RichMessage(message);
         Utils.sendPostResponseAsRichMessage(responseUrl, richMessage);
+    }
+
+    private void checkToken(@RequestParam("token") String token, @RequestParam("user_name") String fromUser, HttpServletResponse response) throws IOException {
+        if (!token.equals(slackToken)) {
+            log.warn("Received invalid slack token: '{}' in command 'Activate team' from user: '{}'. Returns to " +
+                            "slack!",
+                    token, fromUser);
+            sendResponseMessage(response, SORRY_MESSAGE);
+        }
     }
 
     private void sendResponseMessage(HttpServletResponse response, String message) throws IOException {

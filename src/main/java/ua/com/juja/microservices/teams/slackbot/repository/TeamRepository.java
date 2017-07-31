@@ -1,4 +1,4 @@
-package ua.com.juja.microservices.teams.slackbot.dao;
+package ua.com.juja.microservices.teams.slackbot.repository;
 
 import ua.com.juja.microservices.teams.slackbot.model.Team;
 import ua.com.juja.microservices.teams.slackbot.model.TeamRequest;

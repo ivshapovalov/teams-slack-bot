@@ -7,7 +7,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import ua.com.juja.microservices.teams.slackbot.model.UserDTO;
+import ua.com.juja.microservices.teams.slackbot.model.User;
 import ua.com.juja.microservices.teams.slackbot.service.TeamSlackbotService;
 import ua.com.juja.microservices.teams.slackbot.service.impl.SlackNameHandlerService;
 
@@ -31,19 +31,19 @@ public class TeamSlackbotControllerTest {
     @MockBean
     private SlackNameHandlerService slackNameHandlerService;
 
-    private UserDTO userFrom;
-    private UserDTO user1;
-    private UserDTO user2;
-    private UserDTO user3;
-    private UserDTO user4;
+    private User userFrom;
+    private User user1;
+    private User user2;
+    private User user3;
+    private User user4;
 
     @Before
     public void setup() {
-        userFrom = new UserDTO("1", "@from-user");
-        user1 = new UserDTO("2", "@slack1");
-        user2 = new UserDTO("3", "@slack2");
-        user3 = new UserDTO("4", "@slack3");
-        user4 = new UserDTO("5", "@slack4");
+        userFrom = new User("1", "@from-user");
+        user1 = new User("2", "@slack1");
+        user2 = new User("3", "@slack2");
+        user3 = new User("4", "@slack3");
+        user4 = new User("5", "@slack4");
     }
 
     @Test

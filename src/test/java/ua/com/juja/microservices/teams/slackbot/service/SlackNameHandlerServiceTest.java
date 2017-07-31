@@ -8,7 +8,7 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
-import ua.com.juja.microservices.teams.slackbot.model.UserDTO;
+import ua.com.juja.microservices.teams.slackbot.model.User;
 import ua.com.juja.microservices.teams.slackbot.service.impl.SlackNameHandlerService;
 
 import javax.inject.Inject;
@@ -37,17 +37,17 @@ public class SlackNameHandlerServiceTest {
     private SlackNameHandlerService slackNameHandlerService;
     @MockBean
     private UserService userService;
-    private UserDTO user1;
-    private UserDTO user2;
-    private UserDTO user3;
-    private UserDTO user4;
+    private User user1;
+    private User user2;
+    private User user3;
+    private User user4;
 
     @Before
     public void setup() {
-        user1 = new UserDTO("uuid1", "@slack1");
-        user2 = new UserDTO("uuid2", "@slack2");
-        user3 = new UserDTO("uuid3", "@slack3");
-        user4 = new UserDTO("uuid4", "@slack4");
+        user1 = new User("uuid1", "@slack1");
+        user2 = new User("uuid2", "@slack2");
+        user3 = new User("uuid3", "@slack3");
+        user4 = new User("uuid4", "@slack4");
     }
 
     @Test
@@ -55,7 +55,7 @@ public class SlackNameHandlerServiceTest {
 
         String text = "text without slack name TexT text.";
         List<String> requestToUserService = Arrays.asList(new String[]{});
-        List<UserDTO> responseFromUserService = Arrays.asList();
+        List<User> responseFromUserService = Arrays.asList();
         when(userService.findUsersBySlackNames(requestToUserService)).thenReturn(responseFromUserService);
 
         Set<String> actual = slackNameHandlerService.getUuidsFromText(text);
@@ -70,7 +70,7 @@ public class SlackNameHandlerServiceTest {
         String text = "text " + user1.getSlack() + " TexT text.";
         List<String> requestToUserService = Arrays.asList(new String[]{user1.getSlack()});
         Set<String> expected = new LinkedHashSet<>(Arrays.asList(new String[]{user1.getUuid()}));
-        List<UserDTO> responseFromUserService = Arrays.asList(new UserDTO[]{user1});
+        List<User> responseFromUserService = Arrays.asList(new User[]{user1});
         when(userService.findUsersBySlackNames(requestToUserService)).thenReturn(responseFromUserService);
 
         Set<String> actual = slackNameHandlerService.getUuidsFromText(text);
@@ -89,7 +89,7 @@ public class SlackNameHandlerServiceTest {
                 user3.getSlack(), user4.getSlack()});
         Set<String> expected = new LinkedHashSet<>(Arrays.asList(new String[]{user1.getUuid(), user2.getUuid(),
                 user3.getUuid(), user4.getUuid()}));
-        List<UserDTO> responseFromUserService = Arrays.asList(new UserDTO[]{user4, user2, user1, user3});
+        List<User> responseFromUserService = Arrays.asList(new User[]{user4, user2, user1, user3});
         when(userService.findUsersBySlackNames(requestToUserService)).thenReturn(responseFromUserService);
 
         Set<String> actual = slackNameHandlerService.getUuidsFromText(text);
@@ -118,7 +118,7 @@ public class SlackNameHandlerServiceTest {
         Set<String> members = new LinkedHashSet<>(requestToUserService);
         Set<String> expected = new LinkedHashSet<>(Arrays.asList(new String[]{user1.getSlack(), user2.getSlack(),
                 user3.getSlack(), user4.getSlack()}));
-        List<UserDTO> responseFromUserService = Arrays.asList(new UserDTO[]{user1, user2, user3, user4});
+        List<User> responseFromUserService = Arrays.asList(new User[]{user1, user2, user3, user4});
         when(userService.findUsersByUuids(requestToUserService)).thenReturn(responseFromUserService);
 
         Set<String> actual = slackNameHandlerService.getSlackNamesFromUuids(members);
@@ -134,7 +134,7 @@ public class SlackNameHandlerServiceTest {
         List<String> requestToUserService = Arrays.asList(new String[]{});
         Set<String> members = new LinkedHashSet<>();
         Set<String> expected = new LinkedHashSet<>();
-        List<UserDTO> responseFromUserService = Arrays.asList();
+        List<User> responseFromUserService = Arrays.asList();
         when(userService.findUsersByUuids(requestToUserService)).thenReturn(responseFromUserService);
 
         Set<String> actual = slackNameHandlerService.getSlackNamesFromUuids(members);

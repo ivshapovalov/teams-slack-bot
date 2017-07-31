@@ -9,7 +9,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
-import ua.com.juja.microservices.teams.slackbot.dao.TeamRepository;
+import ua.com.juja.microservices.teams.slackbot.repository.TeamRepository;
 import ua.com.juja.microservices.teams.slackbot.model.Team;
 import ua.com.juja.microservices.teams.slackbot.model.TeamRequest;
 

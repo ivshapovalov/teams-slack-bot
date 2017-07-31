@@ -1,4 +1,4 @@
-package ua.com.juja.microservices.teams.slackbot.dao.impl;
+package ua.com.juja.microservices.teams.slackbot.repository.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,11 +9,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import ua.com.juja.microservices.teams.slackbot.dao.UserRepository;
+import ua.com.juja.microservices.teams.slackbot.model.User;
+import ua.com.juja.microservices.teams.slackbot.model.UserUuidRequest;
+import ua.com.juja.microservices.teams.slackbot.repository.UserRepository;
 import ua.com.juja.microservices.teams.slackbot.exceptions.ApiError;
 import ua.com.juja.microservices.teams.slackbot.exceptions.UserExchangeException;
-import ua.com.juja.microservices.teams.slackbot.model.SlackNameRequest;
-import ua.com.juja.microservices.teams.slackbot.model.UserDTO;
+import ua.com.juja.microservices.teams.slackbot.model.UserSlackNameRequest;
 
 import javax.inject.Inject;
 import java.util.Arrays;
@@ -41,7 +42,7 @@ public class RestUserRepository extends AbstractRestRepository implements UserRe
     }
 
     @Override
-    public List<UserDTO> findUsersBySlackNames(List<String> slackNames) {
+    public List<User> findUsersBySlackNames(List<String> slackNames) {
         log.debug("Received slackNames to convert : '{}'", slackNames);
         for (int i = 0; i < slackNames.size(); i++) {
             if (!slackNames.get(i).startsWith("@")) {
@@ -50,54 +51,52 @@ public class RestUserRepository extends AbstractRestRepository implements UserRe
                 slackNames.set(i, "@" + slackName);
             }
         }
-        log.debug("Started creating slackNameRequest and HttpEntity");
-        SlackNameRequest slackNameRequest = new SlackNameRequest(slackNames);
-        HttpEntity<SlackNameRequest> request = new HttpEntity<>(slackNameRequest, setupBaseHttpHeaders());
-        log.debug("Finished creating slackNameRequest and HttpEntity");
+        log.debug("Started creating userSlackNameRequest and HttpEntity");
+        UserSlackNameRequest userSlackNameRequest = new UserSlackNameRequest(slackNames);
+        HttpEntity<UserSlackNameRequest> request = new HttpEntity<>(userSlackNameRequest, setupBaseHttpHeaders());
+        log.debug("Finished creating userSlackNameRequest and HttpEntity");
 
-        List<UserDTO> users;
+        List<User> users;
         try {
             String userServiceURL = userUrlBase + userUrlFindUsersBySlackNames;
             log.debug("Started request to Users service url '{}'. Request is : '{}'", userServiceURL, request.toString
                     ());
-            ResponseEntity<UserDTO[]> response = restTemplate.exchange(userServiceURL,
-                    HttpMethod.POST, request, UserDTO[].class);
+            ResponseEntity<User[]> response = restTemplate.exchange(userServiceURL,
+                    HttpMethod.POST, request, User[].class);
             log.debug("Finished request to Users service. Response is: '{}'", response.toString());
             users = Arrays.asList(response.getBody());
         } catch (HttpClientErrorException ex) {
-            //TODO покрыть тестами
             ApiError error = convertToApiError(ex);
             log.warn("Users service returned an error: '{}'", error);
             throw new UserExchangeException(error, ex);
         }
-        log.info("Found UserDTO: '{}' for slackNames: {}", users, slackNames);
+        log.info("Found User: '{}' for slackNames: {}", users, slackNames);
         return users;
     }
 
     @Override
-    public List<UserDTO> findUsersByUuids(List<String> uuids) {
+    public List<User> findUsersByUuids(List<String> uuids) {
         log.debug("Received uids to convert : '{}'", uuids);
-        log.debug("Started creating slackNameRequest and HttpEntity");
-        SlackNameRequest slackNameRequest = new SlackNameRequest(uuids);
-        HttpEntity<SlackNameRequest> request = new HttpEntity<>(slackNameRequest, setupBaseHttpHeaders());
-        log.debug("Finished creating slackNameRequest and HttpEntity");
+        log.debug("Started creating userUuidsRequest and HttpEntity");
+        UserUuidRequest userUuidRequest = new UserUuidRequest(uuids);
+        HttpEntity<UserUuidRequest> request = new HttpEntity<>(userUuidRequest, setupBaseHttpHeaders());
+        log.debug("Finished creating userUuidsRequest and HttpEntity");
 
-        List<UserDTO> result;
+        List<User> result;
         try {
             String userServiceURL = userUrlBase + userUrlFindUsersByUuids;
             log.debug("Started request to Users service url '{}'. Request is : '{}'", userServiceURL, request.toString
                     ());
-            ResponseEntity<UserDTO[]> response = restTemplate.exchange(userServiceURL,
-                    HttpMethod.POST, request, UserDTO[].class);
+            ResponseEntity<User[]> response = restTemplate.exchange(userServiceURL,
+                    HttpMethod.POST, request, User[].class);
             log.debug("Finished request to Users service. Response is: '{}'", response.toString());
             result = Arrays.asList(response.getBody());
         } catch (HttpClientErrorException ex) {
-            //TODO покрыть тестами
             ApiError error = convertToApiError(ex);
             log.warn("Users service returned an error: '{}'", error);
             throw new UserExchangeException(error, ex);
         }
-        log.info("Found UserDTO:{} for uuids: {}", result, uuids);
+        log.info("Found User:{} for uuids: {}", result, uuids);
         return result;
     }
 }

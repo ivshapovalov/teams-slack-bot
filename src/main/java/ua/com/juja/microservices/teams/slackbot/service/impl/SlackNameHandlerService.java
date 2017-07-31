@@ -2,7 +2,7 @@ package ua.com.juja.microservices.teams.slackbot.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ua.com.juja.microservices.teams.slackbot.model.UserDTO;
+import ua.com.juja.microservices.teams.slackbot.model.User;
 import ua.com.juja.microservices.teams.slackbot.service.UserService;
 import ua.com.juja.microservices.teams.slackbot.util.Utils;
 
@@ -42,7 +42,7 @@ public class SlackNameHandlerService {
         List<String> slackNames = getSlackNamesFromText(text);
         log.debug("Finished creating users set for text '{}'. Set is '{}'", text, slackNames);
         log.debug("Started finding slack names: '{}' in User service", slackNames);
-        Set<UserDTO> usersDTO = new HashSet<>(userService.findUsersBySlackNames(slackNames));
+        Set<User> usersDTO = new HashSet<>(userService.findUsersBySlackNames(slackNames));
         log.debug("Finished finding slack names: '{}' in User service", usersDTO.toString());
         Set<String> users = usersDTO.stream()
                 .map(user -> user.getUuid())
@@ -54,12 +54,12 @@ public class SlackNameHandlerService {
     public Set<String> getSlackNamesFromUuids(Set<String> members) {
         Utils.checkNull(members,"Team members must not be null!");
         log.debug("Started find uuids '{}' in User service", members);
-        List<UserDTO> userDTOs = userService.findUsersByUuids(new ArrayList<>(members));
-        log.debug("Finished find uuids '{}' in User service", userDTOs.toString());
-        log.debug("Start Convert usersDTO '{}' to set", userDTOs.toString());
-        Set<String> slackNames = userDTOs.stream().map(user -> user.getSlack())
+        List<User> users = userService.findUsersByUuids(new ArrayList<>(members));
+        log.debug("Finished find uuids '{}' in User service", users.toString());
+        log.debug("Start Convert usersDTO '{}' to set", users.toString());
+        Set<String> slackNames = users.stream().map(user -> user.getSlack())
                 .collect(Collectors.toSet());
-        log.debug("Finished Convert usersDTO '{}' to set '{}'", userDTOs.toString(), slackNames.toString());
+        log.debug("Finished Convert usersDTO '{}' to set '{}'", users.toString(), slackNames.toString());
         log.info("Created users set '{}'", slackNames.toString());
         return slackNames;
     }

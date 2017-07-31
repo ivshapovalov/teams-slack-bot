@@ -13,7 +13,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 @EqualsAndHashCode
-public class UserDTO {
+public class User {
     @JsonProperty
     String uuid;
     @JsonProperty
