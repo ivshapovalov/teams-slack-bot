@@ -32,17 +32,6 @@ public class TeamRequestTest {
     }
 
     @Test
-    public void createTeamRequestIfMembersSizeIsZeroThrowsException() {
-        Set<String> members = new HashSet<>();
-
-        expectedException.expect(WrongCommandFormatException.class);
-        expectedException.expectMessage(String.format("We didn't find slack name in your command." +
-                " You must write %s user's slack names for activate team.", TEAM_SIZE));
-
-        new TeamRequest(members);
-    }
-
-    @Test
     public void createTeamRequestIfMembersSizeNotEqualsFourThrowsException() {
         Set<String> members = new HashSet<>(Arrays.asList("uuid1", "uuid2"));
 

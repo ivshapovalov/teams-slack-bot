@@ -20,11 +20,7 @@ public class TeamRequest {
 
     public TeamRequest(Set<String> members) {
         log.debug("Started creating TeamRequest");
-        if (members.size() == 0) {
-            log.warn("Members size is equals 0");
-            throw new WrongCommandFormatException(String.format("We didn't find slack name in your command." +
-                    " You must write %s user's slack names for activate team.", TEAM_SIZE));
-        } else if (members.size() != TEAM_SIZE) {
+        if (members.size() != TEAM_SIZE) {
             log.warn("Members size is not equals '{}'" + TEAM_SIZE);
             throw new WrongCommandFormatException(String.format("We found %d slack names in your command." +
                     " But size of the team must be %s.", members.size(), TEAM_SIZE));

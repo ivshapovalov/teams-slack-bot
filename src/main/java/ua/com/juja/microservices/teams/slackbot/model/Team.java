@@ -3,7 +3,7 @@ package ua.com.juja.microservices.teams.slackbot.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,11 +14,11 @@ import java.util.Set;
 /**
  * @author Ivan Shapovalov
  */
-@Data
 @ToString
 @Slf4j
 public class Team {
 
+    @Getter
     @JsonProperty("id")
     private String id;
     @JsonProperty("members")
@@ -40,4 +40,5 @@ public class Team {
     public Set<String> getMembers() {
         return Collections.unmodifiableSet(members);
     }
+
 }
