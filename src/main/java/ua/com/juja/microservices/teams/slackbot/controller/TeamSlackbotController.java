@@ -23,8 +23,8 @@ import java.io.PrintWriter;
 @Slf4j
 public class TeamSlackbotController {
 
-    private final String SORRY_MESSAGE = "Sorry! You're not lucky enough to use our slack command";
-    private final String ACTIVATE_TEAM_MESSAGE = "Thanks, Activate Team job started!";
+    private final static String SORRY_MESSAGE = "Sorry! You're not lucky enough to use our slack command";
+    private final static String ACTIVATE_TEAM_MESSAGE = "Thanks, Activate Team job started!";
     private final RestTemplate restTemplate;
     @Value("${slack.slashCommandToken}")
     private String slackToken;
