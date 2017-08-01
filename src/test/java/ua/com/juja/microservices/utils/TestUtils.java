@@ -1,4 +1,4 @@
-package ua.com.juja.microservices.teams.slackbot.repository.impl;
+package ua.com.juja.microservices.utils;
 
 import lombok.extern.slf4j.Slf4j;
 

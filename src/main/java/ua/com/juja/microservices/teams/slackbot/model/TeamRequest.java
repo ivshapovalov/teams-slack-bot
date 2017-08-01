@@ -11,7 +11,7 @@ import java.util.Set;
 /**
  * @author Ivan Shapovalov
  */
-@ToString(exclude = "TEAM_SIZE")
+@ToString
 @Slf4j
 public class TeamRequest {
     private static final int TEAM_SIZE = 4;

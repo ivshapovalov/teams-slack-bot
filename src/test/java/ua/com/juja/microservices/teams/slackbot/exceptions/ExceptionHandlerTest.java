@@ -75,7 +75,7 @@ public class ExceptionHandlerTest {
         final String responseUrl = "example.com";
         String message = String.format("User(s) '#%s#' exist(s) in another teams",
                 "a,b,c,d");
-        Set<String> slackNames = new LinkedHashSet<>(Arrays.asList(new String[]{"@a", "@b", "@c", "@d"}));
+        Set<String> slackNames = new LinkedHashSet<>(Arrays.asList("@a", "@b", "@c", "@d"));
 
         ApiError apiError = new ApiError(
                 400, "TMF-F2-D2",
@@ -106,7 +106,7 @@ public class ExceptionHandlerTest {
 
     @Test
     public void handleUserExchangeException() throws Exception {
-        final String ACTIVATE_TEAM_COMMAND_TEXT = "@a @b @c @d";
+        final String activateTeamCommandText = "@a @b @c @d";
         ApiError apiError = new ApiError(
                 400, "USF-F1-D1",
                 "User not found",
@@ -116,18 +116,18 @@ public class ExceptionHandlerTest {
         );
 
         UserExchangeException exception = new UserExchangeException(apiError, new RuntimeException("exception"));
-        when(teamSlackbotService.activateTeam(ACTIVATE_TEAM_COMMAND_TEXT))
+        when(teamSlackbotService.activateTeam(activateTeamCommandText))
                 .thenThrow(exception);
         when(restTemplate.postForObject(anyString(), anyObject(), anyObject())).thenReturn("");
 
         mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(ACTIVATE_TEAM_URL),
-                SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate", ACTIVATE_TEAM_COMMAND_TEXT,
+                SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate", activateTeamCommandText,
                         "example.com"))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
                 .andExpect(content().string(ACTIVATE_TEAM_MESSAGE));
 
-        verify(teamSlackbotService).activateTeam(ACTIVATE_TEAM_COMMAND_TEXT);
+        verify(teamSlackbotService).activateTeam(activateTeamCommandText);
         verify(restTemplate).postForObject(anyString(), anyObject(), anyObject());
         verifyNoMoreInteractions(teamSlackbotService, restTemplate);
     }
@@ -135,44 +135,117 @@ public class ExceptionHandlerTest {
     @Test
     public void handleWrongCommandFormatException() throws Exception {
 
-        final String ACTIVATE_TEAM_COMMAND_TEXT = "@a @b @c @d";
+        final String activateTeamCommandText = "@a @b @c @d";
 
         WrongCommandFormatException exception = new WrongCommandFormatException("wrong command");
-        when(teamSlackbotService.activateTeam(ACTIVATE_TEAM_COMMAND_TEXT))
+        when(teamSlackbotService.activateTeam(activateTeamCommandText))
                 .thenThrow(exception);
         when(restTemplate.postForObject(anyString(), anyObject(), anyObject())).thenReturn("");
 
         mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(ACTIVATE_TEAM_URL),
-                SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate", ACTIVATE_TEAM_COMMAND_TEXT,
+                SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate", activateTeamCommandText,
                         "example.com"))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
                 .andExpect(content().string(ACTIVATE_TEAM_MESSAGE));
 
-        verify(teamSlackbotService).activateTeam(ACTIVATE_TEAM_COMMAND_TEXT);
+        verify(teamSlackbotService).activateTeam(activateTeamCommandText);
         verify(restTemplate).postForObject(anyString(), anyObject(), anyObject());
         verifyNoMoreInteractions(teamSlackbotService, restTemplate);
     }
 
     @Test
-    public void handleAllOtherException() throws Exception {
+    public void handleAllOtherExceptions() throws Exception {
 
-        final String ACTIVATE_TEAM_COMMAND_TEXT = "@a @b @c @d";
+        final String activateTeamCommandText = "@a @b @c @d";
 
         RuntimeException exception = new RuntimeException("other command");
-        when(teamSlackbotService.activateTeam(ACTIVATE_TEAM_COMMAND_TEXT))
+        when(teamSlackbotService.activateTeam(activateTeamCommandText))
                 .thenThrow(exception);
         when(restTemplate.postForObject(anyString(), anyObject(), anyObject())).thenReturn("");
 
         mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(ACTIVATE_TEAM_URL),
-                SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate", ACTIVATE_TEAM_COMMAND_TEXT,
+                SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate", activateTeamCommandText,
                         "example.com"))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
                 .andExpect(content().string(ACTIVATE_TEAM_MESSAGE));
 
-        verify(teamSlackbotService).activateTeam(ACTIVATE_TEAM_COMMAND_TEXT);
+        verify(teamSlackbotService).activateTeam(activateTeamCommandText);
         verify(restTemplate).postForObject(anyString(), anyObject(), anyObject());
         verifyNoMoreInteractions(teamSlackbotService, restTemplate);
+    }
+
+    @Test
+    public void handleNestedUserExceptionAfterTeamException() throws Exception {
+
+        final String activateTeamCommandText = "@a @b @c @d";
+        final String responseUrl = "example.com";
+        String message = String.format("User(s) '#%s#' exist(s) in another teams",
+                "a,b,c,d");
+        ApiError apiError = new ApiError(
+                400, "TMF-F2-D2",
+                "You cannot get/deactivate team if user in several teams",
+                "The reason of the exception is that user in several teams",
+                message,
+                Collections.emptyList()
+        );
+
+        TeamExchangeException teamException = new TeamExchangeException(apiError, new RuntimeException("exception"));
+        UserExchangeException userException = new UserExchangeException(apiError, new RuntimeException("exception"));
+        when(teamSlackbotService.activateTeam(activateTeamCommandText))
+                .thenThrow(teamException);
+        when(restTemplate.postForObject(anyString(), anyObject(), anyObject())).thenReturn("");
+        when(slackNameHandlerService.getSlackNamesFromUuids(anySetOf(String.class)))
+                .thenThrow(userException);
+
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(ACTIVATE_TEAM_URL),
+                SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate", activateTeamCommandText,
+                        responseUrl))
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andExpect(status().isOk())
+                .andExpect(content().string(ACTIVATE_TEAM_MESSAGE));
+
+        verify(teamSlackbotService).activateTeam(activateTeamCommandText);
+        verify(slackNameHandlerService).getSlackNamesFromUuids(anySetOf(String.class));
+        verify(restTemplate).postForObject(anyString(), anyObject(), anyObject());
+        verifyNoMoreInteractions(teamSlackbotService, restTemplate, slackNameHandlerService);
+    }
+
+    @Test
+    public void handleNestedOtherAfterTeamException() throws Exception {
+
+        final String activateTeamCommandText = "@a @b @c @d";
+        final String responseUrl = "example.com";
+        String message = String.format("User(s) '#%s#' exist(s) in another teams",
+                "a,b,c,d");
+        Set<String> slackNames = new LinkedHashSet<>(Arrays.asList("@a", "@b", "@c", "@d"));
+
+        ApiError apiError = new ApiError(
+                400, "TMF-F2-D2",
+                "You cannot get/deactivate team if user in several teams",
+                "The reason of the exception is that user in several teams",
+                message,
+                Collections.emptyList()
+        );
+
+        TeamExchangeException teamException = new TeamExchangeException(apiError, new RuntimeException("exception"));
+        Exception exception = new RuntimeException("exception");
+        when(teamSlackbotService.activateTeam(activateTeamCommandText))
+                .thenThrow(teamException);
+        when(slackNameHandlerService.getSlackNamesFromUuids(anySetOf(String.class))).thenReturn(slackNames);
+        when(restTemplate.postForObject(anyString(), anyObject(), anyObject())).thenThrow(exception);
+
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(ACTIVATE_TEAM_URL),
+                SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate", activateTeamCommandText,
+                        responseUrl))
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andExpect(status().isOk())
+                .andExpect(content().string(ACTIVATE_TEAM_MESSAGE));
+
+        verify(teamSlackbotService).activateTeam(activateTeamCommandText);
+        verify(slackNameHandlerService).getSlackNamesFromUuids(anySetOf(String.class));
+        verify(restTemplate).postForObject(anyString(), anyObject(), anyObject());
+        verifyNoMoreInteractions(teamSlackbotService, restTemplate, slackNameHandlerService);
     }
 }

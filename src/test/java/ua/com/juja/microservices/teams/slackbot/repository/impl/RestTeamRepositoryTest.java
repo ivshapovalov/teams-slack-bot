@@ -17,6 +17,7 @@ import ua.com.juja.microservices.teams.slackbot.exceptions.TeamExchangeException
 import ua.com.juja.microservices.teams.slackbot.model.Team;
 import ua.com.juja.microservices.teams.slackbot.model.TeamRequest;
 import ua.com.juja.microservices.teams.slackbot.repository.TeamRepository;
+import ua.com.juja.microservices.utils.TestUtils;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -28,6 +29,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNotNull;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withBadRequest;
@@ -63,7 +65,7 @@ public class RestTeamRepositoryTest {
     public void activateTeamSendRequestToRemoteTeamsServerAndReturnActivatedTeamExecutedCorrectly() throws IOException {
         String teamsServiceURL = teamsBaseUrl + restApiVersion + teamsActivateTeamUrl;
 
-        Set<String> members = new LinkedHashSet<>(Arrays.asList(new String[]{"uuid1", "uuid2", "uuid3", "uuid4"}));
+        Set<String> members = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4"));
         TeamRequest teamRequest = new TeamRequest(members);
 
         String expectedJsonRequestBody = TestUtils.convertToString(ResourceUtils.resource
@@ -76,20 +78,20 @@ public class RestTeamRepositoryTest {
                 .andExpect(request -> assertThat(request.getHeaders().getContentType().toString(), containsString(expectedRequestHeader)))
                 .andExpect(request -> assertThat(request.getBody().toString(), equalTo(expectedJsonRequestBody)))
                 .andRespond(withSuccess(expectedJsonResponseBody, MediaType.APPLICATION_JSON));
-        //when
+
         Team actual = teamRepository.activateTeam(teamRequest);
 
-        // then
         mockServer.verify();
-        assertThat(actual.getMembers(), is(teamRequest.getMembers()));
+        assertNotNull(actual);
+        assertThat(actual.getMembers(), is(members));
     }
 
     @Test
     public void activateTeamSendRequestToRemoteTeamsServerWhichReturnsErrorThrowsException() throws IOException {
         String teamsServiceURL = teamsBaseUrl + restApiVersion + teamsActivateTeamUrl;
 
-        Set<String> members = new LinkedHashSet<>(Arrays.asList(new String[]{"uuid1", "uuid2", "uuid3",
-                "uuid4"}));
+        Set<String> members = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3",
+                "uuid4"));
         TeamRequest teamRequest = new TeamRequest(members);
 
         String expectedJsonRequestBody = TestUtils.convertToString(ResourceUtils.resource
@@ -108,6 +110,6 @@ public class RestTeamRepositoryTest {
 
         teamRepository.activateTeam(teamRequest);
 
+        mockServer.verify();
     }
-
 }

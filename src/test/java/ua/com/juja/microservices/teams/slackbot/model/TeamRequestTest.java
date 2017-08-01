@@ -10,7 +10,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+
 /**
  * @author Ivan Shapovalov
  */
@@ -21,10 +23,11 @@ public class TeamRequestTest {
 
     @Test
     public void createTeamRequestIfMembersSizeEqualsFourExecutedCorrectly() {
-        Set<String> members = new HashSet<>(Arrays.asList(new String[]{"uuid1", "uuid2","uuid3","uuid4"}));
+        Set<String> members = new HashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4"));
 
-        TeamRequest teamRequest=new TeamRequest(members);
+        TeamRequest teamRequest = new TeamRequest(members);
 
+        assertNotNull(teamRequest);
         assertThat(teamRequest.getMembers(), is(members));
     }
 
@@ -41,7 +44,7 @@ public class TeamRequestTest {
 
     @Test
     public void createTeamRequestIfMembersSizeNotEqualsFourThrowsException() {
-        Set<String> members = new HashSet<>(Arrays.asList(new String[]{"uuid1", "uuid2"}));
+        Set<String> members = new HashSet<>(Arrays.asList("uuid1", "uuid2"));
 
         expectedException.expect(WrongCommandFormatException.class);
         expectedException.expectMessage(String.format("We found %d slack names in your command." +

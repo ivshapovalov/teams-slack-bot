@@ -23,6 +23,8 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -93,15 +95,13 @@ public class TeamSlackbotControllerTest {
         final String ACTIVATE_TEAM_COMMAND_TEXT = String.
                 format(user1.getSlack(), user2.getSlack(), user3.getSlack(), user4.getSlack());
 
-        Set<String> members = new LinkedHashSet<>(Arrays.asList(new String[]{user1.getUuid(), user2.getUuid(),
-                user3.getUuid(), user4.getUuid()}));
+        Set<String> members = new LinkedHashSet<>(Arrays.asList(user1.getUuid(), user2.getUuid(),
+                user3.getUuid(), user4.getUuid()));
         Team activatedTeam = new Team(members);
-        RichMessage richMessage = new RichMessage(String.format("Thanks, new Team for members '%s' activated",
-                activatedTeam.toString()));
         String responseUrl = "http://example.com";
         when(teamSlackbotService.activateTeam(ACTIVATE_TEAM_COMMAND_TEXT))
-                .thenReturn(richMessage);
-        when(restTemplate.postForObject(responseUrl, richMessage, String.class))
+                .thenReturn(activatedTeam);
+        when(restTemplate.postForObject(anyString(), any(RichMessage.class), anyObject()))
                 .thenReturn("");
         mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(ACTIVATE_TEAM_URL),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate",
@@ -112,7 +112,7 @@ public class TeamSlackbotControllerTest {
 
         verify(exceptionsHandler).setResponseUrl(anyString());
         verify(teamSlackbotService).activateTeam(ACTIVATE_TEAM_COMMAND_TEXT);
-        verify(restTemplate).postForObject(responseUrl, richMessage, String.class);
+        verify(restTemplate).postForObject(anyString(), any(RichMessage.class), anyObject());
         verifyNoMoreInteractions(teamSlackbotService, exceptionsHandler, restTemplate);
     }
 

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.exceptions.ExceptionsHandler;
+import ua.com.juja.microservices.teams.slackbot.model.Team;
 import ua.com.juja.microservices.teams.slackbot.service.TeamSlackbotService;
 
 import javax.inject.Inject;
@@ -56,13 +57,14 @@ public class TeamSlackbotController {
         log.debug("Finished send first response message to slack '{}' ", ACTIVATE_TEAM_MESSAGE);
 
         log.debug("Started activate team request to Team Slackbot service. Text: '{}'", text);
-        RichMessage message = teamSlackbotService.activateTeam(text);
-        log.debug("Finished activate team in Team Slackbot service. Message from service: '{}'", message);
+        Team activatedTeam= teamSlackbotService.activateTeam(text);
+        log.debug("Finished activate team in Team Slackbot service. New Team: '{}'", activatedTeam.toString());
 
+        RichMessage message= new RichMessage(String.format("Thanks, new Team for '%s' activated", text));
         log.debug("Started send last response message to slack '{}' ", message);
         restTemplate.postForObject(responseUrl, message, String.class);
         log.debug("Finished send last response message to slack '{}' ", message);
-        log.info("'Activate team' command processed : user: '{}' text: '{}' and sent message into slack: '{}'",
+        log.info("'Activate team' command processed : user: '{}' text: '{}' and sent message to slack: '{}'",
                 fromUser, text, message);
     }
 

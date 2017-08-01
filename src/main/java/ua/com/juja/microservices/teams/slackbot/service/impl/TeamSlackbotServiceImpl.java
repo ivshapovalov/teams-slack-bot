@@ -1,7 +1,6 @@
 package ua.com.juja.microservices.teams.slackbot.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
-import me.ramswaroop.jbot.core.slack.models.RichMessage;
 import org.springframework.stereotype.Service;
 import ua.com.juja.microservices.teams.slackbot.model.Team;
 import ua.com.juja.microservices.teams.slackbot.model.TeamRequest;
@@ -29,7 +28,7 @@ public class TeamSlackbotServiceImpl implements TeamSlackbotService {
     }
 
     @Override
-    public RichMessage activateTeam(String text) {
+    public Team activateTeam(String text) {
 
         log.debug("Started extract members from text '{}'", text);
         Set<String> members = slackNameHandlerService.getUuidsFromText(text);
@@ -44,6 +43,6 @@ public class TeamSlackbotServiceImpl implements TeamSlackbotService {
         log.debug("Received response from Teams service: '{}'", activatedTeam.toString());
 
         log.info("Team activated: '{}'", activatedTeam.getId());
-        return new RichMessage(String.format("Thanks, new Team for '%s' activated", text));
+        return activatedTeam;
     }
 }

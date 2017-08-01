@@ -1,7 +1,7 @@
 package ua.com.juja.microservices.teams.slackbot.service;
 
-import me.ramswaroop.jbot.core.slack.models.RichMessage;
 import org.springframework.stereotype.Service;
+import ua.com.juja.microservices.teams.slackbot.model.Team;
 
 /**
  * @author Ivan Shapovalov
@@ -9,6 +9,6 @@ import org.springframework.stereotype.Service;
 @Service
 public interface TeamSlackbotService {
 
-    RichMessage activateTeam(String text);
+    Team activateTeam(String text);
 
 }

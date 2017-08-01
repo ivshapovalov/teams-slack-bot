@@ -34,9 +34,9 @@ public class UserServiceImplTest {
     @Test
     public void findUsersBySlackNamesExecutedCorrectly() throws Exception {
         //given
-        List<String> slackNamesRequest = Arrays.asList(new String[]{"@user11", "@user22"});
-        List<User> expected = Arrays.asList(new User[]{new User("uuid1", "@user11"),
-                new User("uuid2", "user2")});
+        List<String> slackNamesRequest = Arrays.asList("@user11", "@user22");
+        List<User> expected = Arrays.asList(new User("uuid1", "@user11"),
+                new User("uuid2", "user2"));
         given(userRepository.findUsersBySlackNames(slackNamesRequest)).willReturn(expected);
         //when
         List<User> actual = userService.findUsersBySlackNames(slackNamesRequest);
@@ -49,9 +49,9 @@ public class UserServiceImplTest {
     @Test
     public void findUsersByUuidsExecutedCorrectly() throws Exception {
         //given
-        List<String> uuidsRequest = Arrays.asList(new String[]{"uuid1", "uuid2"});
-        List<User> expected = Arrays.asList(new User[]{new User("uuid1", "@user11"),
-                new User("uuid2", "user2")});
+        List<String> uuidsRequest = Arrays.asList("uuid1", "uuid2");
+        List<User> expected = Arrays.asList(new User("uuid1", "@user11"),
+                new User("uuid2", "user2"));
         given(userRepository.findUsersByUuids(uuidsRequest)).willReturn(expected);
         //when
         List<User> actual = userService.findUsersByUuids(uuidsRequest);

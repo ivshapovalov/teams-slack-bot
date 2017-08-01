@@ -32,8 +32,13 @@ public class ExceptionsHandler {
         this.restTemplate = restTemplate;
     }
 
-    public void sendPostResponseAsRichMessage(String responseUrl, RichMessage richMessage) {
-        restTemplate.postForObject(responseUrl, richMessage, String.class);
+    private void sendPostResponseAsRichMessage(String responseUrl, RichMessage richMessage) {
+        try {
+            restTemplate.postForObject(responseUrl, richMessage, String.class);
+        } catch (Exception ex) {
+            log.warn("Nested exception : '{}' with text '{}' . Unable to send response to slack", ex.getMessage(),
+                    richMessage.getText());
+        }
     }
 
     public void setResponseUrl(String responseUrl) {
@@ -73,7 +78,12 @@ public class ExceptionsHandler {
         String[] array = message.split("#");
         if (array.length > 1) {
             Set<String> uuids = new HashSet<>(Arrays.asList(array[1].split(",")));
-            Set<String> slackNames = slackNameHandlerService.getSlackNamesFromUuids(uuids);
+            Set<String> slackNames=new HashSet<>();
+            try {
+                slackNames = slackNameHandlerService.getSlackNamesFromUuids(uuids);
+            } catch (Exception ex) {
+                log.warn("Nested exception : '{}'", ex.getMessage());
+            }
             array[1] = slackNames.stream().collect(Collectors.joining(","));
             message = Arrays.stream(array).collect(Collectors.joining(""));
         }

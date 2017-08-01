@@ -1,6 +1,5 @@
 package ua.com.juja.microservices.teams.slackbot.service;
 
-import me.ramswaroop.jbot.core.slack.models.RichMessage;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -19,8 +18,7 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
@@ -54,16 +52,15 @@ public class TeamSlackbotServiceTest {
 
         String text = "@slack1 @slack2 @slack3 @slack4";
 
-        Set<String> members = new LinkedHashSet<>(Arrays.asList(new String[]{"uuid1", "uuid2", "uuid3", "uuid4"}));
+        Set<String> members = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4"));
 
-        RichMessage expected = new RichMessage(String.format("Thanks, new Team for '%s' activated", text));
-        Team activatedTeam = new Team(members);
+        Team expected = new Team(members);
         given(slackNameHandlerService.getUuidsFromText(text)).willReturn(members);
-        given(teamService.activateTeam(any(TeamRequest.class))).willReturn(activatedTeam);
+        given(teamService.activateTeam(any(TeamRequest.class))).willReturn(expected);
 
-        RichMessage actual = teamSlackbotService.activateTeam(text);
+        Team actual = teamSlackbotService.activateTeam(text);
 
-        assertThat(actual.getText(), equalTo(expected.getText()));
+        assertEquals(expected, actual);
         verify(slackNameHandlerService).getUuidsFromText(text);
         verify(teamService).activateTeam(any(TeamRequest.class));
         verifyNoMoreInteractions(slackNameHandlerService, teamService);

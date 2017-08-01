@@ -16,6 +16,7 @@ import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.exceptions.UserExchangeException;
 import ua.com.juja.microservices.teams.slackbot.model.User;
 import ua.com.juja.microservices.teams.slackbot.repository.UserRepository;
+import ua.com.juja.microservices.utils.TestUtils;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -60,7 +61,7 @@ public class RestUserRepositoryTest {
     }
 
     @Test
-    public void findUsersBySlackNamesUserServerReturnsUserDTOCorrectly() throws IOException {
+    public void findUsersBySlackNamesIfUserServerReturnsUserCorrectly() throws IOException {
 
         List<String> incorrectSlackNames = new ArrayList<>();
         incorrectSlackNames.add("user1");
@@ -96,7 +97,7 @@ public class RestUserRepositoryTest {
     }
 
     @Test
-    public void findUsersBySlackNamesUserServerReturnException() throws IOException {
+    public void findUsersBySlackNamesIfUserServerReturnsException() throws IOException {
 
         List<String> slackNames = new ArrayList<>();
         slackNames.add("user1");
@@ -120,10 +121,11 @@ public class RestUserRepositoryTest {
 
         userRepository.findUsersBySlackNames(slackNames);
 
+        mockServer.verify();
     }
 
     @Test
-    public void findUsersByUuidsReturnUserDTOCorrectly() throws IOException {
+    public void findUsersByUuidsIfUserServerReturnsUserCorrectly() throws IOException {
 
         List<String> uuids = new ArrayList<>();
         uuids.add("1");
@@ -151,7 +153,7 @@ public class RestUserRepositoryTest {
     }
 
     @Test
-    public void findUsersByUuidsUserServerReturnException() throws IOException {
+    public void findUsersByUuidsIfUserServerReturnsException() throws IOException {
 
         List<String> uuids = new ArrayList<>();
         uuids.add("1");
@@ -174,5 +176,7 @@ public class RestUserRepositoryTest {
         expectedException.expectMessage(containsString("Sorry, User server return an error"));
 
         userRepository.findUsersByUuids(uuids);
+
+        mockServer.verify();
     }
 }

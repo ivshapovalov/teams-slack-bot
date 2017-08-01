@@ -7,21 +7,20 @@ import org.springframework.web.client.HttpClientErrorException;
 import ua.com.juja.microservices.teams.slackbot.exceptions.ApiError;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 
 /**
  * @author Ivan Shapovalov
  */
-public class AbstractRestRepository {
+class AbstractRestRepository {
 
-    protected HttpHeaders setupBaseHttpHeaders() {
+    HttpHeaders setupBaseHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
         return headers;
     }
 
-    protected ApiError convertToApiError(HttpClientErrorException httpClientErrorException) {
+    ApiError convertToApiError(HttpClientErrorException httpClientErrorException) {
         ObjectMapper mapper = new ObjectMapper();
         try {
             return mapper.readValue(httpClientErrorException.getResponseBodyAsString(), ApiError.class);

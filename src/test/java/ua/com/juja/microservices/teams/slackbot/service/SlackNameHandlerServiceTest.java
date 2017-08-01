@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -60,6 +61,7 @@ public class SlackNameHandlerServiceTest {
 
         Set<String> actual = slackNameHandlerService.getUuidsFromText(text);
 
+        assertNotNull(actual);
         assertThat(actual, is(Collections.emptySet()));
         verify(userService).findUsersBySlackNames(requestToUserService);
         verifyNoMoreInteractions(userService);
@@ -68,9 +70,9 @@ public class SlackNameHandlerServiceTest {
     @Test
     public void getUuidsFromTextIfOneSlackInTextExecutedCorrectly() throws Exception {
         String text = "text " + user1.getSlack() + " TexT text.";
-        List<String> requestToUserService = Arrays.asList(new String[]{user1.getSlack()});
-        Set<String> expected = new LinkedHashSet<>(Arrays.asList(new String[]{user1.getUuid()}));
-        List<User> responseFromUserService = Arrays.asList(new User[]{user1});
+        List<String> requestToUserService = Collections.singletonList(user1.getSlack());
+        Set<String> expected = new LinkedHashSet<>(Collections.singletonList(user1.getUuid()));
+        List<User> responseFromUserService = Collections.singletonList(user1);
         when(userService.findUsersBySlackNames(requestToUserService)).thenReturn(responseFromUserService);
 
         Set<String> actual = slackNameHandlerService.getUuidsFromText(text);
@@ -85,11 +87,11 @@ public class SlackNameHandlerServiceTest {
 
         String text = "text " + user1.getSlack() + " " + user2.getSlack() + " " + user3.getSlack() + " " +
                 user4.getSlack();
-        List<String> requestToUserService = Arrays.asList(new String[]{user1.getSlack(), user2.getSlack(),
-                user3.getSlack(), user4.getSlack()});
-        Set<String> expected = new LinkedHashSet<>(Arrays.asList(new String[]{user1.getUuid(), user2.getUuid(),
-                user3.getUuid(), user4.getUuid()}));
-        List<User> responseFromUserService = Arrays.asList(new User[]{user4, user2, user1, user3});
+        List<String> requestToUserService = Arrays.asList(user1.getSlack(), user2.getSlack(),
+                user3.getSlack(), user4.getSlack());
+        Set<String> expected = new LinkedHashSet<>(Arrays.asList(user1.getUuid(), user2.getUuid(),
+                user3.getUuid(), user4.getUuid()));
+        List<User> responseFromUserService = Arrays.asList(user4, user2, user1, user3);
         when(userService.findUsersBySlackNames(requestToUserService)).thenReturn(responseFromUserService);
 
         Set<String> actual = slackNameHandlerService.getUuidsFromText(text);
@@ -112,12 +114,12 @@ public class SlackNameHandlerServiceTest {
     @Test
     public void getSlackNamesFromUuidsIfFourUuidsExecutedCorrectly() throws Exception {
 
-        List<String> requestToUserService = Arrays.asList(new String[]{user1.getUuid(), user2.getUuid(),
-                user3.getUuid(), user4.getUuid()});
+        List<String> requestToUserService = Arrays.asList(user1.getUuid(), user2.getUuid(),
+                user3.getUuid(), user4.getUuid());
         Set<String> members = new LinkedHashSet<>(requestToUserService);
-        Set<String> expected = new LinkedHashSet<>(Arrays.asList(new String[]{user1.getSlack(), user2.getSlack(),
-                user3.getSlack(), user4.getSlack()}));
-        List<User> responseFromUserService = Arrays.asList(new User[]{user1, user2, user3, user4});
+        Set<String> expected = new LinkedHashSet<>(Arrays.asList(user1.getSlack(), user2.getSlack(),
+                user3.getSlack(), user4.getSlack()));
+        List<User> responseFromUserService = Arrays.asList(user1, user2, user3, user4);
         when(userService.findUsersByUuids(requestToUserService)).thenReturn(responseFromUserService);
 
         Set<String> actual = slackNameHandlerService.getSlackNamesFromUuids(members);
@@ -131,8 +133,8 @@ public class SlackNameHandlerServiceTest {
     public void getSlackNamesFromUuidsWithoutUuidsExecutedCorrectly() throws Exception {
 
         List<String> requestToUserService = Arrays.asList(new String[]{});
-        Set<String> members = new LinkedHashSet<>();
-        Set<String> expected = new LinkedHashSet<>();
+        Set<String> members = Collections.emptySet();
+        Set<String> expected = Collections.emptySet();
         List<User> responseFromUserService = Collections.emptyList();
         when(userService.findUsersByUuids(requestToUserService)).thenReturn(responseFromUserService);
 

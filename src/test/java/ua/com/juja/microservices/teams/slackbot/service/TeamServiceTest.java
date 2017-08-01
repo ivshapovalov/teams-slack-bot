@@ -9,17 +9,16 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
-import ua.com.juja.microservices.teams.slackbot.repository.TeamRepository;
 import ua.com.juja.microservices.teams.slackbot.model.Team;
 import ua.com.juja.microservices.teams.slackbot.model.TeamRequest;
+import ua.com.juja.microservices.teams.slackbot.repository.TeamRepository;
 
 import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -47,14 +46,14 @@ public class TeamServiceTest {
 
     @Test
     public void activateTeamIfTeamRequestNotNullExecutedCorrectly() {
-        Set<String> members = new LinkedHashSet<>(Arrays.asList(new String[]{"uuid1", "uuid2", "uuid3", "uuid4"}));
+        Set<String> members = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4"));
         TeamRequest teamRequest = new TeamRequest(members);
         Team expected = new Team(members);
         given(teamRepository.activateTeam(teamRequest)).willReturn(expected);
 
         Team actual = teamService.activateTeam(teamRequest);
 
-        assertThat(actual, equalTo(expected));
+        assertEquals(expected, actual);
         verify(teamRepository).activateTeam(teamRequest);
         verifyNoMoreInteractions(teamRepository);
     }
