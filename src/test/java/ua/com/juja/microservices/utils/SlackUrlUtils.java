@@ -18,7 +18,7 @@ public class SlackUrlUtils {
                 "response_url={response_url}&";
     }
 
-    public static Object[] getUriVars(String slackToken, String command, String description, String response_utl) {
+    public static Object[] getUriVars(String slackToken, String command, String description, String responseUrl) {
         return new Object[]{slackToken,
                 "any_team_id",
                 "any_domain",
@@ -28,6 +28,6 @@ public class SlackUrlUtils {
                 "@from-user",
                 command,
                 description,
-                response_utl};
+                responseUrl};
     }
 }

@@ -26,10 +26,10 @@ public class TeamSlackbotController {
     private final static String SORRY_MESSAGE = "Sorry! You're not lucky enough to use our slack command";
     private final static String ACTIVATE_TEAM_MESSAGE = "Thanks, Activate Team job started!";
     private final RestTemplate restTemplate;
-    @Value("${slack.slashCommandToken}")
-    private String slackToken;
     private final TeamSlackbotService teamSlackbotService;
     private final ExceptionsHandler exceptionsHandler;
+    @Value("${slack.slashCommandToken}")
+    private String slackToken;
 
     @Inject
     public TeamSlackbotController(TeamSlackbotService teamSlackbotService,
@@ -57,15 +57,15 @@ public class TeamSlackbotController {
         log.debug("Finished send first response message to slack '{}' ", ACTIVATE_TEAM_MESSAGE);
 
         log.debug("Started activate team request to Team Slackbot service. Text: '{}'", text);
-        Team activatedTeam= teamSlackbotService.activateTeam(text);
+        Team activatedTeam = teamSlackbotService.activateTeam(text);
         log.debug("Finished activate team in Team Slackbot service. New Team: '{}'", activatedTeam.toString());
 
-        RichMessage message= new RichMessage(String.format("Thanks, new Team for '%s' activated", text));
-        log.debug("Started send last response message to slack '{}' ", message);
+        RichMessage message = new RichMessage(String.format("Thanks, new Team for '%s' activated", text));
+        log.debug("Started send last response message to slack '{}' ", message.getText());
         restTemplate.postForObject(responseUrl, message, String.class);
-        log.debug("Finished send last response message to slack '{}' ", message);
+        log.debug("Finished send last response message to slack '{}' ", message.getText());
         log.info("'Activate team' command processed : user: '{}' text: '{}' and sent message to slack: '{}'",
-                fromUser, text, message);
+                fromUser, text, message.getText());
     }
 
     private boolean isTokenCorrect(@RequestParam("token") String token, @RequestParam("user_name") String fromUser,
@@ -89,27 +89,30 @@ public class TeamSlackbotController {
     }
 
     @PostMapping(value = "/teams/deactivate", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public RichMessage onReceiveSlashCommandDeactivateTeam(@RequestParam("token") String token,
-                                                           @RequestParam("user_name") String fromUser,
-                                                           @RequestParam("text") String text) {
+    public void onReceiveSlashCommandDeactivateTeam(@RequestParam("token") String token,
+                                                    @RequestParam("user_name") String fromUser,
+                                                    @RequestParam("text") String text,
+                                                    @RequestParam("response_url") String responseUrl,
+                                                    HttpServletResponse response) {
         //TODO Should be implemented feature SLB-F2
-        return null;
     }
 
     @PostMapping(value = "/team", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public RichMessage onReceiveSlashCommandGetTeam(@RequestParam("token") String token,
-                                                    @RequestParam("user_name") String fromUser,
-                                                    @RequestParam("text") String text) {
+    public void onReceiveSlashCommandGetTeam(@RequestParam("token") String token,
+                                             @RequestParam("user_name") String fromUser,
+                                             @RequestParam("text") String text,
+                                             @RequestParam("response_url") String responseUrl,
+                                             HttpServletResponse response) {
         //TODO Should be implemented feature SLB-F3
-        return null;
     }
 
     @PostMapping(value = "/myteam", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public RichMessage onReceiveSlashCommandGetMyTeam(@RequestParam("token") String token,
-                                                      @RequestParam("user_name") String fromUser,
-                                                      @RequestParam("text") String text) {
+    public void onReceiveSlashCommandGetMyTeam(@RequestParam("token") String token,
+                                               @RequestParam("user_name") String fromUser,
+                                               @RequestParam("text") String text,
+                                               @RequestParam("response_url") String responseUrl,
+                                               HttpServletResponse response) {
         //TODO Should be implemented feature SLB-F4
-        return null;
     }
 
 }
