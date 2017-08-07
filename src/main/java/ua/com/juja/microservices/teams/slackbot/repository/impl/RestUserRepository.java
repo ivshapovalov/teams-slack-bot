@@ -15,6 +15,7 @@ import ua.com.juja.microservices.teams.slackbot.model.User;
 import ua.com.juja.microservices.teams.slackbot.model.UserSlackNameRequest;
 import ua.com.juja.microservices.teams.slackbot.model.UserUuidRequest;
 import ua.com.juja.microservices.teams.slackbot.repository.UserRepository;
+import ua.com.juja.microservices.teams.slackbot.util.Utils;
 
 import javax.inject.Inject;
 import java.util.Arrays;
@@ -26,9 +27,10 @@ import java.util.List;
 @Repository
 @Slf4j
 @Profile({"production", "default"})
-public class RestUserRepository extends AbstractRestRepository implements UserRepository {
+public class RestUserRepository implements UserRepository {
     private final RestTemplate restTemplate;
-
+    @Value("${rest.api.version}")
+    private String restApiVersion;
     @Value("${user.baseURL}")
     private String userUrlBase;
     @Value("${endpoint.userSearchBySlackName}")
@@ -44,21 +46,14 @@ public class RestUserRepository extends AbstractRestRepository implements UserRe
     @Override
     public List<User> findUsersBySlackNames(List<String> slackNames) {
         log.debug("Received slackNames to convert : '{}'", slackNames);
-        for (int i = 0; i < slackNames.size(); i++) {
-            if (!slackNames.get(i).startsWith("@")) {
-                log.debug("Add '@' to slackName : '{}'", slackNames.get(i));
-                String slackName = slackNames.get(i);
-                slackNames.set(i, "@" + slackName);
-            }
-        }
+        Utils.addAtToSlackNames(slackNames);
         log.debug("Started creating userSlackNameRequest and HttpEntity");
         UserSlackNameRequest userSlackNameRequest = new UserSlackNameRequest(slackNames);
-        HttpEntity<UserSlackNameRequest> request = new HttpEntity<>(userSlackNameRequest, setupBaseHttpHeaders());
+        HttpEntity<UserSlackNameRequest> request = new HttpEntity<>(userSlackNameRequest, Utils.setupJsonHttpHeaders());
         log.debug("Finished creating userSlackNameRequest and HttpEntity");
 
-        List<User> users;
-        String userServiceURL = userUrlBase + userUrlFindUsersBySlackNames;
-        users = getUsers(request, userServiceURL);
+        String userServiceURL = userUrlBase + restApiVersion + userUrlFindUsersBySlackNames;
+        List<User> users = getUsers(request, userServiceURL);
         log.info("Found User: '{}' for slackNames: {}", users, slackNames);
         return users;
     }
@@ -66,13 +61,11 @@ public class RestUserRepository extends AbstractRestRepository implements UserRe
     @Override
     public List<User> findUsersByUuids(List<String> uuids) {
         log.debug("Received uids to convert : '{}'", uuids);
-        log.debug("Started creating userUuidsRequest and HttpEntity");
         UserUuidRequest userUuidRequest = new UserUuidRequest(uuids);
-        HttpEntity<UserUuidRequest> request = new HttpEntity<>(userUuidRequest, setupBaseHttpHeaders());
+        HttpEntity<UserUuidRequest> request = new HttpEntity<>(userUuidRequest, Utils.setupJsonHttpHeaders());
         log.debug("Finished creating userUuidsRequest and HttpEntity");
-        List<User> users;
-        String userServiceURL = userUrlBase + userUrlFindUsersByUuids;
-        users = getUsers(request, userServiceURL);
+        String userServiceURL = userUrlBase + restApiVersion + userUrlFindUsersByUuids;
+        List<User> users = getUsers(request, userServiceURL);
         log.info("Found User:{} for uuids: {}", users, uuids);
         return users;
     }
@@ -80,14 +73,14 @@ public class RestUserRepository extends AbstractRestRepository implements UserRe
     private <T> List<User> getUsers(HttpEntity<T> request, String userServiceURL) {
         List<User> users;
         try {
-            log.debug("Started request to Users service url '{}'. Request is : '{}'", userServiceURL, request.toString
-                    ());
+            log.debug("Started request to Users service url '{}'. Request is : '{}'",
+                    userServiceURL, request.toString());
             ResponseEntity<User[]> response = restTemplate.exchange(userServiceURL,
                     HttpMethod.POST, request, User[].class);
             log.debug("Finished request to Users service. Response is: '{}'", response.toString());
             users = Arrays.asList(response.getBody());
         } catch (HttpClientErrorException ex) {
-            ApiError error = convertToApiError(ex);
+            ApiError error = Utils.convertToApiError(ex);
             log.warn("Users service returned an error: '{}'", error);
             throw new UserExchangeException(error, ex);
         }

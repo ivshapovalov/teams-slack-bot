@@ -5,11 +5,15 @@ import me.ramswaroop.jbot.core.slack.models.RichMessage;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.RestTemplate;
-import ua.com.juja.microservices.teams.slackbot.service.impl.SlackNameHandlerService;
+import ua.com.juja.microservices.teams.slackbot.model.User;
+import ua.com.juja.microservices.teams.slackbot.service.UserService;
+import ua.com.juja.microservices.teams.slackbot.util.Utils;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -22,23 +26,14 @@ public class ExceptionsHandler {
 
     private final RestTemplate restTemplate;
 
-    private final SlackNameHandlerService slackNameHandlerService;
+    private final UserService userService;
+
     private String responseUrl;
 
     @Inject
-    public ExceptionsHandler(SlackNameHandlerService slackNameHandlerService,
-                             RestTemplate restTemplate) {
-        this.slackNameHandlerService = slackNameHandlerService;
+    public ExceptionsHandler(RestTemplate restTemplate, UserService userService) {
         this.restTemplate = restTemplate;
-    }
-
-    private void sendPostResponseAsRichMessage(String responseUrl, RichMessage richMessage) {
-        try {
-            restTemplate.postForObject(responseUrl, richMessage, String.class);
-        } catch (Exception ex) {
-            log.warn("Nested exception : '{}' with text '{}' . Unable to send response to slack", ex.getMessage(),
-                    richMessage.getText());
-        }
+        this.userService = userService;
     }
 
     public void setResponseUrl(String responseUrl) {
@@ -48,46 +43,59 @@ public class ExceptionsHandler {
     @ExceptionHandler(Exception.class)
     public void handleAllOtherExceptions(Exception ex) {
         log.warn("Other Exception': {}", ex.getMessage());
-        sendPostResponseAsRichMessage(responseUrl, new RichMessage(ex.getMessage()));
+        sendPostResponseAsRichMessage(new RichMessage(ex.getMessage()));
     }
 
     @ExceptionHandler(WrongCommandFormatException.class)
     public void handleWrongCommandFormatException(Exception ex) {
         log.warn("WrongCommandFormatException: {}", ex.getMessage());
-        sendPostResponseAsRichMessage(responseUrl, new RichMessage(ex.getMessage()));
+        sendPostResponseAsRichMessage(new RichMessage(ex.getMessage()));
     }
 
     @ExceptionHandler(UserExchangeException.class)
     public void handleUserExchangeException(UserExchangeException ex) {
         log.warn("UserExchangeException: {}", ex.detailMessage());
-        sendPostResponseAsRichMessage(responseUrl, new RichMessage(ex.getMessage()));
+        sendPostResponseAsRichMessage(new RichMessage(ex.getMessage()));
     }
 
     @ExceptionHandler(TeamExchangeException.class)
     public void handleTeamExchangeException(TeamExchangeException ex) {
         log.warn("TeamExchangeException : {}", ex.detailMessage());
         String message = ex.getMessage();
-        if (ex.getError() != null && ex.getError().getExceptionMessage().contains("#")) {
-            message = replaceUuidsBySlackNamesInMessage(ex.getError().getExceptionMessage());
+        ApiError apiError = ex.getError();
+        if (apiError != null && apiError.getExceptionMessage().contains("#")) {
+            message = replaceUuidsBySlackNamesInMessage(apiError.getExceptionMessage());
         }
-        sendPostResponseAsRichMessage(responseUrl, new RichMessage(message));
+        sendPostResponseAsRichMessage(new RichMessage(message));
     }
 
     private String replaceUuidsBySlackNamesInMessage(String message) {
         log.debug("Start find and replace uuids by slackNames in message {}", message);
-        String[] array = message.split("#");
-        if (array.length > 1) {
-            Set<String> uuids = new HashSet<>(Arrays.asList(array[1].split(",")));
-            Set<String> slackNames=new HashSet<>();
+        String[] messageParts = message.split("#");
+        if (messageParts.length > 1) {
+            Set<String> uuids = new HashSet<>(Arrays.asList(messageParts[1].split(",")));
+            Set<String> slackNames = new HashSet<>();
             try {
-                slackNames = slackNameHandlerService.getSlackNamesFromUuids(uuids);
+                List<User> users = userService.findUsersByUuids(new ArrayList<>(uuids));
+                slackNames = users.stream().map(User::getSlack)
+                        .collect(Collectors.toSet());
             } catch (Exception ex) {
                 log.warn("Nested exception : '{}'", ex.getMessage());
             }
-            array[1] = slackNames.stream().collect(Collectors.joining(","));
-            message = Arrays.stream(array).collect(Collectors.joining(""));
+            messageParts[1] = Utils.listToStringWithDelimeter(slackNames, ",");
+            message = Utils.arrayToStringWithDelimeter(messageParts, "");
         }
         log.debug("Finished find and replace uuids by slackNames in message {}", message);
         return message;
     }
+
+    private void sendPostResponseAsRichMessage(RichMessage richMessage) {
+        try {
+            restTemplate.postForObject(responseUrl, richMessage, String.class);
+        } catch (Exception ex) {
+            log.warn("Nested exception : '{}' with text '{}' . Unable to send response to slack", ex.getMessage(),
+                    richMessage.getText());
+        }
+    }
+
 }

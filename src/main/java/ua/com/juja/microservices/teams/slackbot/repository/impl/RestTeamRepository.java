@@ -8,11 +8,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import ua.com.juja.microservices.teams.slackbot.repository.TeamRepository;
 import ua.com.juja.microservices.teams.slackbot.exceptions.ApiError;
 import ua.com.juja.microservices.teams.slackbot.exceptions.TeamExchangeException;
 import ua.com.juja.microservices.teams.slackbot.model.Team;
 import ua.com.juja.microservices.teams.slackbot.model.TeamRequest;
+import ua.com.juja.microservices.teams.slackbot.repository.TeamRepository;
+import ua.com.juja.microservices.teams.slackbot.util.Utils;
 
 import javax.inject.Inject;
 
@@ -21,11 +22,11 @@ import javax.inject.Inject;
  */
 @Repository
 @Slf4j
-public class RestTeamRepository extends AbstractRestRepository implements TeamRepository {
+public class RestTeamRepository implements TeamRepository {
 
     private final RestTemplate restTemplate;
     @Value("${rest.api.version}")
-    private String restApiVersion="v1";
+    private String restApiVersion;
     @Value("${teams.baseURL}")
     private String teamsBaseUrl;
     @Value("${endpoint.activateTeam}")
@@ -43,7 +44,7 @@ public class RestTeamRepository extends AbstractRestRepository implements TeamRe
     @Override
     public Team activateTeam(TeamRequest teamRequest) {
         log.debug("Started Activate Team from request: '{}'", teamRequest.toString());
-        HttpEntity<TeamRequest> request = new HttpEntity<>(teamRequest, setupBaseHttpHeaders());
+        HttpEntity<TeamRequest> request = new HttpEntity<>(teamRequest, Utils.setupJsonHttpHeaders());
         Team activatedTeam;
         try {
             String teamsServiceURL = teamsBaseUrl + restApiVersion + teamsActivateTeamUrl;
@@ -54,7 +55,7 @@ public class RestTeamRepository extends AbstractRestRepository implements TeamRe
             log.debug("Finished request to Teams service. Response is: '{}'", response.toString());
             activatedTeam = response.getBody();
         } catch (HttpClientErrorException ex) {
-            ApiError error = convertToApiError(ex);
+            ApiError error = Utils.convertToApiError(ex);
             log.warn("Teams service returned an error: '{}'", error);
             throw new TeamExchangeException(error, ex);
         }
@@ -64,11 +65,13 @@ public class RestTeamRepository extends AbstractRestRepository implements TeamRe
 
     @Override
     public Team deactivateTeam(String slackName) {
+        //TODO Should be implemented feature SLB-F2
         return null;
     }
 
     @Override
     public Team getTeam(String slackName) {
+        //TODO Should be implemented feature SLB-F3
         return null;
     }
 }

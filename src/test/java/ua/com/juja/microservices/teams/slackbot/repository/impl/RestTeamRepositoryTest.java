@@ -112,4 +112,5 @@ public class RestTeamRepositoryTest {
 
         mockServer.verify();
     }
+
 }

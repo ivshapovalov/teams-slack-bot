@@ -15,7 +15,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class User {
     @JsonProperty
-    String uuid;
+    private String uuid;
     @JsonProperty
-    String slack;
+    private String slack;
 }

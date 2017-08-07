@@ -22,7 +22,7 @@ public class Team {
     @JsonProperty("id")
     private String id;
     @JsonProperty("members")
-    private Set<String> members;
+    private final Set<String> members;
 
     @JsonProperty("activateDate")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ")

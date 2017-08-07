@@ -15,7 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.exceptions.ExceptionsHandler;
 import ua.com.juja.microservices.teams.slackbot.model.Team;
 import ua.com.juja.microservices.teams.slackbot.model.User;
-import ua.com.juja.microservices.teams.slackbot.service.TeamSlackbotService;
+import ua.com.juja.microservices.teams.slackbot.service.TeamService;
 import ua.com.juja.microservices.utils.SlackUrlUtils;
 
 import javax.inject.Inject;
@@ -51,7 +51,7 @@ public class TeamSlackbotControllerTest {
     private MockMvc mvc;
 
     @MockBean
-    private TeamSlackbotService teamSlackbotService;
+    private TeamService teamSlackbotService;
 
     @MockBean
     private ExceptionsHandler exceptionsHandler;
@@ -83,7 +83,7 @@ public class TeamSlackbotControllerTest {
                 SlackUrlUtils.getUriVars("wrongSlackToken", "/command", ACTIVATE_TEAM_COMMAND_TEXT,
                         "http://example.com"))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isOk())
                 .andExpect(content().string(SORRY_MESSAGE));
 
         verify(exceptionsHandler).setResponseUrl(anyString());

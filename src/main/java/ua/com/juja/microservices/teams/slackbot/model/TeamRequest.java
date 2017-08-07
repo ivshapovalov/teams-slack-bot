@@ -14,7 +14,7 @@ import java.util.Set;
 @Slf4j
 public class TeamRequest {
     @NotEmpty
-    private Set<String> members;
+    private final Set<String> members;
 
     public TeamRequest(Set<String> members) {
         this.members = members;

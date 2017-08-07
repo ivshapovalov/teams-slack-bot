@@ -20,23 +20,15 @@ import java.util.stream.Collectors;
 @Repository
 @Slf4j
 @Profile("test")
-public class FakeUserRepository extends AbstractRestRepository implements UserRepository {
+public class FakeUserRepository implements UserRepository {
 
     private static final Map<String, String> ALL_USERS = new HashMap<>();
 
     static {
-        ALL_USERS.put("1", "@a");
-        ALL_USERS.put("2", "@b");
-        ALL_USERS.put("3", "@c");
-        ALL_USERS.put("4", "@d");
-        ALL_USERS.put("5", "@e");
-        ALL_USERS.put("6", "@f");
-        ALL_USERS.put("7", "@g");
-        ALL_USERS.put("8", "@h");
-        ALL_USERS.put("9", "@i");
-        ALL_USERS.put("10", "@j");
-        ALL_USERS.put("11", "@k");
-        ALL_USERS.put("12", "@l");
+        for (int i = 97; i < 122; i++) {
+            String s = Character.toString((char)i);
+            ALL_USERS.put(String.valueOf(i), "@"+Character.toString((char)i));
+        }
     }
 
     @Override
@@ -82,11 +74,11 @@ public class FakeUserRepository extends AbstractRestRepository implements UserRe
     @Override
     public List<User> findUsersByUuids(List<String> uuids) {
         log.debug("Received uuids to convert : '{}'", uuids);
-        List<User> users = FakeUserRepository.ALL_USERS.entrySet().stream()
+        List<User> users = ALL_USERS.entrySet().stream()
                 .filter(user -> uuids.contains(user.getKey()))
                 .map(user -> new User(user.getKey(), user.getValue()))
                 .collect(Collectors.toList());
-        if (FakeUserRepository.ALL_USERS.size() != uuids.size()) {
+        if (ALL_USERS.size() != uuids.size()) {
             List<String> absentUuids = uuids.stream()
                     .filter(user -> !ALL_USERS.containsKey(user))
                     .collect(Collectors.toList());
@@ -97,3 +89,4 @@ public class FakeUserRepository extends AbstractRestRepository implements UserRe
         return users;
     }
 }
+
