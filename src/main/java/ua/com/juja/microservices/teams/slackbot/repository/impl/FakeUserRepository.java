@@ -78,7 +78,7 @@ public class FakeUserRepository implements UserRepository {
                 .filter(user -> uuids.contains(user.getKey()))
                 .map(user -> new User(user.getKey(), user.getValue()))
                 .collect(Collectors.toList());
-        if (ALL_USERS.size() != uuids.size()) {
+        if (users.size() != uuids.size()) {
             List<String> absentUuids = uuids.stream()
                     .filter(user -> !ALL_USERS.containsKey(user))
                     .collect(Collectors.toList());
