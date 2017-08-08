@@ -15,6 +15,7 @@ import ua.com.juja.microservices.teams.slackbot.model.User;
 import ua.com.juja.microservices.teams.slackbot.model.UserSlackNameRequest;
 import ua.com.juja.microservices.teams.slackbot.model.UserUuidRequest;
 import ua.com.juja.microservices.teams.slackbot.repository.UserRepository;
+import ua.com.juja.microservices.teams.slackbot.util.SlackNameHandler;
 import ua.com.juja.microservices.teams.slackbot.util.Utils;
 
 import javax.inject.Inject;
@@ -46,7 +47,7 @@ public class RestUserRepository implements UserRepository {
     @Override
     public List<User> findUsersBySlackNames(List<String> slackNames) {
         log.debug("Received slackNames to convert : '{}'", slackNames);
-        Utils.addAtToSlackNames(slackNames);
+        SlackNameHandler.addAtToSlackNames(slackNames);
         log.debug("Started creating userSlackNameRequest and HttpEntity");
         UserSlackNameRequest userSlackNameRequest = new UserSlackNameRequest(slackNames);
         HttpEntity<UserSlackNameRequest> request = new HttpEntity<>(userSlackNameRequest, Utils.setupJsonHttpHeaders());

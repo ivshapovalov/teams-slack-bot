@@ -10,7 +10,6 @@ import ua.com.juja.microservices.teams.slackbot.exceptions.ApiError;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -22,16 +21,6 @@ public class Utils {
     public static <T> void checkNull(T parameter, String message) {
         if (parameter == null) {
             throw new IllegalArgumentException(message);
-        }
-    }
-
-    public static void addAtToSlackNames(List<String> slackNames) {
-        for (int i = 0; i < slackNames.size(); i++) {
-            if (!slackNames.get(i).startsWith("@")) {
-                log.debug("Add '@' to slackName : '{}'", slackNames.get(i));
-                String slackName = slackNames.get(i);
-                slackNames.set(i, "@" + slackName);
-            }
         }
     }
 
@@ -60,7 +49,7 @@ public class Utils {
         return list.stream().collect(Collectors.joining(delimeter));
     }
 
-    public static String arrayToStringWithDelimeter(String [] array, String delimeter) {
-        return  Arrays.stream(array).collect(Collectors.joining(delimeter));
+    public static String arrayToStringWithDelimeter(String[] array, String delimeter) {
+        return Arrays.stream(array).collect(Collectors.joining(delimeter));
     }
 }
