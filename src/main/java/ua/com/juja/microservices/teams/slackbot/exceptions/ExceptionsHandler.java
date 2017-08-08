@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.service.UserService;
-import ua.com.juja.microservices.teams.slackbot.util.SlackNameHandler;
 
 import javax.inject.Inject;
 
@@ -57,7 +56,11 @@ public class ExceptionsHandler {
         String message = ex.getMessage();
         ApiError apiError = ex.getError();
         if (apiError != null && apiError.getExceptionMessage().contains("#")) {
-            message = SlackNameHandler.replaceUuidsBySlackNamesInMessage(userService, apiError.getExceptionMessage());
+            try {
+                message = userService.replaceUuidsBySlackNamesInExceptionMessage(apiError.getExceptionMessage());
+            } catch (Exception e) {
+                log.warn("Nested exception : '{}'", e.getMessage());
+            }
         }
         sendErrorResponseAsRichMessage(new RichMessage(message));
     }

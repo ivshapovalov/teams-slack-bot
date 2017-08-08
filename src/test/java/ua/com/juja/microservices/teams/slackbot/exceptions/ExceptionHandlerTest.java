@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -86,7 +85,7 @@ public class ExceptionHandlerTest {
         when(teamSlackbotService.activateTeam(activateTeamCommandText))
                 .thenThrow(exception);
         when(restTemplate.postForObject(anyString(), anyObject(), anyObject())).thenReturn("");
-        when(userService.findUsersByUuids(anyListOf(String.class))).thenReturn(users);
+        when(userService.replaceUuidsBySlackNamesInExceptionMessage(anyString())).thenReturn(message);
 
         mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(ACTIVATE_TEAM_URL),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate", activateTeamCommandText,
@@ -96,7 +95,7 @@ public class ExceptionHandlerTest {
                 .andExpect(content().string(ACTIVATE_TEAM_MESSAGE));
 
         verify(teamSlackbotService).activateTeam(activateTeamCommandText);
-        verify(userService).findUsersByUuids(anyListOf(String.class));
+        verify(userService).replaceUuidsBySlackNamesInExceptionMessage(anyString());
         verify(restTemplate).postForObject(anyString(), anyObject(), anyObject());
         verifyNoMoreInteractions(teamSlackbotService, restTemplate, userService);
     }
@@ -193,7 +192,7 @@ public class ExceptionHandlerTest {
         when(teamSlackbotService.activateTeam(activateTeamCommandText))
                 .thenThrow(teamException);
         when(restTemplate.postForObject(anyString(), anyObject(), anyObject())).thenReturn("");
-        when(userService.findUsersByUuids(anyListOf(String.class))).thenThrow(userException);
+        when(userService.replaceUuidsBySlackNamesInExceptionMessage(anyString())).thenThrow(userException);
 
         mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(ACTIVATE_TEAM_URL),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate", activateTeamCommandText,
@@ -203,7 +202,7 @@ public class ExceptionHandlerTest {
                 .andExpect(content().string(ACTIVATE_TEAM_MESSAGE));
 
         verify(teamSlackbotService).activateTeam(activateTeamCommandText);
-        verify(userService).findUsersByUuids(anyListOf(String.class));
+        verify(userService).replaceUuidsBySlackNamesInExceptionMessage(anyString());
         verify(restTemplate).postForObject(anyString(), anyObject(), anyObject());
         verifyNoMoreInteractions(teamSlackbotService, restTemplate, userService);
     }
@@ -229,7 +228,7 @@ public class ExceptionHandlerTest {
         Exception exception = new RuntimeException("exception");
         when(teamSlackbotService.activateTeam(activateTeamCommandText))
                 .thenThrow(teamException);
-        when(userService.findUsersByUuids(anyListOf(String.class))).thenReturn(users);
+        when(userService.replaceUuidsBySlackNamesInExceptionMessage(anyString())).thenReturn(message);
         when(restTemplate.postForObject(anyString(), anyObject(), anyObject())).thenThrow(exception);
 
         mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(ACTIVATE_TEAM_URL),
@@ -240,7 +239,7 @@ public class ExceptionHandlerTest {
                 .andExpect(content().string(ACTIVATE_TEAM_MESSAGE));
 
         verify(teamSlackbotService).activateTeam(activateTeamCommandText);
-        verify(userService).findUsersByUuids(anyListOf(String.class));
+        verify(userService).replaceUuidsBySlackNamesInExceptionMessage(anyString());
         verify(restTemplate).postForObject(anyString(), anyObject(), anyObject());
         verifyNoMoreInteractions(teamSlackbotService, restTemplate, userService);
     }
