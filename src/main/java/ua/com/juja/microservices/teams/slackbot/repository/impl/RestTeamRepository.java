@@ -25,15 +25,15 @@ import javax.inject.Inject;
 public class RestTeamRepository implements TeamRepository {
 
     private final RestTemplate restTemplate;
-    @Value("${rest.api.version}")
-    private String restApiVersion;
+    @Value("${teams.rest.api.version}")
+    private String teamsRestApiVersion;
     @Value("${teams.baseURL}")
     private String teamsBaseUrl;
-    @Value("${endpoint.activateTeam}")
+    @Value("${teams.endpoint.activateTeam}")
     private String teamsActivateTeamUrl;
-    @Value("${endpoint.deactivateTeam}")
+    @Value("${teams.endpoint.deactivateTeam}")
     private String teamsDeactivateTeamUrl;
-    @Value("${endpoint.getTeam}")
+    @Value("${teams.endpoint.getTeam}")
     private String teamsGetTeamUrl;
 
     @Inject
@@ -47,7 +47,7 @@ public class RestTeamRepository implements TeamRepository {
         HttpEntity<TeamRequest> request = new HttpEntity<>(teamRequest, Utils.setupJsonHttpHeaders());
         Team activatedTeam;
         try {
-            String teamsServiceURL = teamsBaseUrl + restApiVersion + teamsActivateTeamUrl;
+            String teamsServiceURL = teamsBaseUrl + teamsRestApiVersion + teamsActivateTeamUrl;
             log.debug("Started request to Teams service url '{}'. Request is : '{}'", teamsServiceURL, request
                     .toString());
             ResponseEntity<Team> response = restTemplate.exchange(teamsServiceURL,

@@ -30,14 +30,14 @@ import java.util.List;
 @Profile({"production", "default"})
 public class RestUserRepository implements UserRepository {
     private final RestTemplate restTemplate;
-    @Value("${rest.api.version}")
-    private String restApiVersion;
-    @Value("${user.baseURL}")
-    private String userUrlBase;
-    @Value("${endpoint.userSearchBySlackName}")
-    private String userUrlFindUsersBySlackNames;
-    @Value("${endpoint.userSearchByUuids}")
-    private String userUrlFindUsersByUuids;
+    @Value("${users.rest.api.version}")
+    private String usersRestApiVersion;
+    @Value("${users.baseURL}")
+    private String usersUrlBase;
+    @Value("${users.endpoint.usersBySlackNames}")
+    private String usersUrlFindUsersBySlackNames;
+    @Value("${users.endpoint.usersByUuids}")
+    private String usersUrlFindUsersByUuids;
 
     @Inject
     public RestUserRepository(RestTemplate restTemplate) {
@@ -53,7 +53,7 @@ public class RestUserRepository implements UserRepository {
         HttpEntity<UserSlackNameRequest> request = new HttpEntity<>(userSlackNameRequest, Utils.setupJsonHttpHeaders());
         log.debug("Finished creating userSlackNameRequest and HttpEntity");
 
-        String userServiceURL = userUrlBase + restApiVersion + userUrlFindUsersBySlackNames;
+        String userServiceURL = usersUrlBase + usersRestApiVersion + usersUrlFindUsersBySlackNames;
         List<User> users = getUsers(request, userServiceURL);
         log.info("Found User: '{}' for slackNames: {}", users, slackNames);
         return users;
@@ -65,7 +65,7 @@ public class RestUserRepository implements UserRepository {
         UserUuidRequest userUuidRequest = new UserUuidRequest(uuids);
         HttpEntity<UserUuidRequest> request = new HttpEntity<>(userUuidRequest, Utils.setupJsonHttpHeaders());
         log.debug("Finished creating userUuidsRequest and HttpEntity");
-        String userServiceURL = userUrlBase + restApiVersion + userUrlFindUsersByUuids;
+        String userServiceURL = usersUrlBase + usersRestApiVersion + usersUrlFindUsersByUuids;
         List<User> users = getUsers(request, userServiceURL);
         log.info("Found User:{} for uuids: {}", users, uuids);
         return users;

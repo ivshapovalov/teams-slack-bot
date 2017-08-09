@@ -49,11 +49,11 @@ public class RestTeamRepositoryTest {
     @Inject
     private RestTemplate restTemplate;
     private MockRestServiceServer mockServer;
-    @Value("${rest.api.version}")
-    private String restApiVersion = "v1";
+    @Value("${teams.rest.api.version}")
+    private String teamsRestApiVersion;
     @Value("${teams.baseURL}")
     private String teamsBaseUrl;
-    @Value("${endpoint.activateTeam}")
+    @Value("${teams.endpoint.activateTeam}")
     private String teamsActivateTeamUrl;
 
     @Before
@@ -63,7 +63,7 @@ public class RestTeamRepositoryTest {
 
     @Test
     public void activateTeamSendRequestToRemoteTeamsServerAndReturnActivatedTeamExecutedCorrectly() throws IOException {
-        String teamsServiceURL = teamsBaseUrl + restApiVersion + teamsActivateTeamUrl;
+        String teamsServiceURL = teamsBaseUrl + teamsRestApiVersion + teamsActivateTeamUrl;
 
         Set<String> members = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4"));
         TeamRequest teamRequest = new TeamRequest(members);
@@ -88,7 +88,7 @@ public class RestTeamRepositoryTest {
 
     @Test
     public void activateTeamSendRequestToRemoteTeamsServerWhichReturnsErrorThrowsException() throws IOException {
-        String teamsServiceURL = teamsBaseUrl + restApiVersion + teamsActivateTeamUrl;
+        String teamsServiceURL = teamsBaseUrl + teamsRestApiVersion + teamsActivateTeamUrl;
 
         Set<String> members = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3",
                 "uuid4"));

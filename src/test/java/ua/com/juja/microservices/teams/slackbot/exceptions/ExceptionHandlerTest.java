@@ -43,9 +43,14 @@ public class ExceptionHandlerTest {
     private final User user2 = new User("uuid2", "@slack2");
     private final User user3 = new User("uuid3", "@slack3");
     private final User user4 = new User("uuid4", "@slack4");
-    @Value("${rest.api.version}")
-    private String restApiVersion;
-    private String ACTIVATE_TEAM_URL;
+    @Value("${teams.slackbot.rest.api.version}")
+    private String teamsSlackbotRestApiVersion;
+
+    @Value("${teams.slackbot.commandsUrl}")
+    private String teamsSlackbotCommandsUrl;
+
+    @Value("${teams.slackbot.endpoint.activateTeam}")
+    private String teamsSlackbotActivateTeamUrl;
     @Inject
     private MockMvc mvc;
     @MockBean
@@ -61,7 +66,8 @@ public class ExceptionHandlerTest {
     public void setup() {
 
         MockitoAnnotations.initMocks(this);
-        ACTIVATE_TEAM_URL = "/" + restApiVersion + "/commands/teams/activate";
+        teamsSlackbotActivateTeamUrl = "/" + teamsSlackbotRestApiVersion + teamsSlackbotCommandsUrl +
+                teamsSlackbotActivateTeamUrl;
     }
 
     @Test
@@ -87,7 +93,7 @@ public class ExceptionHandlerTest {
         when(restTemplate.postForObject(anyString(), anyObject(), anyObject())).thenReturn("");
         when(userService.replaceUuidsBySlackNamesInExceptionMessage(anyString())).thenReturn(message);
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(ACTIVATE_TEAM_URL),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate", activateTeamCommandText,
                         responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
@@ -116,7 +122,7 @@ public class ExceptionHandlerTest {
                 .thenThrow(exception);
         when(restTemplate.postForObject(anyString(), anyObject(), anyObject())).thenReturn("");
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(ACTIVATE_TEAM_URL),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate", activateTeamCommandText,
                         "example.com"))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
@@ -138,7 +144,7 @@ public class ExceptionHandlerTest {
                 .thenThrow(exception);
         when(restTemplate.postForObject(anyString(), anyObject(), anyObject())).thenReturn("");
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(ACTIVATE_TEAM_URL),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate", activateTeamCommandText,
                         "example.com"))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
@@ -160,7 +166,7 @@ public class ExceptionHandlerTest {
                 .thenThrow(exception);
         when(restTemplate.postForObject(anyString(), anyObject(), anyObject())).thenReturn("");
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(ACTIVATE_TEAM_URL),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate", activateTeamCommandText,
                         "example.com"))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
@@ -194,7 +200,7 @@ public class ExceptionHandlerTest {
         when(restTemplate.postForObject(anyString(), anyObject(), anyObject())).thenReturn("");
         when(userService.replaceUuidsBySlackNamesInExceptionMessage(anyString())).thenThrow(userException);
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(ACTIVATE_TEAM_URL),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate", activateTeamCommandText,
                         responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
@@ -231,7 +237,7 @@ public class ExceptionHandlerTest {
         when(userService.replaceUuidsBySlackNamesInExceptionMessage(anyString())).thenReturn(message);
         when(restTemplate.postForObject(anyString(), anyObject(), anyObject())).thenThrow(exception);
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(ACTIVATE_TEAM_URL),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate", activateTeamCommandText,
                         responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))

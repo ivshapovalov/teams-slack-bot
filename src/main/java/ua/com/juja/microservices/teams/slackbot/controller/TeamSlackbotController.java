@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 @RestController
-@RequestMapping(value = "/v1/commands")
+@RequestMapping(value = "/"+"${teams.slackbot.rest.api.version}"+"${teams.slackbot.commandsUrl}")
 @Slf4j
 public class TeamSlackbotController {
 
@@ -40,7 +40,7 @@ public class TeamSlackbotController {
         this.restTemplate = restTemplate;
     }
 
-    @PostMapping(value = "/teams/activate", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @PostMapping(value = "${teams.slackbot.endpoint.activateTeam}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void onReceiveSlashCommandActivateTeam(@RequestParam("token") String token,
                                                   @RequestParam("user_name") String fromUser,
                                                   @RequestParam("text") String text,

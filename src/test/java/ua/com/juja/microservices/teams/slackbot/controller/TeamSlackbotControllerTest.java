@@ -42,8 +42,8 @@ public class TeamSlackbotControllerTest {
     private final static String SORRY_MESSAGE = "Sorry! You're not lucky enough to use our slack command";
     private final static String ACTIVATE_TEAM_MESSAGE = "Thanks, Activate Team job started!";
 
-    @Value("${rest.api.version}")
-    private String restApiVersion;
+    @Value("${teams.rest.api.version}")
+    private String teamsRestApiVersion;
 
     private String ACTIVATE_TEAM_URL;
 
@@ -66,7 +66,7 @@ public class TeamSlackbotControllerTest {
 
     @Before
     public void setup() {
-        ACTIVATE_TEAM_URL = "/" + restApiVersion + "/commands/teams/activate";
+        ACTIVATE_TEAM_URL = "/" + teamsRestApiVersion + "/commands/teams/activate";
 
         user1 = new User("1", "@slack1");
         user2 = new User("2", "@slack2");
