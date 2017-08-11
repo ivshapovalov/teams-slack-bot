@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.exceptions.ExceptionsHandler;
-import ua.com.juja.microservices.teams.slackbot.model.Team;
 import ua.com.juja.microservices.teams.slackbot.service.TeamService;
 
 import javax.inject.Inject;
@@ -19,7 +18,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 @RestController
-@RequestMapping(value = "/"+"${teams.slackbot.rest.api.version}"+"${teams.slackbot.commandsUrl}")
+@RequestMapping(value = "/" + "${teams.slackbot.rest.api.version}" + "${teams.slackbot.commandsUrl}")
 @Slf4j
 public class TeamSlackbotController {
 
@@ -46,48 +45,34 @@ public class TeamSlackbotController {
                                                   @RequestParam("text") String text,
                                                   @RequestParam("response_url") String responseUrl,
                                                   HttpServletResponse response) throws IOException {
-        log.debug("Received slash command 'Activate team' from user: '{}' text: '{}' token: '{}' response_url: '{}'",
-                fromUser, text, token, responseUrl);
         exceptionsHandler.setResponseUrl(responseUrl);
         if (isTokenCorrect(token, fromUser, response, "Activate team")) {
-
             sendInstantResponseMessage(response, ACTIVATE_TEAM_MESSAGE);
-
-            log.debug("Started activate team request to Team service. Text: '{}'", text);
-            Team activatedTeam = teamService.activateTeam(text);
-            log.debug("Finished activate team in Team service. New Team: '{}'", activatedTeam.toString());
-
+            teamService.activateTeam(text);
             RichMessage message = new RichMessage(String.format("Thanks, new Team for '%s' activated", text));
             sendDelayedResponseMessage(responseUrl, message);
-
             log.info("'Activate team' command processed : user: '{}' text: '{}' and sent message to slack: '{}'",
                     fromUser, text, message.getText());
         }
     }
 
     private void sendInstantResponseMessage(HttpServletResponse response, String message) throws IOException {
-        log.debug("Started send first response message to slack '{}' ", ACTIVATE_TEAM_MESSAGE);
         PrintWriter printWriter = response.getWriter();
         response.setStatus(HttpServletResponse.SC_OK);
         printWriter.print(message);
         printWriter.flush();
         printWriter.close();
-        log.debug("Finished send first response message to slack '{}' ", ACTIVATE_TEAM_MESSAGE);
         log.info("Sent first response message to slack '{}' ", message);
     }
 
     private void sendDelayedResponseMessage(String responseUrl, RichMessage message) {
-        log.debug("Started send delayed response message to slack '{}' ", message.getText());
         restTemplate.postForObject(responseUrl, message, String.class);
-        log.debug("Finished send delayed response message to slack '{}' ", message.getText());
     }
 
     private boolean isTokenCorrect(String token, String fromUser, HttpServletResponse response, String commandName)
             throws
             IOException {
         if (!token.equals(slackToken)) {
-            log.warn("Received invalid slack token: '{}' in command '{}' from user: '{}'. Returns to " +
-                    "slack!", token, commandName, fromUser);
             sendInstantResponseMessage(response, SORRY_MESSAGE);
             return false;
         }

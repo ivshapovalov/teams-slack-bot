@@ -34,25 +34,21 @@ public class ExceptionsHandler {
 
     @ExceptionHandler(Exception.class)
     public void handleAllOtherExceptions(Exception ex) {
-        log.warn("Other Exception': {}", ex.getMessage());
         sendErrorResponseAsRichMessage(new RichMessage(ex.getMessage()));
     }
 
     @ExceptionHandler(WrongCommandFormatException.class)
     public void handleWrongCommandFormatException(Exception ex) {
-        log.warn("WrongCommandFormatException: {}", ex.getMessage());
         sendErrorResponseAsRichMessage(new RichMessage(ex.getMessage()));
     }
 
     @ExceptionHandler(UserExchangeException.class)
     public void handleUserExchangeException(UserExchangeException ex) {
-        log.warn("UserExchangeException: {}", ex.detailMessage());
         sendErrorResponseAsRichMessage(new RichMessage(ex.getMessage()));
     }
 
     @ExceptionHandler(TeamExchangeException.class)
     public void handleTeamExchangeException(TeamExchangeException ex) {
-        log.warn("TeamExchangeException : {}", ex.detailMessage());
         String message = ex.getMessage();
         ApiError apiError = ex.getError();
         if (apiError != null && apiError.getExceptionMessage().contains("#")) {

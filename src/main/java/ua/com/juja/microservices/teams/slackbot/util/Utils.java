@@ -46,35 +46,31 @@ public class Utils {
         }
     }
 
-    public static String listToStringWithDelimeter(Set<String> list, String delimeter) {
+    private static String listToStringWithDelimeter(Set<String> list, String delimeter) {
         return list.stream().collect(Collectors.joining(delimeter));
     }
 
-    public static String arrayToStringWithDelimeter(String[] array, String delimeter) {
+    private static String arrayToStringWithDelimeter(String[] array, String delimeter) {
         return Arrays.stream(array).collect(Collectors.joining(delimeter));
     }
 
     public static Set<String> extractUuidsFromExceptionMessage(String message) {
-        log.debug("Started find uuids in message {}", message);
         String messageDelimeter = "#";
         String[] messageParts = message.split(messageDelimeter);
         Set<String> uuids = Collections.emptySet();
         if (messageParts.length > 1) {
             uuids = new HashSet<>(Arrays.asList(messageParts[1].split(",")));
         }
-        log.info("Finished find uuids '{}' in message '{}'", uuids, message);
         return uuids;
     }
 
     public static String replaceUuidsBySlackNamesInExceptionMessage(String message, Set<String> slackNames) {
-        log.debug("Started replace uuids by slackNames '{}' in message '{}'", slackNames, message);
         String messageDelimeter = "#";
         String[] messageParts = message.split(messageDelimeter);
         if (messageParts.length > 1) {
             messageParts[1] = Utils.listToStringWithDelimeter(slackNames, ",");
             message = Utils.arrayToStringWithDelimeter(messageParts, "");
         }
-        log.info("Finished replace uuids by slackNames'{}' in message '{}'", slackNames, message);
         return message;
     }
 }

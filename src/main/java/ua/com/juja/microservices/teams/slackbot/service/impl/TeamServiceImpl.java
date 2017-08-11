@@ -39,7 +39,6 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     public Team activateTeam(String text) {
-        log.debug("Started extract members from text '{}'", text);
         Utils.checkNull(text, "Text must not be null!");
 
         List<String> slackNames = SlackNameHandler.getSlackNamesFromText(text);
@@ -50,18 +49,11 @@ public class TeamServiceImpl implements TeamService {
                 .collect(Collectors.toSet());
 
         if (uuids.size() != TEAM_SIZE) {
-            log.warn("Members size is not equals '{}'" + TEAM_SIZE);
             throw new WrongCommandFormatException(String.format("We found %d slack names in your command." +
                     " But size of the team must be %s.", uuids.size(), TEAM_SIZE));
         }
-        log.debug("Started create TeamRequest");
         TeamRequest teamRequest = new TeamRequest(uuids);
-        log.debug("Finished create TeamRequest");
-
-        log.debug("Send activate team request to Teams repository. Team: '{}'", teamRequest.toString());
         Team activatedTeam = teamRepository.activateTeam(teamRequest);
-        log.debug("Received response from Teams repository: '{}'", activatedTeam.toString());
-
         log.info("Team activated: '{}'", activatedTeam.getId());
         return activatedTeam;
     }
