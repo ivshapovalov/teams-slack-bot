@@ -1,0 +1,18 @@
+[
+  {
+    "uuid": "1",
+    "slack": "@user1"
+  },
+  {
+    "uuid": "2",
+    "slack": "@user2"
+  },
+  {
+    "uuid": "3",
+    "slack": "@user3"
+  },
+  {
+    "uuid": "4",
+    "slack": "@user4"
+  }
+]

@@ -2,13 +2,18 @@ package ua.com.juja.microservices.teams.slackbot.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
+/**
+ * @author Ivan Shapovalov
+ */
 @Getter
 @AllArgsConstructor
 @ToString
-public class UserDTO {
+@EqualsAndHashCode
+public class User {
     @JsonProperty
     private String uuid;
     @JsonProperty
