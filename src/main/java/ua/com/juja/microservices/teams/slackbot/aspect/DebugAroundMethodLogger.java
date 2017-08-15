@@ -7,7 +7,6 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
-import ua.com.juja.microservices.teams.slackbot.exceptions.BaseBotException;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -16,7 +15,6 @@ import java.util.Arrays;
 @Component
 @Slf4j
 public class DebugAroundMethodLogger {
-
 
     @Pointcut("execution(* ua.com.juja.microservices.teams.slackbot..*.*(..))" +
             "&& !execution(* ua.com.juja.microservices.teams.slackbot.exceptions..*.*(..))")

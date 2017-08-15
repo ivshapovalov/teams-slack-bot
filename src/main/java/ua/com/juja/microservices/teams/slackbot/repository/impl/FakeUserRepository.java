@@ -26,7 +26,6 @@ public class FakeUserRepository implements UserRepository {
 
     static {
         for (int i = 97; i < 122; i++) {
-            String s = Character.toString((char)i);
             ALL_USERS.put(String.valueOf(i), "@"+Character.toString((char)i));
         }
     }
