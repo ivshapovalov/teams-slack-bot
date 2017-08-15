@@ -2,6 +2,8 @@ package ua.com.juja.microservices.teams.slackbot.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ua.com.juja.microservices.teams.slackbot.exceptions.ApiError;
+import ua.com.juja.microservices.teams.slackbot.exceptions.TeamExchangeException;
 import ua.com.juja.microservices.teams.slackbot.exceptions.WrongCommandFormatException;
 import ua.com.juja.microservices.teams.slackbot.model.Team;
 import ua.com.juja.microservices.teams.slackbot.model.TeamRequest;
@@ -13,6 +15,7 @@ import ua.com.juja.microservices.teams.slackbot.util.SlackNameHandler;
 import ua.com.juja.microservices.teams.slackbot.util.Utils;
 
 import javax.inject.Inject;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -54,7 +57,22 @@ public class TeamServiceImpl implements TeamService {
         }
         TeamRequest teamRequest = new TeamRequest(uuids);
         Team activatedTeam = teamRepository.activateTeam(teamRequest);
+        checkTeamMembersEquality(teamRequest.getMembers(), activatedTeam.getMembers());
         log.info("Team activated: '{}'", activatedTeam.getId());
         return activatedTeam;
+    }
+
+    private void checkTeamMembersEquality(Set<String> requestMembers, Set<String> responseMembers) {
+        if (!(requestMembers.containsAll(responseMembers) && responseMembers.containsAll(requestMembers))) {
+            Exception ex = new Exception("Team members is not equals in request and response from Teams Service");
+            ApiError apiError = new ApiError(
+                    500, "BotInternalError",
+                    ex.getMessage(),
+                    ex.getMessage(),
+                    ex.getMessage(),
+                    Collections.singletonList("")
+            );
+            throw new TeamExchangeException(apiError, ex);
+        }
     }
 }

@@ -87,33 +87,6 @@ public class RestTeamRepositoryTest {
     }
 
     @Test
-    public void activateTeamSendRequestToRemoteTeamsServerAndReturnActivatedTeamWithAnotherMembersThrowsException()
-            throws IOException {
-        String teamsServiceURL = teamsBaseUrl + teamsRestApiVersion + teamsActivateTeamUrl;
-
-        Set<String> members = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4"));
-        TeamRequest teamRequest = new TeamRequest(members);
-
-        String expectedJsonRequestBody = TestUtils.convertToString(ResourceUtils.resource
-                ("request/requestTeamRepositoryActivateTeamIfUsersNotInActiveTeam.json"));
-        String expectedJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
-                ("response/responseTeamRepositoryActivateTeamIfUsersNotInActiveTeamReturnsAnotherTeam.json"));
-        String expectedRequestHeader = "application/json";
-        mockServer.expect(requestTo(teamsServiceURL))
-                .andExpect(method(HttpMethod.POST))
-                .andExpect(request -> assertThat(request.getHeaders().getContentType().toString(), containsString(expectedRequestHeader)))
-                .andExpect(request -> assertThat(request.getBody().toString(), equalTo(expectedJsonRequestBody)))
-                .andRespond(withSuccess(expectedJsonResponseBody, MediaType.APPLICATION_JSON));
-
-        expectedException.expect(TeamExchangeException.class);
-        expectedException.expectMessage(containsString("Team members is not equals in request and response from Teams Service"));
-
-        teamRepository.activateTeam(teamRequest);
-
-        mockServer.verify();
-    }
-
-    @Test
     public void activateTeamSendRequestToRemoteTeamsServerWhichReturnsErrorThrowsException() throws IOException {
         String teamsServiceURL = teamsBaseUrl + teamsRestApiVersion + teamsActivateTeamUrl;
 
