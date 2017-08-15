@@ -16,6 +16,8 @@ import ua.com.juja.microservices.teams.slackbot.repository.TeamRepository;
 import ua.com.juja.microservices.teams.slackbot.util.Utils;
 
 import javax.inject.Inject;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * @author Ivan Shapovalov
@@ -50,6 +52,7 @@ public class RestTeamRepository implements TeamRepository {
             ResponseEntity<Team> response = restTemplate.exchange(teamsServiceURL,
                     HttpMethod.POST, request, Team.class);
             activatedTeam = response.getBody();
+            checkTeamMembersEquality(teamRequest.getMembers(),activatedTeam.getMembers());
         } catch (HttpClientErrorException ex) {
             ApiError error = Utils.convertToApiError(ex);
             throw new TeamExchangeException(error, ex);
@@ -57,6 +60,21 @@ public class RestTeamRepository implements TeamRepository {
         log.info("Team activated: '{}'", activatedTeam.getId());
         return activatedTeam;
     }
+
+    private void checkTeamMembersEquality(Set<String> requestMembers,Set<String> responseMembers) {
+        if (!(requestMembers.containsAll(responseMembers)&&responseMembers.containsAll(requestMembers))) {
+            Exception ex=new Exception("Team members is not equals in request and response from Teams Service");
+            ApiError apiError=new ApiError(
+                    500, "BotInternalError",
+                    ex.getMessage(),
+                    ex.getMessage(),
+                    ex.getMessage(),
+                    Collections.singletonList("")
+            );
+            throw new TeamExchangeException(apiError,ex);
+        }
+    }
+
 
     @Override
     public Team deactivateTeam(String slackName) {
