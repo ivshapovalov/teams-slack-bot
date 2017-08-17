@@ -19,7 +19,7 @@ import java.util.List;
 @EnableAspectJAutoProxy
 public class TeamSlackBotApplication {
 
-    public static void main(String[] args) {
+    public static void main(String[]  args) {
         SpringApplication.run(TeamSlackBotApplication.class);
     }
 

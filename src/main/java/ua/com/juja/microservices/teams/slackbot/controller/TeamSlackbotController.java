@@ -47,10 +47,10 @@ public class TeamSlackbotController {
                                                   HttpServletResponse response) throws IOException {
         exceptionsHandler.setResponseUrl(responseUrl);
         if (isTokenCorrect(token, fromUser, response, "Activate team")) {
-            sendInstantResponseMessage(response, ACTIVATE_TEAM_MESSAGE);
+            //sendInstantResponseMessage(response, ACTIVATE_TEAM_MESSAGE);
             teamService.activateTeam(text);
             RichMessage message = new RichMessage(String.format("Thanks, new Team for '%s' activated", text));
-            sendDelayedResponseMessage(responseUrl, message);
+           // sendDelayedResponseMessage(responseUrl, message);
             log.info("'Activate team' command processed : user: '{}' text: '{}' and sent message to slack: '{}'",
                     fromUser, text, message.getText());
         }
@@ -70,8 +70,7 @@ public class TeamSlackbotController {
     }
 
     private boolean isTokenCorrect(String token, String fromUser, HttpServletResponse response, String commandName)
-            throws
-            IOException {
+            throws IOException {
         if (!token.equals(slackToken)) {
             sendInstantResponseMessage(response, SORRY_MESSAGE);
             return false;

@@ -8,13 +8,14 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Method;
 import java.util.Arrays;
 
 @Aspect
 @Component
 @Slf4j
 public class DebugAroundMethodLogger {
+
+    protected static int counter= 0;
 
     @Pointcut("execution(* ua.com.juja.microservices.teams.slackbot..*.*(..))" +
             "&& !execution(* ua.com.juja.microservices.teams.slackbot.exceptions..*.*(..))")
@@ -27,19 +28,36 @@ public class DebugAroundMethodLogger {
             return call.proceed();
         } else {
             Object[] args = call.getArgs();
-            log.debug("{} called with args '{}'!", call.toShortString(), Arrays.deepToString(args));
+            String message = call.toShortString();
+            log.debug("{} called with args '{}'!", message, Arrays.deepToString(args));
             Object result = null;
             try {
                 result = call.proceed();
                 return result;
             } finally {
-                Method method = ((MethodSignature) call.getSignature()).getMethod();
-                if (method.getGenericReturnType() == Void.TYPE) {
+                MethodSignature methodSignature = (MethodSignature) call.getSignature();
+                if (methodSignature.getReturnType() == Void.TYPE) {
                     result = "void";
                 }
-                String returnMessage = call.toShortString().replace("execution", "comeback");
+                String returnMessage = message.replace("execution", "comeback");
                 log.debug("{} return '{}'!", returnMessage, result);
             }
         }
     }
+
+//    @Before("businessMethods()")
+//    public void logBefore(JoinPoint joinPoint) {
+//        if (log.isDebugEnabled()) {
+//            Object[] args = joinPoint.getArgs();
+//            log.debug("{} called with args '{}'!", joinPoint.toShortString(), Arrays.deepToString(args));
+//        }
+//    }
+//
+//    @AfterReturning(value = "businessMethods()", returning = "returns")
+//    public void logAfter(JoinPoint joinPoint, Object returns) {
+//        if (log.isDebugEnabled()) {
+//            String returnMessage = joinPoint.toShortString().replace("execution", "comeback");
+//            log.debug("{} return value '{}'!",returnMessage, returns);
+//        }
+//    }
 }
