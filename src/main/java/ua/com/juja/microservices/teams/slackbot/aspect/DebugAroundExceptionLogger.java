@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.stereotype.Component;
 import ua.com.juja.microservices.teams.slackbot.exceptions.BaseBotException;
 
@@ -15,11 +14,7 @@ import java.util.Arrays;
 @Slf4j
 public class DebugAroundExceptionLogger {
 
-    @Pointcut("execution(* ua.com.juja.microservices.teams.slackbot.exceptions..*.handle*(..))")
-    public void exceptionHandleMethods() {
-    }
-
-    @Around("exceptionHandleMethods()")
+    @Around("execution(* ua.com.juja.microservices.teams.slackbot.exceptions..*.handle*(..))")
     public Object logExceptionHandleMethods(ProceedingJoinPoint call) throws Throwable {
         Object[] args = call.getArgs();
         String error = Arrays.deepToString(args);

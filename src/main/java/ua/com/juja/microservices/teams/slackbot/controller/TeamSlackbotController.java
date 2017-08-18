@@ -47,10 +47,10 @@ public class TeamSlackbotController {
                                                   HttpServletResponse response) throws IOException {
         exceptionsHandler.setResponseUrl(responseUrl);
         if (isTokenCorrect(token, fromUser, response, "Activate team")) {
-            //sendInstantResponseMessage(response, ACTIVATE_TEAM_MESSAGE);
+            sendInstantResponseMessage(response, ACTIVATE_TEAM_MESSAGE);
             teamService.activateTeam(text);
             RichMessage message = new RichMessage(String.format("Thanks, new Team for '%s' activated", text));
-           // sendDelayedResponseMessage(responseUrl, message);
+            sendDelayedResponseMessage(responseUrl, message);
             log.info("'Activate team' command processed : user: '{}' text: '{}' and sent message to slack: '{}'",
                     fromUser, text, message.getText());
         }

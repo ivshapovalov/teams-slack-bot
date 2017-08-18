@@ -69,5 +69,4 @@ public class ExceptionsHandler {
                     richMessage.getText());
         }
     }
-
 }
