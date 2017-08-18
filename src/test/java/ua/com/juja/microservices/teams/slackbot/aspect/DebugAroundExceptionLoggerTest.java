@@ -9,6 +9,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
@@ -29,8 +30,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 /**
  * @author Ivan Shapovalov
@@ -48,8 +47,8 @@ public class DebugAroundExceptionLoggerTest {
     @BeforeClass
     public static void beforeClass() {
 
-        mockStatic(LoggerFactory.class);
-        mockLogger = mock(Logger.class);
+        PowerMockito.mockStatic(LoggerFactory.class);
+        mockLogger = PowerMockito.mock(Logger.class);
         when(LoggerFactory.getLogger(any(Class.class))).thenReturn(mockLogger);
     }
 
