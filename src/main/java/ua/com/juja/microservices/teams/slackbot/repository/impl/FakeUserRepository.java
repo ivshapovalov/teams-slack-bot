@@ -26,14 +26,12 @@ public class FakeUserRepository implements UserRepository {
 
     static {
         for (int i = 97; i < 122; i++) {
-            String s = Character.toString((char)i);
             ALL_USERS.put(String.valueOf(i), "@"+Character.toString((char)i));
         }
     }
 
     @Override
     public List<User> findUsersBySlackNames(List<String> slackNames) {
-        log.debug("Received slackNames to search : '{}' in Fake repo", slackNames);
         for (int i = 0; i < slackNames.size(); i++) {
             if (!slackNames.get(i).startsWith("@")) {
                 log.debug("add '@' to SlackName : [{}]", slackNames.get(i));
@@ -51,7 +49,6 @@ public class FakeUserRepository implements UserRepository {
                     .collect(Collectors.toList());
             throwUserException(absentSlackNames);
         }
-        log.debug("Finished searching in Fake Users service. Users is: [{}]", users.toString());
         log.info("Found '{}' ALL_USERS in Fake repo by slackNames", users.size());
         return users;
     }
@@ -73,7 +70,6 @@ public class FakeUserRepository implements UserRepository {
 
     @Override
     public List<User> findUsersByUuids(List<String> uuids) {
-        log.debug("Received uuids to convert : '{}'", uuids);
         List<User> users = ALL_USERS.entrySet().stream()
                 .filter(user -> uuids.contains(user.getKey()))
                 .map(user -> new User(user.getKey(), user.getValue()))
@@ -84,7 +80,6 @@ public class FakeUserRepository implements UserRepository {
                     .collect(Collectors.toList());
             throwUserException(absentUuids);
         }
-        log.debug("Finished request to Fake Users service. Response is: '{}'", users.toString());
         log.info("Found User: '{}' by uuids '{}'", users, uuids);
         return users;
     }

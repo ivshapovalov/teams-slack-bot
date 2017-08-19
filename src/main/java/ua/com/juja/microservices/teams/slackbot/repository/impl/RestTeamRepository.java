@@ -43,20 +43,15 @@ public class RestTeamRepository implements TeamRepository {
 
     @Override
     public Team activateTeam(TeamRequest teamRequest) {
-        log.debug("Started Activate Team from request: '{}'", teamRequest.toString());
         HttpEntity<TeamRequest> request = new HttpEntity<>(teamRequest, Utils.setupJsonHttpHeaders());
         Team activatedTeam;
         try {
             String teamsServiceURL = teamsBaseUrl + teamsRestApiVersion + teamsActivateTeamUrl;
-            log.debug("Started request to Teams service url '{}'. Request is : '{}'", teamsServiceURL, request
-                    .toString());
             ResponseEntity<Team> response = restTemplate.exchange(teamsServiceURL,
                     HttpMethod.POST, request, Team.class);
-            log.debug("Finished request to Teams service. Response is: '{}'", response.toString());
             activatedTeam = response.getBody();
         } catch (HttpClientErrorException ex) {
             ApiError error = Utils.convertToApiError(ex);
-            log.warn("Teams service returned an error: '{}'", error);
             throw new TeamExchangeException(error, ex);
         }
         log.info("Team activated: '{}'", activatedTeam.getId());

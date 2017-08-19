@@ -46,13 +46,9 @@ public class RestUserRepository implements UserRepository {
 
     @Override
     public List<User> findUsersBySlackNames(List<String> slackNames) {
-        log.debug("Received slackNames to convert : '{}'", slackNames);
         SlackNameHandler.addAtToSlackNames(slackNames);
-        log.debug("Started creating userSlackNameRequest and HttpEntity");
         UserSlackNameRequest userSlackNameRequest = new UserSlackNameRequest(slackNames);
         HttpEntity<UserSlackNameRequest> request = new HttpEntity<>(userSlackNameRequest, Utils.setupJsonHttpHeaders());
-        log.debug("Finished creating userSlackNameRequest and HttpEntity");
-
         String userServiceURL = usersUrlBase + usersRestApiVersion + usersUrlFindUsersBySlackNames;
         List<User> users = getUsers(request, userServiceURL);
         log.info("Found User: '{}' for slackNames: {}", users, slackNames);
@@ -61,10 +57,8 @@ public class RestUserRepository implements UserRepository {
 
     @Override
     public List<User> findUsersByUuids(List<String> uuids) {
-        log.debug("Received uids to convert : '{}'", uuids);
         UserUuidRequest userUuidRequest = new UserUuidRequest(uuids);
         HttpEntity<UserUuidRequest> request = new HttpEntity<>(userUuidRequest, Utils.setupJsonHttpHeaders());
-        log.debug("Finished creating userUuidsRequest and HttpEntity");
         String userServiceURL = usersUrlBase + usersRestApiVersion + usersUrlFindUsersByUuids;
         List<User> users = getUsers(request, userServiceURL);
         log.info("Found User:{} for uuids: {}", users, uuids);
@@ -74,15 +68,11 @@ public class RestUserRepository implements UserRepository {
     private <T> List<User> getUsers(HttpEntity<T> request, String userServiceURL) {
         List<User> users;
         try {
-            log.debug("Started request to Users service url '{}'. Request is : '{}'",
-                    userServiceURL, request.toString());
             ResponseEntity<User[]> response = restTemplate.exchange(userServiceURL,
                     HttpMethod.POST, request, User[].class);
-            log.debug("Finished request to Users service. Response is: '{}'", response.toString());
             users = Arrays.asList(response.getBody());
         } catch (HttpClientErrorException ex) {
             ApiError error = Utils.convertToApiError(ex);
-            log.warn("Users service returned an error: '{}'", error);
             throw new UserExchangeException(error, ex);
         }
         return users;

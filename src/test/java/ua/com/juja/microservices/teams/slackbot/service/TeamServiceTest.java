@@ -9,6 +9,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
+import ua.com.juja.microservices.teams.slackbot.exceptions.TeamExchangeException;
 import ua.com.juja.microservices.teams.slackbot.exceptions.WrongCommandFormatException;
 import ua.com.juja.microservices.teams.slackbot.model.Team;
 import ua.com.juja.microservices.teams.slackbot.model.TeamRequest;
@@ -92,6 +93,29 @@ public class TeamServiceTest {
         teamService.activateTeam(text);
 
         verify(userService).findUsersBySlackNames(anyListOf(String.class));
+        verifyNoMoreInteractions(userService, teamRepository);
+    }
+
+    @Test
+    public void activateTeamIfMembersOfRequestAndResponseNotEqualsThrowsException() {
+
+        String text = "@slack1 @slack2 @slack3 @slack4";
+
+        Set<String> responseMembers = new LinkedHashSet<>(Arrays.asList(user1.getUuid(), user2.getUuid(),
+                user3.getUuid(), "uuid5"));
+        List<User> users = Arrays.asList(user1, user2, user3, user4);
+
+        when(userService.findUsersBySlackNames(anyListOf(String.class))).thenReturn(users);
+        Team activatedTeam = new Team(responseMembers);
+        given(teamRepository.activateTeam(any(TeamRequest.class))).willReturn(activatedTeam);
+
+        expectedException.expect(TeamExchangeException.class);
+        expectedException.expectMessage("Team members is not equals in request and response from Teams Service");
+
+        teamService.activateTeam(text);
+
+        verify(userService).findUsersBySlackNames(anyListOf(String.class));
+        verify(teamRepository).activateTeam(any(TeamRequest.class));
         verifyNoMoreInteractions(userService, teamRepository);
     }
 
