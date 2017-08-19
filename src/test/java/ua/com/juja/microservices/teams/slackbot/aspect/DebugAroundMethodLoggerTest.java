@@ -79,7 +79,7 @@ public class DebugAroundMethodLoggerTest {
     @Test
     public void logBusinessMethodsIfDebugEnabledAndMethodReturnsVoid() throws Throwable {
 
-        Object expected = Void.TYPE;
+        Object result = Void.TYPE;
         MethodSignature methodSignature = PowerMockito.mock(MethodSignature.class, withSettings().extraInterfaces
                 (Signature.class, MemberSignature.class, CodeSignature.class, MethodSignature.class));
         Object[] args = {"@a", "@b", "@c"};
@@ -91,11 +91,11 @@ public class DebugAroundMethodLoggerTest {
         when(mockLogger.isDebugEnabled()).thenReturn(true);
         when(proceedingJoinPoint.getArgs()).thenReturn(args);
         when(proceedingJoinPoint.toShortString()).thenReturn(message);
-        when(proceedingJoinPoint.proceed()).thenReturn(expected);
+        when(proceedingJoinPoint.proceed()).thenReturn(result);
         when(proceedingJoinPoint.getSignature()).thenReturn(methodSignature);
         when(methodSignature.getReturnType()).thenReturn(Void.TYPE);
 
-        Object actual = debugAroundMethodLogger.logBusinessMethods(proceedingJoinPoint);
+        debugAroundMethodLogger.logBusinessMethods(proceedingJoinPoint);
 
         verify(proceedingJoinPoint).getArgs();
         verify(proceedingJoinPoint).toShortString();
@@ -105,7 +105,6 @@ public class DebugAroundMethodLoggerTest {
         addLogLineToLogs(beforeMessage, message, Arrays.deepToString(args));
         addLogLineToLogs(afterMessage, message.replace("execution", "comeback"), returnType);
         verifyNoMoreInteractions(proceedingJoinPoint, methodSignature);
-        assertThat(actual, is(expected));
     }
 
     private void addLogLineToLogs(String format, Object arg1, Object arg2) {
@@ -120,7 +119,7 @@ public class DebugAroundMethodLoggerTest {
         MethodSignature methodSignature = PowerMockito.mock(MethodSignature.class, withSettings().extraInterfaces
                 (Signature.class, MemberSignature.class, CodeSignature.class, MethodSignature.class));
         Object[] args = {"@a", "@b", "@c"};
-        String expected = "@d";
+        String result = "@d";
         String message = "execution(method)";
         String beforeMessage = "{} called with args '{}'!";
         String afterMessage = "{} return '{}'!";
@@ -128,11 +127,11 @@ public class DebugAroundMethodLoggerTest {
         when(mockLogger.isDebugEnabled()).thenReturn(true);
         when(proceedingJoinPoint.getArgs()).thenReturn(args);
         when(proceedingJoinPoint.toShortString()).thenReturn(message);
-        when(proceedingJoinPoint.proceed()).thenReturn(expected);
+        when(proceedingJoinPoint.proceed()).thenReturn(result);
         when(proceedingJoinPoint.getSignature()).thenReturn(methodSignature);
         when(methodSignature.getReturnType()).thenReturn(String.class);
 
-        Object actual = debugAroundMethodLogger.logBusinessMethods(proceedingJoinPoint);
+        debugAroundMethodLogger.logBusinessMethods(proceedingJoinPoint);
 
         verify(proceedingJoinPoint).getArgs();
         verify(proceedingJoinPoint).toShortString();
@@ -140,9 +139,8 @@ public class DebugAroundMethodLoggerTest {
         verify(proceedingJoinPoint).getSignature();
         verify(methodSignature).getReturnType();
         addLogLineToLogs(beforeMessage, message, Arrays.deepToString(args));
-        addLogLineToLogs(afterMessage, message.replace("execution", "comeback"), expected);
+        addLogLineToLogs(afterMessage, message.replace("execution", "comeback"), result);
         verifyNoMoreInteractions(proceedingJoinPoint, methodSignature);
-        assertThat(actual, is(expected));
     }
 
     @AllArgsConstructor

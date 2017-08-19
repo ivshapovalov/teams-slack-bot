@@ -23,8 +23,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -71,16 +69,16 @@ public class DebugAroundExceptionLoggerTest {
         );
 
         BaseBotException exception = new UserExchangeException(apiError, new RuntimeException(exceptionMessage));
-        Object expected = new Object();
+        Object result = new Object();
         Object[] args = {exception};
         String message = "execution(method)";
         String warnMessage = "{} called with args '{}'!";
 
         when(proceedingJoinPoint.getArgs()).thenReturn(args);
         when(proceedingJoinPoint.toShortString()).thenReturn(message);
-        when(proceedingJoinPoint.proceed()).thenReturn(expected);
+        when(proceedingJoinPoint.proceed()).thenReturn(result);
 
-        Object actual = debugAroundExceptionLogger.logExceptionHandleMethods(proceedingJoinPoint);
+        debugAroundExceptionLogger.logExceptionHandleMethods(proceedingJoinPoint);
 
         verify(proceedingJoinPoint).getArgs();
         verify(proceedingJoinPoint).toShortString();
@@ -88,22 +86,21 @@ public class DebugAroundExceptionLoggerTest {
         addLogLineToLogs(warnMessage, message.replace("execution", "exception"),
                 exception.detailMessage());
         verifyNoMoreInteractions(proceedingJoinPoint);
-        assertThat(actual, is(expected));
     }
 
     @Test
     public void logExceptionHandleMethodsIfTwoArgumentsExecutedCorrectly() throws Throwable {
 
-        Object expected = new Object();
+        Object result = new Object();
         Object[] args = {"Exception1", "Exception2"};
         String message = "execution(method)";
         String warnMessage = "{} called with args '{}'!";
 
         when(proceedingJoinPoint.getArgs()).thenReturn(args);
         when(proceedingJoinPoint.toShortString()).thenReturn(message);
-        when(proceedingJoinPoint.proceed()).thenReturn(expected);
+        when(proceedingJoinPoint.proceed()).thenReturn(result);
 
-        Object actual = debugAroundExceptionLogger.logExceptionHandleMethods(proceedingJoinPoint);
+        debugAroundExceptionLogger.logExceptionHandleMethods(proceedingJoinPoint);
 
         verify(proceedingJoinPoint).getArgs();
         verify(proceedingJoinPoint).toShortString();
@@ -111,22 +108,21 @@ public class DebugAroundExceptionLoggerTest {
         addLogLineToLogs(warnMessage, message.replace("execution", "exception"),
                 Arrays.deepToString(args));
         verifyNoMoreInteractions(proceedingJoinPoint);
-        assertThat(actual, is(expected));
     }
 
     @Test
     public void logExceptionHandleMethodsIfOneArgumentNotBaseBotExceptionExecutedCorrectly() throws Throwable {
 
-        Object expected = new Object();
+        Object result = new Object();
         Object[] args = {"Exception1"};
         String message = "execution(method)";
         String warnMessage = "{} called with args '{}'!";
 
         when(proceedingJoinPoint.getArgs()).thenReturn(args);
         when(proceedingJoinPoint.toShortString()).thenReturn(message);
-        when(proceedingJoinPoint.proceed()).thenReturn(expected);
+        when(proceedingJoinPoint.proceed()).thenReturn(result);
 
-        Object actual = debugAroundExceptionLogger.logExceptionHandleMethods(proceedingJoinPoint);
+        debugAroundExceptionLogger.logExceptionHandleMethods(proceedingJoinPoint);
 
         verify(proceedingJoinPoint).getArgs();
         verify(proceedingJoinPoint).toShortString();
@@ -134,7 +130,6 @@ public class DebugAroundExceptionLoggerTest {
         addLogLineToLogs(warnMessage, message.replace("execution", "exception"),
                 Arrays.deepToString(args));
         verifyNoMoreInteractions(proceedingJoinPoint);
-        assertThat(actual, is(expected));
     }
 
     private void addLogLineToLogs(String format, Object arg1, Object arg2) {
