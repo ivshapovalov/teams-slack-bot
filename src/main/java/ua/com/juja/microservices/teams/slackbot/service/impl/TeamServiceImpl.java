@@ -15,6 +15,7 @@ import ua.com.juja.microservices.teams.slackbot.util.SlackNameHandler;
 import ua.com.juja.microservices.teams.slackbot.util.Utils;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -74,5 +75,33 @@ public class TeamServiceImpl implements TeamService {
             );
             throw new TeamExchangeException(apiError, ex);
         }
+    }
+
+    @Override
+    public Set<String> getTeam(String fromUser, String text) {
+        Utils.checkNull(text, "Text must not be null!");
+        List<String> slackNames = SlackNameHandler.getSlackNamesFromText(text);
+
+        if (slackNames.size() == 0) {
+            if (!fromUser.startsWith("@")) {
+                fromUser = "@" + fromUser;
+            }
+            slackNames = Collections.singletonList(fromUser);
+        }
+        List<User> users = userService.findUsersBySlackNames(slackNames);
+        if (users.size() != 1) {
+            log.warn("Members size is not equals '0' or '1'");
+            throw new WrongCommandFormatException(String.format("We found %d slack names in your command." +
+                    " But expect one slack name.", users.size()));
+        }
+        String uuid = users.get(0).getUuid();
+        Team team = teamRepository.getTeam(uuid);
+        List<User> teamUsers = userService.findUsersByUuids(new ArrayList<>(team.getMembers()));
+        Set<String> teamSlackNames = teamUsers.stream()
+                .map(User::getSlack)
+                .collect(Collectors.toSet());
+
+        log.info("Team got: '{}'", team.getId());
+        return teamSlackNames;
     }
 }

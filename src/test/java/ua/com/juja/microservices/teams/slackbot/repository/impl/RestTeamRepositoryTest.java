@@ -55,15 +55,22 @@ public class RestTeamRepositoryTest {
     private String teamsBaseUrl;
     @Value("${teams.endpoint.activateTeam}")
     private String teamsActivateTeamUrl;
+    @Value("${teams.endpoint.getTeam}")
+    private String teamsGetTeamUrl;
+
+    private String teamsFullActivateTeamUrl;
+    private String teamsFullGetTeamUrl;
 
     @Before
     public void setup() {
         mockServer = MockRestServiceServer.bindTo(restTemplate).build();
+
+        teamsFullActivateTeamUrl = teamsBaseUrl + "/" + teamsRestApiVersion + teamsActivateTeamUrl;
+        teamsFullGetTeamUrl = teamsBaseUrl + "/" + teamsRestApiVersion + teamsGetTeamUrl;
     }
 
     @Test
     public void activateTeamSendRequestToRemoteTeamsServerAndReturnActivatedTeamExecutedCorrectly() throws IOException {
-        String teamsServiceURL = teamsBaseUrl + teamsRestApiVersion + teamsActivateTeamUrl;
 
         Set<String> members = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4"));
         TeamRequest teamRequest = new TeamRequest(members);
@@ -73,7 +80,7 @@ public class RestTeamRepositoryTest {
         String expectedJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
                 ("response/responseTeamRepositoryActivateTeamIfUsersNotInActiveTeam.json"));
         String expectedRequestHeader = "application/json";
-        mockServer.expect(requestTo(teamsServiceURL))
+        mockServer.expect(requestTo(teamsFullActivateTeamUrl))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(request -> assertThat(request.getHeaders().getContentType().toString(), containsString(expectedRequestHeader)))
                 .andExpect(request -> assertThat(request.getBody().toString(), equalTo(expectedJsonRequestBody)))
@@ -88,27 +95,75 @@ public class RestTeamRepositoryTest {
 
     @Test
     public void activateTeamSendRequestToRemoteTeamsServerWhichReturnsErrorThrowsException() throws IOException {
-        String teamsServiceURL = teamsBaseUrl + teamsRestApiVersion + teamsActivateTeamUrl;
 
-        Set<String> members = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3",
-                "uuid4"));
+        Set<String> members = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4"));
         TeamRequest teamRequest = new TeamRequest(members);
-
         String expectedJsonRequestBody = TestUtils.convertToString(ResourceUtils.resource
                 ("request/requestTeamRepositoryActivateTeamIfUsersNotInActiveTeam.json"));
         String expectedJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
                 ("response/responseTeamRepositoryActivateTeamIfUsersInActiveTeamThrowsException.json"));
         String expectedRequestHeader = "application/json";
-        mockServer.expect(requestTo(teamsServiceURL))
+        mockServer.expect(requestTo(teamsFullActivateTeamUrl))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(request -> assertThat(request.getHeaders().getContentType().toString(), containsString(expectedRequestHeader)))
                 .andExpect(request -> assertThat(request.getBody().toString(), equalTo(expectedJsonRequestBody)))
                 .andRespond(withBadRequest().body(expectedJsonResponseBody));
-
         expectedException.expect(TeamExchangeException.class);
         expectedException.expectMessage(containsString("Sorry, but the user already exists in team"));
 
         teamRepository.activateTeam(teamRequest);
+
+        mockServer.verify();
+    }
+
+    @Test
+    public void getTeamSendRequestToRemoteTeamsServerAndReturnTeamExecutedCorrectly() throws
+            IOException {
+        String uuid = "uuid";
+        Set<String> expected = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4"));
+        String expectedJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
+                ("response/responseTeamRepositoryGetTeamIfUsersInActiveTeam.json"));
+        mockServer.expect(requestTo(teamsFullGetTeamUrl + "/" + uuid))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(expectedJsonResponseBody, MediaType.APPLICATION_JSON));
+
+        Team actual = teamRepository.getTeam(uuid);
+
+        mockServer.verify();
+        assertNotNull(actual);
+        assertThat(actual.getMembers(), is(expected));
+    }
+
+    @Test
+    public void getTeamSendRequestToRemoteTeamsServerWhichReturnsErrorThrowsException() throws IOException {
+        String uuid = "uuid";
+        String expectedJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
+                ("response/responseTeamRepositoryGetTeamIfUsersNotInActiveTeamThrowsException.json"));
+        mockServer.expect(requestTo(teamsFullGetTeamUrl + "/" + uuid))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withBadRequest().body(expectedJsonResponseBody));
+        expectedException.expect(TeamExchangeException.class);
+        expectedException.expectMessage(containsString("You cannot get/deactivate team if user not in team"));
+
+        teamRepository.getTeam(uuid);
+
+        mockServer.verify();
+    }
+
+    @Test
+    public void getTeamRemoteTeamsServerReturnsErrorWhichUnableToConvertToApiErrorThrowsTeamException() throws
+            IOException {
+        String uuid = "uuid";
+        String expectedJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
+                ("response/responseTeamRepositoryGetTeamUnknownException.json"));
+        mockServer.expect(requestTo(teamsFullGetTeamUrl + "/" + uuid))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withBadRequest().body(expectedJsonResponseBody));
+
+        expectedException.expect(TeamExchangeException.class);
+        expectedException.expectMessage(containsString("I'm, sorry. I cannot parse api error message from remote service :("));
+
+        teamRepository.getTeam(uuid);
 
         mockServer.verify();
     }

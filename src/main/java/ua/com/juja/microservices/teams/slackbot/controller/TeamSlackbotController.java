@@ -16,6 +16,8 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/" + "${teams.slackbot.rest.api.version}" + "${teams.slackbot.commandsUrl}")
@@ -24,6 +26,7 @@ public class TeamSlackbotController {
 
     private final static String SORRY_MESSAGE = "Sorry! You're not lucky enough to use our slack command";
     private final static String ACTIVATE_TEAM_MESSAGE = "Thanks, Activate Team job started!";
+    private final static String GET_TEAM_MESSAGE = "Thanks, Get Team for user '%s' job started!";
     private final RestTemplate restTemplate;
     private final TeamService teamService;
     private final ExceptionsHandler exceptionsHandler;
@@ -87,22 +90,23 @@ public class TeamSlackbotController {
         //TODO Should be implemented feature SLB-F2
     }
 
-    @PostMapping(value = "/team", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @PostMapping(value = "${teams.slackbot.endpoint.getTeam}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void onReceiveSlashCommandGetTeam(@RequestParam("token") String token,
                                              @RequestParam("user_name") String fromUser,
                                              @RequestParam("text") String text,
                                              @RequestParam("response_url") String responseUrl,
-                                             HttpServletResponse response) {
-        //TODO Should be implemented feature SLB-F3
-    }
+                                             HttpServletResponse response) throws IOException {
+        exceptionsHandler.setResponseUrl(responseUrl);
+        if (isTokenCorrect(token, fromUser, response,"Get team")) {
+            sendInstantResponseMessage(response, String.format(GET_TEAM_MESSAGE, text));
 
-    @PostMapping(value = "/myteam", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public void onReceiveSlashCommandGetMyTeam(@RequestParam("token") String token,
-                                               @RequestParam("user_name") String fromUser,
-                                               @RequestParam("text") String text,
-                                               @RequestParam("response_url") String responseUrl,
-                                               HttpServletResponse response) {
-        //TODO Should be implemented feature SLB-F4
+            Set<String> slackNames = teamService.getTeam(fromUser, text);
+            RichMessage message = new RichMessage(String.format("Thanks, Team for '%s' is '%s'",
+                    text, slackNames.stream().collect(Collectors.joining(" "))));
+            sendDelayedResponseMessage(responseUrl, message);
+            log.info("'Get team' command processed : user: '{}' text: '{}' and sent message to slack: '{}'",
+                    fromUser, text, message.getText());
+        }
     }
 
 }
