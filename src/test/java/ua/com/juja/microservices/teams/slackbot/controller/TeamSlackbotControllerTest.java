@@ -121,7 +121,7 @@ public class TeamSlackbotControllerTest {
         when(restTemplate.postForObject(anyString(), any(RichMessage.class), anyObject()))
                 .thenReturn("");
         mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullActivateTeamUrl),
-                SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate",
+                SlackUrlUtils.getUriVars("slashCommandToken", "/command",
                         ACTIVATE_TEAM_COMMAND_TEXT, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
@@ -187,22 +187,23 @@ public class TeamSlackbotControllerTest {
 
     @Test
     public void onReceiveSlashCommandGetMyTeamWhenAllCorrectShouldReturnOkMessage() throws Exception {
-        final String fromUser = "@from-user";
+        final String fromUser = "from-user";
+        final String fromUserWithAt = "@from-user";
 
         Set<String> slackNames = new LinkedHashSet<>(Arrays.asList(user1.getSlack(), user2.getSlack(),
                 user3.getSlack(), user4.getSlack()));
         String responseUrl = "http://example.com";
-        when(teamSlackbotService.getTeam(fromUser)).thenReturn(slackNames);
+        when(teamSlackbotService.getTeam(fromUserWithAt)).thenReturn(slackNames);
         when(restTemplate.postForObject(anyString(), any(RichMessage.class), anyObject())).thenReturn("");
         mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackBotFullGetMyTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/myteam",
                         fromUser, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
-                .andExpect(content().string(String.format(GET_MY_TEAM_MESSAGE, fromUser)));
+                .andExpect(content().string(String.format(GET_MY_TEAM_MESSAGE, fromUserWithAt)));
 
         verify(exceptionsHandler).setResponseUrl(anyString());
-        verify(teamSlackbotService).getTeam(fromUser);
+        verify(teamSlackbotService).getTeam(fromUserWithAt);
         verify(restTemplate).postForObject(anyString(), any(RichMessage.class), anyObject());
         verifyNoMoreInteractions(teamSlackbotService, exceptionsHandler, restTemplate);
     }

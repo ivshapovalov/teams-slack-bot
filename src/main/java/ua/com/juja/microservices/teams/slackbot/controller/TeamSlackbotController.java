@@ -116,6 +116,7 @@ public class TeamSlackbotController {
                                                HttpServletResponse response) throws IOException {
         exceptionsHandler.setResponseUrl(responseUrl);
         if (isTokenCorrect(token, response)) {
+            fromUser = fromUser.startsWith("@") ? fromUser : "@" + fromUser;
             sendInstantResponseMessage(response, String.format(GET_MY_TEAM_MESSAGE, fromUser));
             Set<String> slackNames = teamService.getTeam(fromUser);
             RichMessage message = new RichMessage(String.format("Thanks, Team for user '%s' is '%s'",

@@ -47,8 +47,10 @@ public class RestTeamRepository implements TeamRepository {
         Team activatedTeam;
         try {
             String teamsServiceURL = teamsBaseUrl + "/" + teamsRestApiVersion + teamsActivateTeamUrl;
+            log.debug("Send request '{}' to Teams service to url '{}'", teamRequest,teamsServiceURL);
             ResponseEntity<Team> response = restTemplate.exchange(teamsServiceURL,
                     HttpMethod.POST, request, Team.class);
+            log.debug("Get response '{}' from Teams service", response);
             activatedTeam = response.getBody();
         } catch (HttpClientErrorException ex) {
             ApiError error = Utils.convertToApiError(ex);
@@ -70,8 +72,10 @@ public class RestTeamRepository implements TeamRepository {
         Team team;
         try {
             String teamsServiceURL = teamsBaseUrl + "/" + teamsRestApiVersion + teamsGetTeamUrl + "/" + uuid;
+            log.debug("Send request to Teams service to url '{}'", teamsServiceURL);
             ResponseEntity<Team> response = restTemplate.exchange(teamsServiceURL,
                     HttpMethod.GET, request, Team.class);
+            log.debug("Get response '{}' from Teams service", response);
             team = response.getBody();
         } catch (HttpClientErrorException ex) {
             ApiError error = Utils.convertToApiError(ex);

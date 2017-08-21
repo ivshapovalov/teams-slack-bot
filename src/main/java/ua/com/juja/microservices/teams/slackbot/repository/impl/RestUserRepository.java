@@ -68,8 +68,10 @@ public class RestUserRepository implements UserRepository {
     private <T> List<User> getUsers(HttpEntity<T> request, String userServiceURL) {
         List<User> users;
         try {
+            log.debug("Send request '{}' to User service to url '{}'", request, userServiceURL);
             ResponseEntity<User[]> response = restTemplate.exchange(userServiceURL,
                     HttpMethod.POST, request, User[].class);
+            log.debug("Get response '{}' from User service", response);
             users = Arrays.asList(response.getBody());
         } catch (HttpClientErrorException ex) {
             ApiError error = Utils.convertToApiError(ex);
