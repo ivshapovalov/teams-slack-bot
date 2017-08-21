@@ -11,6 +11,6 @@ public interface TeamService {
 
     Team activateTeam(String text);
 
-    Set<String> getTeam(String fromUser, String text);
+    Set<String> getTeam(String text);
 
 }

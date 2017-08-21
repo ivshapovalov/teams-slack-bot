@@ -27,6 +27,7 @@ public class TeamSlackbotController {
     private final static String SORRY_MESSAGE = "Sorry! You're not lucky enough to use our slack command";
     private final static String ACTIVATE_TEAM_MESSAGE = "Thanks, Activate Team job started!";
     private final static String GET_TEAM_MESSAGE = "Thanks, Get Team for user '%s' job started!";
+    private final static String GET_MY_TEAM_MESSAGE = "Thanks, Get My Team for user '%s' job started!";
     private final RestTemplate restTemplate;
     private final TeamService teamService;
     private final ExceptionsHandler exceptionsHandler;
@@ -49,7 +50,7 @@ public class TeamSlackbotController {
                                                   @RequestParam("response_url") String responseUrl,
                                                   HttpServletResponse response) throws IOException {
         exceptionsHandler.setResponseUrl(responseUrl);
-        if (isTokenCorrect(token, fromUser, response, "Activate team")) {
+        if (isTokenCorrect(token, response)) {
             sendInstantResponseMessage(response, ACTIVATE_TEAM_MESSAGE);
             teamService.activateTeam(text);
             RichMessage message = new RichMessage(String.format("Thanks, new Team for '%s' activated", text));
@@ -65,14 +66,14 @@ public class TeamSlackbotController {
         printWriter.print(message);
         printWriter.flush();
         printWriter.close();
-        log.info("Sent first response message to slack '{}' ", message);
+        log.info("Sent instant response message to slack '{}' ", message);
     }
 
     private void sendDelayedResponseMessage(String responseUrl, RichMessage message) {
         restTemplate.postForObject(responseUrl, message, String.class);
     }
 
-    private boolean isTokenCorrect(String token, String fromUser, HttpServletResponse response, String commandName)
+    private boolean isTokenCorrect(String token, HttpServletResponse response)
             throws IOException {
         if (!token.equals(slackToken)) {
             sendInstantResponseMessage(response, SORRY_MESSAGE);
@@ -97,10 +98,9 @@ public class TeamSlackbotController {
                                              @RequestParam("response_url") String responseUrl,
                                              HttpServletResponse response) throws IOException {
         exceptionsHandler.setResponseUrl(responseUrl);
-        if (isTokenCorrect(token, fromUser, response,"Get team")) {
+        if (isTokenCorrect(token, response)) {
             sendInstantResponseMessage(response, String.format(GET_TEAM_MESSAGE, text));
-
-            Set<String> slackNames = teamService.getTeam(fromUser, text);
+            Set<String> slackNames = teamService.getTeam(text);
             RichMessage message = new RichMessage(String.format("Thanks, Team for '%s' is '%s'",
                     text, slackNames.stream().collect(Collectors.joining(" "))));
             sendDelayedResponseMessage(responseUrl, message);
@@ -109,4 +109,20 @@ public class TeamSlackbotController {
         }
     }
 
+    @PostMapping(value = "${teams.slackbot.endpoint.getMyTeam}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public void onReceiveSlashCommandGetMyTeam(@RequestParam("token") String token,
+                                               @RequestParam("user_name") String fromUser,
+                                               @RequestParam("response_url") String responseUrl,
+                                               HttpServletResponse response) throws IOException {
+        exceptionsHandler.setResponseUrl(responseUrl);
+        if (isTokenCorrect(token, response)) {
+            sendInstantResponseMessage(response, String.format(GET_MY_TEAM_MESSAGE, fromUser));
+            Set<String> slackNames = teamService.getTeam(fromUser);
+            RichMessage message = new RichMessage(String.format("Thanks, Team for user '%s' is '%s'",
+                    fromUser, slackNames.stream().collect(Collectors.joining(" "))));
+            sendDelayedResponseMessage(responseUrl, message);
+            log.info("'Get my team' command processed : user: '{}' and sent message to slack: '{}'",
+                    fromUser, message.getText());
+        }
+    }
 }

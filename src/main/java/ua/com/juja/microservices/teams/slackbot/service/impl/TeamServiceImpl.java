@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ua.com.juja.microservices.teams.slackbot.exceptions.ApiError;
 import ua.com.juja.microservices.teams.slackbot.exceptions.TeamExchangeException;
+import ua.com.juja.microservices.teams.slackbot.exceptions.UserExchangeException;
 import ua.com.juja.microservices.teams.slackbot.exceptions.WrongCommandFormatException;
 import ua.com.juja.microservices.teams.slackbot.model.Team;
 import ua.com.juja.microservices.teams.slackbot.model.TeamRequest;
@@ -78,21 +79,16 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public Set<String> getTeam(String fromUser, String text) {
+    public Set<String> getTeam(String text) {
         Utils.checkNull(text, "Text must not be null!");
         List<String> slackNames = SlackNameHandler.getSlackNamesFromText(text);
-
-        if (slackNames.size() == 0) {
-            if (!fromUser.startsWith("@")) {
-                fromUser = "@" + fromUser;
-            }
-            slackNames = Collections.singletonList(fromUser);
+        if (slackNames.size() != 1) {
+            throw new WrongCommandFormatException(String.format("We found %d slack names in your command." +
+                    " But expect one slack name.", slackNames.size()));
         }
         List<User> users = userService.findUsersBySlackNames(slackNames);
-        if (users.size() != 1) {
-            log.warn("Members size is not equals '0' or '1'");
-            throw new WrongCommandFormatException(String.format("We found %d slack names in your command." +
-                    " But expect one slack name.", users.size()));
+        if (users.size() != slackNames.size()) {
+            throwUserExchangeException();
         }
         String uuid = users.get(0).getUuid();
         Team team = teamRepository.getTeam(uuid);
@@ -103,5 +99,18 @@ public class TeamServiceImpl implements TeamService {
 
         log.info("Team got: '{}'", team.getId());
         return teamSlackNames;
+    }
+
+    private void throwUserExchangeException() {
+        Exception ex = new Exception("Users count is not equals in request and response from Users Service");
+        ApiError apiError = new ApiError(
+                500, "BotInternalError",
+                ex.getMessage(),
+                ex.getMessage(),
+                ex.getMessage(),
+                Collections.singletonList("")
+        );
+        throw new UserExchangeException(apiError, ex);
+
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import ua.com.juja.microservices.teams.slackbot.exceptions.TeamExchangeException;
+import ua.com.juja.microservices.teams.slackbot.exceptions.UserExchangeException;
 import ua.com.juja.microservices.teams.slackbot.exceptions.WrongCommandFormatException;
 import ua.com.juja.microservices.teams.slackbot.model.Team;
 import ua.com.juja.microservices.teams.slackbot.model.TeamRequest;
@@ -134,7 +135,6 @@ public class TeamServiceTest {
     @Test
     public void getTeamIfOneSlackNameInTextExecutedCorrectly() {
         String text = "@slack1";
-        String fromUser = "slack1";
         List<String> slackNamesInText = Collections.singletonList(text);
         List<User> users = Collections.singletonList(user1);
         List<User> teamUsers = Arrays.asList(user1, user2, user3, user4);
@@ -145,7 +145,7 @@ public class TeamServiceTest {
         given(teamRepository.getTeam(user1.getUuid())).willReturn(team);
         given(userService.findUsersByUuids(anyListOf(String.class))).willReturn(teamUsers);
 
-        Set<String> actual = teamService.getTeam(fromUser, text);
+        Set<String> actual = teamService.getTeam(text);
 
         assertEquals(expected, actual);
         verify(userService).findUsersBySlackNames(slackNamesInText);
@@ -155,32 +155,8 @@ public class TeamServiceTest {
     }
 
     @Test
-    public void getTeamIfZeroSlackNameInTextReturnsFromUserTeam() {
-        String text = "slack2";
-        String fromUser = "slack1";
-        List<String> slackNamesInFromUser = Collections.singletonList("@" + fromUser);
-        List<User> users = Collections.singletonList(user1);
-        List<User> teamUsers = Arrays.asList(user1, user2, user3, user4);
-        Set<String> expected = new LinkedHashSet<>(Arrays.asList(user1.getSlack(), user2.getSlack(), user3.getSlack(),
-                user4.getSlack()));
-        Team team = new Team(new HashSet<>());
-        given(userService.findUsersBySlackNames(slackNamesInFromUser)).willReturn(users);
-        given(teamRepository.getTeam(user1.getUuid())).willReturn(team);
-        given(userService.findUsersByUuids(anyListOf(String.class))).willReturn(teamUsers);
-
-        Set<String> actual = teamService.getTeam(fromUser, text);
-
-        assertEquals(expected, actual);
-        verify(userService).findUsersBySlackNames(slackNamesInFromUser);
-        verify(teamRepository).getTeam(user1.getUuid());
-        verify(userService).findUsersByUuids(anyListOf(String.class));
-        verifyNoMoreInteractions(teamRepository, userService);
-    }
-
-    @Test
     public void getTeamIfMoreThanOneSlackNameInTextThrowsException() {
         String text = "@slack1 @slack2";
-        String fromUser = "slack1";
         List<String> slackNamesInText = Arrays.asList(user1.getSlack(), user2.getSlack());
         List<User> users = Arrays.asList(user1, user2);
         given(userService.findUsersBySlackNames(slackNamesInText)).willReturn(users);
@@ -188,7 +164,37 @@ public class TeamServiceTest {
         expectedException.expectMessage(String.format("We found %d slack names in your command." +
                 " But expect one slack name.", users.size()));
 
-        teamService.getTeam(fromUser, text);
+        teamService.getTeam(text);
+
+        verify(userService).findUsersBySlackNames(slackNamesInText);
+        verifyNoMoreInteractions(teamRepository, userService);
+    }
+
+    @Test
+    public void getTeamIfZeroSlackNameInTextThrowsException() {
+        String text = "slack1 slack2";
+        List<String> slackNamesInText = Collections.emptyList();
+        given(userService.findUsersBySlackNames(slackNamesInText)).willReturn(Collections.emptyList());
+        expectedException.expect(WrongCommandFormatException.class);
+        expectedException.expectMessage(String.format("We found %d slack names in your command." +
+                " But expect one slack name.", slackNamesInText.size()));
+
+        teamService.getTeam(text);
+
+        verify(userService).findUsersBySlackNames(slackNamesInText);
+        verifyNoMoreInteractions(teamRepository, userService);
+    }
+
+    @Test
+    public void getTeamIfUserServiceReturnsWrongUsersCountThrowsException() {
+        String text = "@slack1";
+        List<String> slackNamesInText = Arrays.asList(user1.getSlack());
+        List<User> users = Arrays.asList(user1, user2);
+        given(userService.findUsersBySlackNames(slackNamesInText)).willReturn(users);
+        expectedException.expect(UserExchangeException.class);
+        expectedException.expectMessage("Users count is not equals in request and response from Users Service");
+
+        teamService.getTeam(text);
 
         verify(userService).findUsersBySlackNames(slackNamesInText);
         verifyNoMoreInteractions(teamRepository, userService);
