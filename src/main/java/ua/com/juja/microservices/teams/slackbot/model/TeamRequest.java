@@ -18,7 +18,6 @@ public class TeamRequest {
 
     public TeamRequest(Set<String> members) {
         this.members = members;
-        log.info("Finished creating new TeamRequest");
     }
 
     public Set<String> getMembers() {

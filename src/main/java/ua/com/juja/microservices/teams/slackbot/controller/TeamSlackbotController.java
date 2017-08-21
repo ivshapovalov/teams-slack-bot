@@ -60,28 +60,6 @@ public class TeamSlackbotController {
         }
     }
 
-    private void sendInstantResponseMessage(HttpServletResponse response, String message) throws IOException {
-        PrintWriter printWriter = response.getWriter();
-        response.setStatus(HttpServletResponse.SC_OK);
-        printWriter.print(message);
-        printWriter.flush();
-        printWriter.close();
-        log.info("Sent instant response message to slack '{}' ", message);
-    }
-
-    private void sendDelayedResponseMessage(String responseUrl, RichMessage message) {
-        restTemplate.postForObject(responseUrl, message, String.class);
-    }
-
-    private boolean isTokenCorrect(String token, HttpServletResponse response)
-            throws IOException {
-        if (!token.equals(slackToken)) {
-            sendInstantResponseMessage(response, SORRY_MESSAGE);
-            return false;
-        }
-        return true;
-    }
-
     @PostMapping(value = "/teams/deactivate", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void onReceiveSlashCommandDeactivateTeam(@RequestParam("token") String token,
                                                     @RequestParam("user_name") String fromUser,
@@ -125,5 +103,27 @@ public class TeamSlackbotController {
             log.info("'Get my team' command processed : user: '{}' and sent message to slack: '{}'",
                     fromUser, message.getText());
         }
+    }
+
+    private void sendInstantResponseMessage(HttpServletResponse response, String message) throws IOException {
+        PrintWriter printWriter = response.getWriter();
+        response.setStatus(HttpServletResponse.SC_OK);
+        printWriter.print(message);
+        printWriter.flush();
+        printWriter.close();
+        log.info("Sent instant response message to slack '{}' ", message);
+    }
+
+    private void sendDelayedResponseMessage(String responseUrl, RichMessage message) {
+        restTemplate.postForObject(responseUrl, message, String.class);
+    }
+
+    private boolean isTokenCorrect(String token, HttpServletResponse response)
+            throws IOException {
+        if (!token.equals(slackToken)) {
+            sendInstantResponseMessage(response, SORRY_MESSAGE);
+            return false;
+        }
+        return true;
     }
 }
