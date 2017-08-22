@@ -55,10 +55,13 @@ public class RestTeamRepositoryTest {
     private String teamsBaseUrl;
     @Value("${teams.endpoint.activateTeam}")
     private String teamsActivateTeamUrl;
+    @Value("${teams.endpoint.deactivateTeam}")
+    private String teamsDeactivateTeamUrl;
     @Value("${teams.endpoint.getTeam}")
     private String teamsGetTeamUrl;
 
     private String teamsFullActivateTeamUrl;
+    private String teamsFullDeactivateTeamUrl;
     private String teamsFullGetTeamUrl;
 
     @Before
@@ -66,6 +69,7 @@ public class RestTeamRepositoryTest {
         mockServer = MockRestServiceServer.bindTo(restTemplate).build();
 
         teamsFullActivateTeamUrl = teamsBaseUrl + "/" + teamsRestApiVersion + teamsActivateTeamUrl;
+        teamsFullDeactivateTeamUrl = teamsBaseUrl + "/" + teamsRestApiVersion + teamsDeactivateTeamUrl;
         teamsFullGetTeamUrl = teamsBaseUrl + "/" + teamsRestApiVersion + teamsGetTeamUrl;
     }
 
@@ -122,7 +126,7 @@ public class RestTeamRepositoryTest {
         String uuid = "uuid";
         Set<String> expected = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4"));
         String expectedJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
-                ("response/responseTeamRepositoryGetTeamIfUsersInActiveTeam.json"));
+                ("response/responseTeamRepositoryGetAndDeactivateTeamIfUsersInActiveTeam.json"));
         mockServer.expect(requestTo(teamsFullGetTeamUrl + "/" + uuid))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(expectedJsonResponseBody, MediaType.APPLICATION_JSON));
@@ -138,7 +142,7 @@ public class RestTeamRepositoryTest {
     public void getTeamSendRequestToRemoteTeamsServerWhichReturnsErrorThrowsException() throws IOException {
         String uuid = "uuid";
         String expectedJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
-                ("response/responseTeamRepositoryGetTeamIfUsersNotInActiveTeamThrowsException.json"));
+                ("response/responseTeamRepositoryGetAndDeactivateTeamIfUsersNotInActiveTeamThrowsException.json"));
         mockServer.expect(requestTo(teamsFullGetTeamUrl + "/" + uuid))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withBadRequest().body(expectedJsonResponseBody));
@@ -164,6 +168,47 @@ public class RestTeamRepositoryTest {
         expectedException.expectMessage(containsString("I'm, sorry. I cannot parse api error message from remote service :("));
 
         teamRepository.getTeam(uuid);
+
+        mockServer.verify();
+    }
+
+    @Test
+    public void deactivateTeamSendRequestToRemoteTeamsServerAndReturnDeactivatedTeamExecutedCorrectly() throws
+            IOException {
+        String uuid = "uuid";
+        String teamsServiceURL = teamsFullDeactivateTeamUrl+"/" + uuid;
+
+        Set<String> expected = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4"));
+
+        String expectedJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
+                ("response/responseTeamRepositoryGetAndDeactivateTeamIfUsersInActiveTeam.json"));
+        mockServer.expect(requestTo(teamsServiceURL))
+                .andExpect(method(HttpMethod.PUT))
+                .andRespond(withSuccess(expectedJsonResponseBody, MediaType.APPLICATION_JSON));
+
+        Team actual = teamRepository.deactivateTeam(uuid);
+
+        mockServer.verify();
+        assertNotNull(actual);
+        assertThat(actual.getMembers(), is(expected));
+    }
+
+    @Test
+    public void deactivateTeamSendRequestToRemoteTeamsServerWhichReturnsErrorThrowsException() throws IOException {
+        String uuid = "uuid";
+
+        String teamsServiceURL = teamsFullDeactivateTeamUrl+"/" + uuid;
+
+        String expectedJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
+                ("response/responseTeamRepositoryGetAndDeactivateTeamIfUsersNotInActiveTeamThrowsException.json"));
+        mockServer.expect(requestTo(teamsServiceURL))
+                .andExpect(method(HttpMethod.PUT))
+                .andRespond(withBadRequest().body(expectedJsonResponseBody));
+
+        expectedException.expect(TeamExchangeException.class);
+        expectedException.expectMessage(containsString("You cannot get/deactivate team if user not in team"));
+
+        teamRepository.deactivateTeam(uuid);
 
         mockServer.verify();
     }

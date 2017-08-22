@@ -111,6 +111,26 @@ public class TeamServiceImpl implements TeamService {
                 Collections.singletonList("")
         );
         throw new UserExchangeException(apiError, ex);
+    }
 
+    @Override
+    public Set<String> deactivateTeam(String text) {
+        List<String> slackNames = SlackNameHandler.getSlackNamesFromText(text);
+        if (slackNames.size() != 1) {
+            throw new WrongCommandFormatException(String.format("We found %d slack names in your command." +
+                    " But expect one slack name.", slackNames.size()));
+        }
+        List<User> users = userService.findUsersBySlackNames(slackNames);
+        if (users.size() != slackNames.size()) {
+            throwUserExchangeException();
+        }
+        String uuid = users.get(0).getUuid();
+        Team deactivatedTeam = teamRepository.deactivateTeam(uuid);
+        List<User> teamUsers = userService.findUsersByUuids(new ArrayList<>(deactivatedTeam.getMembers()));
+        Set<String> teamSlackNames = teamUsers.stream()
+                .map(User::getSlack)
+                .collect(Collectors.toSet());
+        log.info("Team deactivated: '{}'", deactivatedTeam.getId());
+        return teamSlackNames;
     }
 }

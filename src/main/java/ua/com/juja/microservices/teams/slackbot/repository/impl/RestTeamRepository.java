@@ -47,10 +47,10 @@ public class RestTeamRepository implements TeamRepository {
         Team activatedTeam;
         try {
             String teamsServiceURL = teamsBaseUrl + "/" + teamsRestApiVersion + teamsActivateTeamUrl;
-            log.debug("Send request '{}' to Teams service to url '{}'", teamRequest,teamsServiceURL);
+            log.debug("Send 'Activate team' request '{}' to Teams service to url '{}'", teamRequest, teamsServiceURL);
             ResponseEntity<Team> response = restTemplate.exchange(teamsServiceURL,
                     HttpMethod.POST, request, Team.class);
-            log.debug("Get response '{}' from Teams service", response);
+            log.debug("Get 'Activate team' response '{}' from Teams service", response);
             activatedTeam = response.getBody();
         } catch (HttpClientErrorException ex) {
             ApiError error = Utils.convertToApiError(ex);
@@ -61,9 +61,22 @@ public class RestTeamRepository implements TeamRepository {
     }
 
     @Override
-    public Team deactivateTeam(String slackName) {
-        //TODO Should be implemented feature SLB-F2
-        return null;
+    public Team deactivateTeam(String uuid) {
+        HttpEntity<TeamRequest> request = new HttpEntity<>(Utils.setupJsonHttpHeaders());
+        Team deactivatedTeam;
+        try {
+            String teamsServiceURL = teamsBaseUrl + "/" + teamsRestApiVersion + teamsDeactivateTeamUrl + "/" + uuid;
+            log.debug("Send 'Deactivate team' request to Teams service to url '{}'", teamsServiceURL);
+            ResponseEntity<Team> response = restTemplate.exchange(teamsServiceURL,
+                    HttpMethod.PUT, request, Team.class);
+            log.debug("Get 'Deactivate team' response '{}' from Teams service", response);
+            deactivatedTeam = response.getBody();
+        } catch (HttpClientErrorException ex) {
+            ApiError error = Utils.convertToApiError(ex);
+            throw new TeamExchangeException(error, ex);
+        }
+        log.info("Team deactivated: '{}'", deactivatedTeam.getId());
+        return deactivatedTeam;
     }
 
     @Override
@@ -72,10 +85,10 @@ public class RestTeamRepository implements TeamRepository {
         Team team;
         try {
             String teamsServiceURL = teamsBaseUrl + "/" + teamsRestApiVersion + teamsGetTeamUrl + "/" + uuid;
-            log.debug("Send request to Teams service to url '{}'", teamsServiceURL);
+            log.debug("Send 'Get team' request to Teams service to url '{}'", teamsServiceURL);
             ResponseEntity<Team> response = restTemplate.exchange(teamsServiceURL,
                     HttpMethod.GET, request, Team.class);
-            log.debug("Get response '{}' from Teams service", response);
+            log.debug("Get 'Get team' response '{}' from Teams service", response);
             team = response.getBody();
         } catch (HttpClientErrorException ex) {
             ApiError error = Utils.convertToApiError(ex);
