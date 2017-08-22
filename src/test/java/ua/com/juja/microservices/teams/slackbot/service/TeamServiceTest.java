@@ -183,7 +183,7 @@ public class TeamServiceTest {
     @Test
     public void getTeamIfUserServiceReturnsWrongUsersCountThrowsException() {
         String text = "@slack1";
-        List<String> slackNamesInText = Arrays.asList(user1.getSlack());
+        List<String> slackNamesInText = Collections.singletonList(user1.getSlack());
         List<User> users = Arrays.asList(user1, user2);
         given(userService.findUsersBySlackNames(slackNamesInText)).willReturn(users);
         expectedException.expect(UserExchangeException.class);
@@ -233,7 +233,7 @@ public class TeamServiceTest {
     @Test
     public void deactivateTeamIfUserServiceReturnsWrongUsersCountThrowsException() {
         String text = "@slack1";
-        List<String> slackNamesInText = Arrays.asList(user1.getSlack());
+        List<String> slackNamesInText = Collections.singletonList(user1.getSlack());
         List<User> users = Arrays.asList(user1, user2);
         given(userService.findUsersBySlackNames(slackNamesInText)).willReturn(users);
         expectedException.expect(UserExchangeException.class);

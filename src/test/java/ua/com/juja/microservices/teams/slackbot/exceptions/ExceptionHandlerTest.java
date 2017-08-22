@@ -54,7 +54,7 @@ public class ExceptionHandlerTest {
     @Inject
     private MockMvc mvc;
     @MockBean
-    private TeamService teamSlackbotService;
+    private TeamService teamService;
     @Inject
     private ExceptionsHandler exceptionsHandler;
     @MockBean
@@ -88,7 +88,7 @@ public class ExceptionHandlerTest {
         );
 
         TeamExchangeException exception = new TeamExchangeException(apiError, new RuntimeException("exception"));
-        when(teamSlackbotService.activateTeam(activateTeamCommandText))
+        when(teamService.activateTeam(activateTeamCommandText))
                 .thenThrow(exception);
         when(restTemplate.postForObject(anyString(), anyObject(), anyObject())).thenReturn("");
         when(userService.replaceUuidsBySlackNamesInExceptionMessage(anyString())).thenReturn(message);
@@ -100,10 +100,10 @@ public class ExceptionHandlerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(ACTIVATE_TEAM_MESSAGE));
 
-        verify(teamSlackbotService).activateTeam(activateTeamCommandText);
+        verify(teamService).activateTeam(activateTeamCommandText);
         verify(userService).replaceUuidsBySlackNamesInExceptionMessage(anyString());
         verify(restTemplate).postForObject(anyString(), anyObject(), anyObject());
-        verifyNoMoreInteractions(teamSlackbotService, restTemplate, userService);
+        verifyNoMoreInteractions(teamService, restTemplate, userService);
     }
 
     @Test
@@ -118,7 +118,7 @@ public class ExceptionHandlerTest {
         );
 
         UserExchangeException exception = new UserExchangeException(apiError, new RuntimeException("exception"));
-        when(teamSlackbotService.activateTeam(activateTeamCommandText))
+        when(teamService.activateTeam(activateTeamCommandText))
                 .thenThrow(exception);
         when(restTemplate.postForObject(anyString(), anyObject(), anyObject())).thenReturn("");
 
@@ -129,9 +129,9 @@ public class ExceptionHandlerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(ACTIVATE_TEAM_MESSAGE));
 
-        verify(teamSlackbotService).activateTeam(activateTeamCommandText);
+        verify(teamService).activateTeam(activateTeamCommandText);
         verify(restTemplate).postForObject(anyString(), anyObject(), anyObject());
-        verifyNoMoreInteractions(teamSlackbotService, restTemplate);
+        verifyNoMoreInteractions(teamService, restTemplate);
     }
 
     @Test
@@ -140,7 +140,7 @@ public class ExceptionHandlerTest {
         final String activateTeamCommandText = "@a @b @c @d";
 
         WrongCommandFormatException exception = new WrongCommandFormatException("wrong command");
-        when(teamSlackbotService.activateTeam(activateTeamCommandText))
+        when(teamService.activateTeam(activateTeamCommandText))
                 .thenThrow(exception);
         when(restTemplate.postForObject(anyString(), anyObject(), anyObject())).thenReturn("");
 
@@ -151,9 +151,9 @@ public class ExceptionHandlerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(ACTIVATE_TEAM_MESSAGE));
 
-        verify(teamSlackbotService).activateTeam(activateTeamCommandText);
+        verify(teamService).activateTeam(activateTeamCommandText);
         verify(restTemplate).postForObject(anyString(), anyObject(), anyObject());
-        verifyNoMoreInteractions(teamSlackbotService, restTemplate);
+        verifyNoMoreInteractions(teamService, restTemplate);
     }
 
     @Test
@@ -162,7 +162,7 @@ public class ExceptionHandlerTest {
         final String activateTeamCommandText = "@a @b @c @d";
 
         RuntimeException exception = new RuntimeException("other command");
-        when(teamSlackbotService.activateTeam(activateTeamCommandText))
+        when(teamService.activateTeam(activateTeamCommandText))
                 .thenThrow(exception);
         when(restTemplate.postForObject(anyString(), anyObject(), anyObject())).thenReturn("");
 
@@ -173,9 +173,9 @@ public class ExceptionHandlerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(ACTIVATE_TEAM_MESSAGE));
 
-        verify(teamSlackbotService).activateTeam(activateTeamCommandText);
+        verify(teamService).activateTeam(activateTeamCommandText);
         verify(restTemplate).postForObject(anyString(), anyObject(), anyObject());
-        verifyNoMoreInteractions(teamSlackbotService, restTemplate);
+        verifyNoMoreInteractions(teamService, restTemplate);
     }
 
     @Test
@@ -195,7 +195,7 @@ public class ExceptionHandlerTest {
 
         TeamExchangeException teamException = new TeamExchangeException(apiError, new RuntimeException("exception"));
         UserExchangeException userException = new UserExchangeException(apiError, new RuntimeException("exception"));
-        when(teamSlackbotService.activateTeam(activateTeamCommandText))
+        when(teamService.activateTeam(activateTeamCommandText))
                 .thenThrow(teamException);
         when(restTemplate.postForObject(anyString(), anyObject(), anyObject())).thenReturn("");
         when(userService.replaceUuidsBySlackNamesInExceptionMessage(anyString())).thenThrow(userException);
@@ -207,10 +207,10 @@ public class ExceptionHandlerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(ACTIVATE_TEAM_MESSAGE));
 
-        verify(teamSlackbotService).activateTeam(activateTeamCommandText);
+        verify(teamService).activateTeam(activateTeamCommandText);
         verify(userService).replaceUuidsBySlackNamesInExceptionMessage(anyString());
         verify(restTemplate).postForObject(anyString(), anyObject(), anyObject());
-        verifyNoMoreInteractions(teamSlackbotService, restTemplate, userService);
+        verifyNoMoreInteractions(teamService, restTemplate, userService);
     }
 
     @Test
@@ -232,7 +232,7 @@ public class ExceptionHandlerTest {
 
         TeamExchangeException teamException = new TeamExchangeException(apiError, new RuntimeException("exception"));
         Exception exception = new RuntimeException("exception");
-        when(teamSlackbotService.activateTeam(activateTeamCommandText))
+        when(teamService.activateTeam(activateTeamCommandText))
                 .thenThrow(teamException);
         when(userService.replaceUuidsBySlackNamesInExceptionMessage(anyString())).thenReturn(message);
         when(restTemplate.postForObject(anyString(), anyObject(), anyObject())).thenThrow(exception);
@@ -244,9 +244,9 @@ public class ExceptionHandlerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(ACTIVATE_TEAM_MESSAGE));
 
-        verify(teamSlackbotService).activateTeam(activateTeamCommandText);
+        verify(teamService).activateTeam(activateTeamCommandText);
         verify(userService).replaceUuidsBySlackNamesInExceptionMessage(anyString());
         verify(restTemplate).postForObject(anyString(), anyObject(), anyObject());
-        verifyNoMoreInteractions(teamSlackbotService, restTemplate, userService);
+        verifyNoMoreInteractions(teamService, restTemplate, userService);
     }
 }
