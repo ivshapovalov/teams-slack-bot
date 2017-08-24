@@ -20,7 +20,7 @@ public class ExceptionsHandler {
 
     private final UserService userService;
 
-    private String responseUrl;
+    private ThreadLocal<String> responseUrl;
 
     @Inject
     public ExceptionsHandler(RestTemplate restTemplate, UserService userService) {
@@ -29,7 +29,7 @@ public class ExceptionsHandler {
     }
 
     public void setResponseUrl(String responseUrl) {
-        this.responseUrl = responseUrl;
+        this.responseUrl.set(responseUrl);
     }
 
     @ExceptionHandler(Exception.class)
@@ -63,7 +63,7 @@ public class ExceptionsHandler {
 
     private void sendErrorResponseAsRichMessage(RichMessage richMessage) {
         try {
-            restTemplate.postForObject(responseUrl, richMessage, String.class);
+            restTemplate.postForObject(responseUrl.get(), richMessage, String.class);
         } catch (Exception ex) {
             log.warn("Nested exception : '{}' with text '{}' . Unable to send response to slack", ex.getMessage(),
                     richMessage.getText());
