@@ -20,7 +20,7 @@ public class ExceptionsHandler {
 
     private final UserService userService;
 
-    private ThreadLocal<String> responseUrl;
+    private ThreadLocal<String> responseUrl=new ThreadLocal<>();
 
     @Inject
     public ExceptionsHandler(RestTemplate restTemplate, UserService userService) {
