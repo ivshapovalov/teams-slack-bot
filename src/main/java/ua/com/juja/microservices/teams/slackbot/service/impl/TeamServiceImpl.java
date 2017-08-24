@@ -65,6 +65,7 @@ public class TeamServiceImpl implements TeamService {
     }
 
     private void checkTeamMembersEquality(Set<String> requestMembers, Set<String> responseMembers) {
+        log.debug("Before check members equality. Request '{}'. Response '{}'", requestMembers, responseMembers);
         if (!(requestMembers.containsAll(responseMembers) && responseMembers.containsAll(requestMembers))) {
             Exception ex = new Exception("Team members is not equals in request and response from Teams Service");
             ApiError apiError = new ApiError(

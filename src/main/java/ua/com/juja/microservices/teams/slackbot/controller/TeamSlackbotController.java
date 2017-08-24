@@ -106,6 +106,7 @@ public class TeamSlackbotController {
     }
 
     private void sendInstantResponseMessage(HttpServletResponse response, String message) throws IOException {
+        log.debug("Before sending instant response message '{}' ", message);
         PrintWriter printWriter = response.getWriter();
         response.setStatus(HttpServletResponse.SC_OK);
         printWriter.print(message);
@@ -115,7 +116,9 @@ public class TeamSlackbotController {
     }
 
     private void sendDelayedResponseMessage(String responseUrl, RichMessage message) {
-        restTemplate.postForObject(responseUrl, message, String.class);
+        log.debug("Before sending delayed response message '{}' to slack url '{}' ", message, responseUrl);
+        String response = restTemplate.postForObject(responseUrl, message, String.class);
+        log.debug("After sending delayed response message. Response is '{}'", response);
     }
 
     private boolean isTokenCorrect(String token, HttpServletResponse response)
