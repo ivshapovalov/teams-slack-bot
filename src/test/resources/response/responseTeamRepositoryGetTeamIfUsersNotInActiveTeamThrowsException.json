@@ -1,0 +1,8 @@
+{
+  "httpStatus": 400,
+  "internalErrorCode": "TMF-F2-D2",
+  "clientMessage": "You cannot get/deactivate team if user not in team",
+  "developerMessage": "Exception - UserNotInTeamException",
+  "exceptionMessage": "The reason of the exception is that user not in team",
+  "detailErrors": []
+}

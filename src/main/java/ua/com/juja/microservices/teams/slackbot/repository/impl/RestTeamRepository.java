@@ -46,9 +46,11 @@ public class RestTeamRepository implements TeamRepository {
         HttpEntity<TeamRequest> request = new HttpEntity<>(teamRequest, Utils.setupJsonHttpHeaders());
         Team activatedTeam;
         try {
-            String teamsServiceURL = teamsBaseUrl + teamsRestApiVersion + teamsActivateTeamUrl;
+            String teamsServiceURL = teamsBaseUrl + "/" + teamsRestApiVersion + teamsActivateTeamUrl;
+            log.debug("Send request '{}' to Teams service to url '{}'", teamRequest,teamsServiceURL);
             ResponseEntity<Team> response = restTemplate.exchange(teamsServiceURL,
                     HttpMethod.POST, request, Team.class);
+            log.debug("Get response '{}' from Teams service", response);
             activatedTeam = response.getBody();
         } catch (HttpClientErrorException ex) {
             ApiError error = Utils.convertToApiError(ex);
@@ -65,8 +67,21 @@ public class RestTeamRepository implements TeamRepository {
     }
 
     @Override
-    public Team getTeam(String slackName) {
-        //TODO Should be implemented feature SLB-F3
-        return null;
+    public Team getTeam(String uuid) {
+        HttpEntity<TeamRequest> request = new HttpEntity<>(Utils.setupJsonHttpHeaders());
+        Team team;
+        try {
+            String teamsServiceURL = teamsBaseUrl + "/" + teamsRestApiVersion + teamsGetTeamUrl + "/" + uuid;
+            log.debug("Send request to Teams service to url '{}'", teamsServiceURL);
+            ResponseEntity<Team> response = restTemplate.exchange(teamsServiceURL,
+                    HttpMethod.GET, request, Team.class);
+            log.debug("Get response '{}' from Teams service", response);
+            team = response.getBody();
+        } catch (HttpClientErrorException ex) {
+            ApiError error = Utils.convertToApiError(ex);
+            throw new TeamExchangeException(error, ex);
+        }
+        log.info("Team got: '{}'", team.getId());
+        return team;
     }
 }
