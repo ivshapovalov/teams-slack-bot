@@ -107,8 +107,8 @@ public class TeamSlackbotController {
 
     private void sendInstantResponseMessage(HttpServletResponse response, String message) throws IOException {
         log.debug("Before sending instant response message '{}' ", message);
-        PrintWriter printWriter = response.getWriter();
         response.setStatus(HttpServletResponse.SC_OK);
+        PrintWriter printWriter = response.getWriter();
         printWriter.print(message);
         printWriter.flush();
         printWriter.close();
