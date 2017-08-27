@@ -28,6 +28,8 @@ public class TeamSlackbotController {
     private final static String ACTIVATE_TEAM_MESSAGE = "Thanks, Activate Team job started!";
     private final static String GET_TEAM_MESSAGE = "Thanks, Get Team for user '%s' job started!";
     private final static String GET_MY_TEAM_MESSAGE = "Thanks, Get My Team for user '%s' job started!";
+    private final static String DEACTIVATE_TEAM_MESSAGE = "Thanks, Deactivate Team for user '%s' job started!";
+
     private final RestTemplate restTemplate;
     private final TeamService teamService;
     private final ExceptionsHandler exceptionsHandler;
@@ -60,13 +62,23 @@ public class TeamSlackbotController {
         }
     }
 
-    @PostMapping(value = "/teams/deactivate", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @PostMapping(value = "${teams.slackbot.endpoint.deactivateTeam}",
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void onReceiveSlashCommandDeactivateTeam(@RequestParam("token") String token,
                                                     @RequestParam("user_name") String fromUser,
                                                     @RequestParam("text") String text,
                                                     @RequestParam("response_url") String responseUrl,
-                                                    HttpServletResponse response) {
-        //TODO Should be implemented feature SLB-F2
+                                                    HttpServletResponse response) throws IOException {
+        exceptionsHandler.setResponseUrl(responseUrl);
+        if (isTokenCorrect(token, response)) {
+            sendInstantResponseMessage(response, String.format(DEACTIVATE_TEAM_MESSAGE, text));
+            Set<String> slackNames = teamService.deactivateTeam(text);
+            RichMessage message = new RichMessage(String.format("Thanks, Team '%s' deactivated",
+                    slackNames.stream().collect(Collectors.joining(" "))));
+            restTemplate.postForObject(responseUrl, message, String.class);
+            log.info("'Deactivate team' command processed : user: '{}' text: '{}' and sent message to slack: '{}'",
+                    fromUser, text, message.getText());
+        }
     }
 
     @PostMapping(value = "${teams.slackbot.endpoint.getTeam}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)

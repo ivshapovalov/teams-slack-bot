@@ -43,6 +43,7 @@ public class TeamSlackbotControllerTest {
     private final static String ACTIVATE_TEAM_MESSAGE = "Thanks, Activate Team job started!";
     private final static String GET_TEAM_MESSAGE = "Thanks, Get Team for user '%s' job started!";
     private final static String GET_MY_TEAM_MESSAGE = "Thanks, Get My Team for user '%s' job started!";
+    private final static String DEACTIVATE_TEAM_MESSAGE = "Thanks, Deactivate Team for user '%s' job started!";
 
     @Value("${teams.slackbot.rest.api.version}")
     private String teamsSlackbotRestApiVersion;
@@ -54,8 +55,11 @@ public class TeamSlackbotControllerTest {
     private String teamsSlackbotGetTeamUrl;
     @Value("${teams.slackbot.endpoint.getMyTeam}")
     private String teamsSlackbotGetMyTeamUrl;
+    @Value("${teams.slackbot.endpoint.deactivateTeam}")
+    private String teamsSlackbotDeactivateTeamUrl;
 
     private String teamsSlackbotFullActivateTeamUrl;
+    private String teamsSlackbotFullDeactivateTeamUrl;
     private String teamsSlackBotFullGetTeamUrl;
     private String teamsSlackBotFullGetMyTeamUrl;
 
@@ -63,7 +67,7 @@ public class TeamSlackbotControllerTest {
     private MockMvc mvc;
 
     @MockBean
-    private TeamService teamSlackbotService;
+    private TeamService teamService;
 
     @MockBean
     private ExceptionsHandler exceptionsHandler;
@@ -80,6 +84,8 @@ public class TeamSlackbotControllerTest {
     public void setup() {
         teamsSlackbotFullActivateTeamUrl = "/" + teamsSlackbotRestApiVersion + teamsSlackbotCommandsUrl +
                 teamsSlackbotActivateTeamUrl;
+        teamsSlackbotFullDeactivateTeamUrl = "/" + teamsSlackbotRestApiVersion + teamsSlackbotCommandsUrl +
+                teamsSlackbotDeactivateTeamUrl;
         teamsSlackBotFullGetTeamUrl = "/" + teamsSlackbotRestApiVersion + teamsSlackbotCommandsUrl +
                 teamsSlackbotGetTeamUrl;
         teamsSlackBotFullGetMyTeamUrl = "/" + teamsSlackbotRestApiVersion + teamsSlackbotCommandsUrl +
@@ -104,7 +110,7 @@ public class TeamSlackbotControllerTest {
                 .andExpect(content().string(SORRY_MESSAGE));
 
         verify(exceptionsHandler).setResponseUrl(anyString());
-        verifyNoMoreInteractions(teamSlackbotService, exceptionsHandler);
+        verifyNoMoreInteractions(teamService, exceptionsHandler);
     }
 
     @Test
@@ -116,7 +122,7 @@ public class TeamSlackbotControllerTest {
                 user3.getUuid(), user4.getUuid()));
         Team activatedTeam = new Team(members);
         String responseUrl = "http://example.com";
-        when(teamSlackbotService.activateTeam(ACTIVATE_TEAM_COMMAND_TEXT))
+        when(teamService.activateTeam(ACTIVATE_TEAM_COMMAND_TEXT))
                 .thenReturn(activatedTeam);
         when(restTemplate.postForObject(anyString(), any(RichMessage.class), anyObject()))
                 .thenReturn("");
@@ -128,9 +134,9 @@ public class TeamSlackbotControllerTest {
                 .andExpect(content().string(ACTIVATE_TEAM_MESSAGE));
 
         verify(exceptionsHandler).setResponseUrl(anyString());
-        verify(teamSlackbotService).activateTeam(ACTIVATE_TEAM_COMMAND_TEXT);
+        verify(teamService).activateTeam(ACTIVATE_TEAM_COMMAND_TEXT);
         verify(restTemplate).postForObject(anyString(), any(RichMessage.class), anyObject());
-        verifyNoMoreInteractions(teamSlackbotService, exceptionsHandler, restTemplate);
+        verifyNoMoreInteractions(teamService, exceptionsHandler, restTemplate);
     }
 
     @Test
@@ -145,7 +151,7 @@ public class TeamSlackbotControllerTest {
                 .andExpect(content().string(SORRY_MESSAGE));
 
         verify(exceptionsHandler).setResponseUrl(anyString());
-        verifyNoMoreInteractions(teamSlackbotService, exceptionsHandler);
+        verifyNoMoreInteractions(teamService, exceptionsHandler);
     }
 
     @Test
@@ -155,7 +161,7 @@ public class TeamSlackbotControllerTest {
         Set<String> slackNames = new LinkedHashSet<>(Arrays.asList(user1.getSlack(), user2.getSlack(),
                 user3.getSlack(), user4.getSlack()));
         String responseUrl = "http://example.com";
-        when(teamSlackbotService.getTeam(commandText)).thenReturn(slackNames);
+        when(teamService.getTeam(commandText)).thenReturn(slackNames);
         when(restTemplate.postForObject(anyString(), any(RichMessage.class), anyObject())).thenReturn("");
         mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackBotFullGetTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/teams",
@@ -165,9 +171,9 @@ public class TeamSlackbotControllerTest {
                 .andExpect(content().string(String.format(GET_TEAM_MESSAGE, user2.getSlack())));
 
         verify(exceptionsHandler).setResponseUrl(anyString());
-        verify(teamSlackbotService).getTeam(commandText);
+        verify(teamService).getTeam(commandText);
         verify(restTemplate).postForObject(anyString(), any(RichMessage.class), anyObject());
-        verifyNoMoreInteractions(teamSlackbotService, exceptionsHandler, restTemplate);
+        verifyNoMoreInteractions(teamService, exceptionsHandler, restTemplate);
     }
 
     @Test
@@ -182,7 +188,7 @@ public class TeamSlackbotControllerTest {
                 .andExpect(content().string(SORRY_MESSAGE));
 
         verify(exceptionsHandler).setResponseUrl(anyString());
-        verifyNoMoreInteractions(teamSlackbotService, exceptionsHandler);
+        verifyNoMoreInteractions(teamService, exceptionsHandler);
     }
 
     @Test
@@ -193,7 +199,7 @@ public class TeamSlackbotControllerTest {
         Set<String> slackNames = new LinkedHashSet<>(Arrays.asList(user1.getSlack(), user2.getSlack(),
                 user3.getSlack(), user4.getSlack()));
         String responseUrl = "http://example.com";
-        when(teamSlackbotService.getTeam(fromUserWithAt)).thenReturn(slackNames);
+        when(teamService.getTeam(fromUserWithAt)).thenReturn(slackNames);
         when(restTemplate.postForObject(anyString(), any(RichMessage.class), anyObject())).thenReturn("");
         mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackBotFullGetMyTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/myteam",
@@ -203,9 +209,47 @@ public class TeamSlackbotControllerTest {
                 .andExpect(content().string(String.format(GET_MY_TEAM_MESSAGE, fromUserWithAt)));
 
         verify(exceptionsHandler).setResponseUrl(anyString());
-        verify(teamSlackbotService).getTeam(fromUserWithAt);
+        verify(teamService).getTeam(fromUserWithAt);
         verify(restTemplate).postForObject(anyString(), any(RichMessage.class), anyObject());
-        verifyNoMoreInteractions(teamSlackbotService, exceptionsHandler, restTemplate);
+        verifyNoMoreInteractions(teamService, exceptionsHandler, restTemplate);
+    }
+
+    @Test
+    public void onReceiveSlashCommandDeactivateTeamWhenIncorrectTokenShouldReturnSorryMessage() throws Exception {
+        final String commandText = user1.getSlack();
+
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullDeactivateTeamUrl),
+                SlackUrlUtils.getUriVars("wrongSlackToken", "/command", commandText,
+                        "http://example.com"))
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andExpect(status().isOk())
+                .andExpect(content().string(SORRY_MESSAGE));
+
+        verify(exceptionsHandler).setResponseUrl(anyString());
+        verifyNoMoreInteractions(teamService, exceptionsHandler);
+    }
+
+    @Test
+    public void onReceiveSlashCommandDeactivateTeamWhenAllCorrectShouldReturnOkMessage() throws Exception {
+        final String commandText = user1.getSlack();
+
+        Set<String> slackNames = new LinkedHashSet<>(Arrays.asList(user1.getSlack(), user2.getSlack(),
+                user3.getSlack(), user4.getSlack()));
+        String responseUrl = "http://example.com";
+        when(teamService.deactivateTeam(commandText)).thenReturn(slackNames);
+        when(restTemplate.postForObject(anyString(), any(RichMessage.class), anyObject()))
+                .thenReturn("");
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullDeactivateTeamUrl),
+                SlackUrlUtils.getUriVars("slashCommandToken", "/teams-deactivate",
+                        commandText, responseUrl))
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andExpect(status().isOk())
+                .andExpect(content().string(String.format(DEACTIVATE_TEAM_MESSAGE, user1.getSlack())));
+
+        verify(exceptionsHandler).setResponseUrl(anyString());
+        verify(teamService).deactivateTeam(commandText);
+        verify(restTemplate).postForObject(anyString(), any(RichMessage.class), anyObject());
+        verifyNoMoreInteractions(teamService, exceptionsHandler, restTemplate);
     }
 
 }

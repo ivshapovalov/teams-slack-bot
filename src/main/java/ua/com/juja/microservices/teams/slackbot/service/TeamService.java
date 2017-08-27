@@ -13,4 +13,5 @@ public interface TeamService {
 
     Set<String> getTeam(String text);
 
+    Set<String> deactivateTeam(String text);
 }
