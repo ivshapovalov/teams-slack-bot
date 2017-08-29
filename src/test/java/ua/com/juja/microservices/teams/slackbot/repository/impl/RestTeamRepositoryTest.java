@@ -147,7 +147,7 @@ public class RestTeamRepositoryTest {
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withBadRequest().body(expectedJsonResponseBody));
         expectedException.expect(TeamExchangeException.class);
-        expectedException.expectMessage(containsString("You cannot get/deactivate team if user not in team"));
+        expectedException.expectMessage(containsString("You cannot get/deactivate team if the user not a member of any team!"));
 
         teamRepository.getTeam(uuid);
 
@@ -176,7 +176,7 @@ public class RestTeamRepositoryTest {
     public void deactivateTeamSendRequestToRemoteTeamsServerAndReturnDeactivatedTeamExecutedCorrectly() throws
             IOException {
         String uuid = "uuid";
-        String teamsServiceURL = teamsFullDeactivateTeamUrl+"/" + uuid;
+        String teamsServiceURL = teamsFullDeactivateTeamUrl + "/" + uuid;
 
         Set<String> expected = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4"));
 
@@ -197,7 +197,7 @@ public class RestTeamRepositoryTest {
     public void deactivateTeamSendRequestToRemoteTeamsServerWhichReturnsErrorThrowsException() throws IOException {
         String uuid = "uuid";
 
-        String teamsServiceURL = teamsFullDeactivateTeamUrl+"/" + uuid;
+        String teamsServiceURL = teamsFullDeactivateTeamUrl + "/" + uuid;
 
         String expectedJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
                 ("response/responseTeamRepositoryGetAndDeactivateTeamIfUsersNotInActiveTeamThrowsException.json"));
@@ -206,11 +206,10 @@ public class RestTeamRepositoryTest {
                 .andRespond(withBadRequest().body(expectedJsonResponseBody));
 
         expectedException.expect(TeamExchangeException.class);
-        expectedException.expectMessage(containsString("You cannot get/deactivate team if user not in team"));
+        expectedException.expectMessage(containsString("You cannot get/deactivate team if the user not a member of any team!"));
 
         teamRepository.deactivateTeam(uuid);
 
         mockServer.verify();
     }
-
 }

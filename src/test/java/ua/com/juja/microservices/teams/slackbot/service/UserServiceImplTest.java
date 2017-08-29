@@ -34,14 +34,13 @@ public class UserServiceImplTest {
 
     @Test
     public void findUsersBySlackNamesExecutedCorrectly() throws Exception {
-        //given
         List<String> slackNamesRequest = Arrays.asList("@user11", "@user22");
         List<User> expected = Arrays.asList(new User("uuid1", "@user11"),
                 new User("uuid2", "user2"));
         given(userRepository.findUsersBySlackNames(slackNamesRequest)).willReturn(expected);
-        //when
+
         List<User> actual = userService.findUsersBySlackNames(slackNamesRequest);
-        //then
+
         assertThat(actual, is(expected));
         verify(userRepository).findUsersBySlackNames(slackNamesRequest);
         verifyNoMoreInteractions(userRepository);
@@ -49,14 +48,13 @@ public class UserServiceImplTest {
 
     @Test
     public void findUsersByUuidsExecutedCorrectly() throws Exception {
-        //given
         List<String> uuidsRequest = Arrays.asList("uuid1", "uuid2");
         List<User> expected = Arrays.asList(new User("uuid1", "@user11"),
                 new User("uuid2", "user2"));
         given(userRepository.findUsersByUuids(uuidsRequest)).willReturn(expected);
-        //when
+
         List<User> actual = userService.findUsersByUuids(uuidsRequest);
-        //then
+
         assertThat(actual, is(expected));
         verify(userRepository).findUsersByUuids(uuidsRequest);
         verifyNoMoreInteractions(userRepository);
@@ -64,7 +62,6 @@ public class UserServiceImplTest {
 
     @Test
     public void replaceUuidsBySlackNamesInExceptionMessageExecutedCorrectly() throws Exception {
-        //given
         String exceptionMessage = String.format("User(s) '#%s#' exist(s) in another teams",
                 "uuid1,uuid2,uuid3,uuid4");
         String expected = String.format("User(s) '%s' exist(s) in another teams",
@@ -73,9 +70,9 @@ public class UserServiceImplTest {
                 new User("uuid2", "@slack2"), new User("uuid3", "@slack3"),
                 new User("uuid4", "@slack4"));
         given(userRepository.findUsersByUuids(anyListOf(String.class))).willReturn(users);
-        //when
+
         String actual = userService.replaceUuidsBySlackNamesInExceptionMessage(exceptionMessage);
-        //then
+
         assertThat(actual, is(expected));
         verify(userRepository).findUsersByUuids(anyListOf(String.class));
         verifyNoMoreInteractions(userRepository);

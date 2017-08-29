@@ -25,10 +25,14 @@ import java.util.stream.Collectors;
 public class TeamSlackbotController {
 
     private final static String SORRY_MESSAGE = "Sorry! You're not lucky enough to use our slack command";
-    private final static String ACTIVATE_TEAM_MESSAGE = "Thanks, Activate Team job started!";
-    private final static String GET_TEAM_MESSAGE = "Thanks, Get Team for user '%s' job started!";
-    private final static String GET_MY_TEAM_MESSAGE = "Thanks, Get My Team for user '%s' job started!";
-    private final static String DEACTIVATE_TEAM_MESSAGE = "Thanks, Deactivate Team for user '%s' job started!";
+    private final static String ACTIVATE_TEAM_INSTANT_MESSAGE = "Thanks, Activate Team job started!";
+    private final static String ACTIVATE_TEAM_DELAYED_MESSAGE = "Thanks, new Team for '%s' activated!";
+    private final static String GET_TEAM_INSTANT_MESSAGE = "Thanks, Get Team for user '%s' job started!";
+    private final static String GET_TEAM_DELAYED_MESSAGE = "Thanks, Team for '%s' is '%s'!";
+    private final static String GET_MY_TEAM_INSTANT_MESSAGE = "Thanks, Get My Team for user '%s' job started!";
+    private final static String GET_MY_TEAM_DELAYED_MESSAGE = "Thanks, Team for '%s' is '%s'!";
+    private final static String DEACTIVATE_TEAM_INSTANT_MESSAGE = "Thanks, Deactivate Team for user '%s' job started!";
+    private final static String DEACTIVATE_TEAM_DELAYED_MESSAGE = "Thanks, Team '%s' deactivated!";
 
     private final RestTemplate restTemplate;
     private final TeamService teamService;
@@ -53,9 +57,9 @@ public class TeamSlackbotController {
                                                   HttpServletResponse response) throws IOException {
         exceptionsHandler.setResponseUrl(responseUrl);
         if (isTokenCorrect(token, response)) {
-            sendInstantResponseMessage(response, ACTIVATE_TEAM_MESSAGE);
+            sendInstantResponseMessage(response, ACTIVATE_TEAM_INSTANT_MESSAGE);
             teamService.activateTeam(text);
-            RichMessage message = new RichMessage(String.format("Thanks, new Team for '%s' activated", text));
+            RichMessage message = new RichMessage(String.format(ACTIVATE_TEAM_DELAYED_MESSAGE, text));
             sendDelayedResponseMessage(responseUrl, message);
             log.info("'Activate team' command processed : user: '{}' text: '{}' and sent message to slack: '{}'",
                     fromUser, text, message.getText());
@@ -71,11 +75,11 @@ public class TeamSlackbotController {
                                                     HttpServletResponse response) throws IOException {
         exceptionsHandler.setResponseUrl(responseUrl);
         if (isTokenCorrect(token, response)) {
-            sendInstantResponseMessage(response, String.format(DEACTIVATE_TEAM_MESSAGE, text));
+            sendInstantResponseMessage(response, String.format(DEACTIVATE_TEAM_INSTANT_MESSAGE, text));
             Set<String> slackNames = teamService.deactivateTeam(text);
-            RichMessage message = new RichMessage(String.format("Thanks, Team '%s' deactivated",
-                    slackNames.stream().collect(Collectors.joining(" "))));
-            restTemplate.postForObject(responseUrl, message, String.class);
+            RichMessage message = new RichMessage(String.format(DEACTIVATE_TEAM_DELAYED_MESSAGE,
+                    slackNames.stream().sorted().collect(Collectors.joining(" "))));
+            sendDelayedResponseMessage(responseUrl, message);
             log.info("'Deactivate team' command processed : user: '{}' text: '{}' and sent message to slack: '{}'",
                     fromUser, text, message.getText());
         }
@@ -89,10 +93,10 @@ public class TeamSlackbotController {
                                              HttpServletResponse response) throws IOException {
         exceptionsHandler.setResponseUrl(responseUrl);
         if (isTokenCorrect(token, response)) {
-            sendInstantResponseMessage(response, String.format(GET_TEAM_MESSAGE, text));
+            sendInstantResponseMessage(response, String.format(GET_TEAM_INSTANT_MESSAGE, text));
             Set<String> slackNames = teamService.getTeam(text);
-            RichMessage message = new RichMessage(String.format("Thanks, Team for '%s' is '%s'",
-                    text, slackNames.stream().collect(Collectors.joining(" "))));
+            RichMessage message = new RichMessage(String.format(GET_TEAM_DELAYED_MESSAGE,
+                    text, slackNames.stream().sorted().collect(Collectors.joining(" "))));
             sendDelayedResponseMessage(responseUrl, message);
             log.info("'Get team' command processed : user: '{}' text: '{}' and sent message to slack: '{}'",
                     fromUser, text, message.getText());
@@ -107,10 +111,10 @@ public class TeamSlackbotController {
         exceptionsHandler.setResponseUrl(responseUrl);
         if (isTokenCorrect(token, response)) {
             fromUser = fromUser.startsWith("@") ? fromUser : "@" + fromUser;
-            sendInstantResponseMessage(response, String.format(GET_MY_TEAM_MESSAGE, fromUser));
+            sendInstantResponseMessage(response, String.format(GET_MY_TEAM_INSTANT_MESSAGE, fromUser));
             Set<String> slackNames = teamService.getTeam(fromUser);
-            RichMessage message = new RichMessage(String.format("Thanks, Team for user '%s' is '%s'",
-                    fromUser, slackNames.stream().collect(Collectors.joining(" "))));
+            RichMessage message = new RichMessage(String.format(GET_MY_TEAM_DELAYED_MESSAGE,
+                    fromUser, slackNames.stream().sorted().collect(Collectors.joining(" "))));
             sendDelayedResponseMessage(responseUrl, message);
             log.info("'Get my team' command processed : user: '{}' and sent message to slack: '{}'",
                     fromUser, message.getText());
@@ -128,7 +132,7 @@ public class TeamSlackbotController {
     }
 
     private void sendDelayedResponseMessage(String responseUrl, RichMessage message) {
-        log.debug("Before sending delayed response message '{}' to slack url '{}' ", message, responseUrl);
+        log.debug("Before sending delayed response message '{}' to slack url '{}' ", message.getText(), responseUrl);
         String response = restTemplate.postForObject(responseUrl, message, String.class);
         log.debug("After sending delayed response message. Response is '{}'", response);
     }

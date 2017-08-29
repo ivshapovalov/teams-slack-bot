@@ -5,6 +5,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -28,6 +29,7 @@ import java.util.Set;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyListOf;
@@ -75,7 +77,9 @@ public class TeamServiceTest {
 
         assertEquals(expected, actual);
         verify(userService).findUsersBySlackNames(anyListOf(String.class));
-        verify(teamRepository).activateTeam(any(TeamRequest.class));
+        ArgumentCaptor<TeamRequest> captor = ArgumentCaptor.forClass(TeamRequest.class);
+        verify(teamRepository).activateTeam(captor.capture());
+        assertTrue(captor.getValue().getMembers().equals(uuids));
         verifyNoMoreInteractions(userService, teamRepository);
     }
 
