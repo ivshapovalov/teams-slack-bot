@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class Utils {
+
     public static <T> void checkNull(T parameter, String message) {
         if (parameter == null) {
             throw new IllegalArgumentException(message);
@@ -38,8 +39,8 @@ public class Utils {
         } catch (IOException e) {
             return new ApiError(
                     500, "BotInternalError",
-                    "I'm, sorry. I cannot parse api error message from remote service :(",
-                    "Cannot parse api error message from remote service",
+                    "I'm, sorry. I cannot parse api error messages from remote service :(",
+                    "Cannot parse api error messages from remote service",
                     e.getMessage(),
                     Collections.singletonList(httpClientErrorException.getMessage())
             );

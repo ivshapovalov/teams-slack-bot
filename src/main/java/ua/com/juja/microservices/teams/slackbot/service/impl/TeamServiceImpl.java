@@ -45,18 +45,17 @@ public class TeamServiceImpl implements TeamService {
     @Override
     public Team activateTeam(String text) {
         Utils.checkNull(text, "Text must not be null!");
-
         List<String> slackNames = SlackNameHandler.getSlackNamesFromText(text);
 
+        if (slackNames.size() != TEAM_SIZE) {
+            throw new WrongCommandFormatException(String.format("We found %d slack names in your command." +
+                    " But size of the team must be %s.", slackNames.size(), TEAM_SIZE));
+        }
         Set<User> users = new HashSet<>(userService.findUsersBySlackNames(slackNames));
         Set<String> uuids = users.stream()
                 .map(User::getUuid)
                 .collect(Collectors.toSet());
 
-        if (uuids.size() != TEAM_SIZE) {
-            throw new WrongCommandFormatException(String.format("We found %d slack names in your command." +
-                    " But size of the team must be %s.", uuids.size(), TEAM_SIZE));
-        }
         TeamRequest teamRequest = new TeamRequest(uuids);
         Team activatedTeam = teamRepository.activateTeam(teamRequest);
         checkTeamMembersEquality(teamRequest.getMembers(), activatedTeam.getMembers());
@@ -94,6 +93,9 @@ public class TeamServiceImpl implements TeamService {
         String uuid = users.get(0).getUuid();
         Team team = teamRepository.getTeam(uuid);
         List<User> teamUsers = userService.findUsersByUuids(new ArrayList<>(team.getMembers()));
+        if (teamUsers.size() != team.getMembers().size()) {
+            throwUserExchangeException();
+        }
         Set<String> teamSlackNames = teamUsers.stream()
                 .map(User::getSlack)
                 .collect(Collectors.toSet());
@@ -128,6 +130,9 @@ public class TeamServiceImpl implements TeamService {
         String uuid = users.get(0).getUuid();
         Team deactivatedTeam = teamRepository.deactivateTeam(uuid);
         List<User> teamUsers = userService.findUsersByUuids(new ArrayList<>(deactivatedTeam.getMembers()));
+        if (deactivatedTeam.getMembers().size() != teamUsers.size()) {
+            throwUserExchangeException();
+        }
         Set<String> teamSlackNames = teamUsers.stream()
                 .map(User::getSlack)
                 .collect(Collectors.toSet());
