@@ -133,13 +133,13 @@ public class TeamSlackbotController {
     }
 
     private void sendInstantResponseMessage(HttpServletResponse response, String message) throws IOException {
-        log.debug("Before sending instant response messages '{}' ", message);
+        log.debug("Before sending instant response message '{}' ", message);
         response.setStatus(HttpServletResponse.SC_OK);
         PrintWriter printWriter = response.getWriter();
         printWriter.print(message);
         printWriter.flush();
         printWriter.close();
-        log.info("Sent instant response messages to slack '{}' ", message);
+        log.info("Sent instant response message to slack '{}' ", message);
     }
 
     private void sendDelayedResponseMessage(String responseUrl, RichMessage message) {
