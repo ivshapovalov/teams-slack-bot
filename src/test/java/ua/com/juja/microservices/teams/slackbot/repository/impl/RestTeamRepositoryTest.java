@@ -165,7 +165,7 @@ public class RestTeamRepositoryTest {
                 .andRespond(withBadRequest().body(expectedJsonResponseBody));
 
         expectedException.expect(TeamExchangeException.class);
-        expectedException.expectMessage(containsString("I'm, sorry. I cannot parse api error messages from remote service :("));
+        expectedException.expectMessage(containsString("I'm, sorry. I cannot parse api error message from remote service :("));
 
         teamRepository.getTeam(uuid);
 
