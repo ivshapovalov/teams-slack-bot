@@ -19,19 +19,19 @@ public class ApiError {
      */
     private String internalErrorCode;
     /**
-     * The messages for user
+     * The message for user
      */
     private String clientMessage;
     /**
-     * The messages  for developer
+     * The message  for developer
      */
     private String developerMessage;
     /**
-     * The messages  in exception
+     * The message  in exception
      */
     private String exceptionMessage;
     /**
-     * List of detail error messages
+     * List of detail error message
      */
     private List<String> detailErrors;
 }

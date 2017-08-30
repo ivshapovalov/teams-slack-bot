@@ -39,8 +39,8 @@ public class Utils {
         } catch (IOException e) {
             return new ApiError(
                     500, "BotInternalError",
-                    "I'm, sorry. I cannot parse api error messages from remote service :(",
-                    "Cannot parse api error messages from remote service",
+                    "I'm, sorry. I cannot parse api error message from remote service :(",
+                    "Cannot parse api error message from remote service",
                     e.getMessage(),
                     Collections.singletonList(httpClientErrorException.getMessage())
             );
