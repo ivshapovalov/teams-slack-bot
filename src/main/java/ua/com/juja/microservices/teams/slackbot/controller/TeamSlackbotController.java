@@ -72,7 +72,7 @@ public class TeamSlackbotController {
             teamService.activateTeam(text);
             RichMessage message = new RichMessage(String.format(ACTIVATE_TEAM_DELAYED_MESSAGE, text));
             sendDelayedResponseMessage(responseUrl, message);
-            log.info("'Activate team' command processed : user: '{}' text: '{}' and sent messages to slack: '{}'",
+            log.info("'Activate team' command processed : user: '{}' text: '{}' and sent message to slack: '{}'",
                     fromUser, text, message.getText());
         }
     }
@@ -91,7 +91,7 @@ public class TeamSlackbotController {
             RichMessage message = new RichMessage(String.format(DEACTIVATE_TEAM_DELAYED_MESSAGE,
                     slackNames.stream().sorted().collect(Collectors.joining(" "))));
             sendDelayedResponseMessage(responseUrl, message);
-            log.info("'Deactivate team' command processed : user: '{}' text: '{}' and sent messages to slack: '{}'",
+            log.info("'Deactivate team' command processed : user: '{}' text: '{}' and sent message to slack: '{}'",
                     fromUser, text, message.getText());
         }
     }
@@ -109,7 +109,7 @@ public class TeamSlackbotController {
             RichMessage message = new RichMessage(String.format(GET_TEAM_DELAYED_MESSAGE,
                     text, slackNames.stream().sorted().collect(Collectors.joining(" "))));
             sendDelayedResponseMessage(responseUrl, message);
-            log.info("'Get team' command processed : user: '{}' text: '{}' and sent messages to slack: '{}'",
+            log.info("'Get team' command processed : user: '{}' text: '{}' and sent message to slack: '{}'",
                     fromUser, text, message.getText());
         }
     }
@@ -127,7 +127,7 @@ public class TeamSlackbotController {
             RichMessage message = new RichMessage(String.format(GET_MY_TEAM_DELAYED_MESSAGE,
                     fromUser, slackNames.stream().sorted().collect(Collectors.joining(" "))));
             sendDelayedResponseMessage(responseUrl, message);
-            log.info("'Get my team' command processed : user: '{}' and sent messages to slack: '{}'",
+            log.info("'Get my team' command processed : user: '{}' and sent message to slack: '{}'",
                     fromUser, message.getText());
         }
     }
@@ -143,9 +143,9 @@ public class TeamSlackbotController {
     }
 
     private void sendDelayedResponseMessage(String responseUrl, RichMessage message) {
-        log.debug("Before sending delayed response messages '{}' to slack url '{}' ", message.getText(), responseUrl);
+        log.debug("Before sending delayed response message '{}' to slack url '{}' ", message.getText(), responseUrl);
         String response = restTemplate.postForObject(responseUrl, message, String.class);
-        log.debug("After sending delayed response messages. Response is '{}'", response);
+        log.debug("After sending delayed response message. Response is '{}'", response);
     }
 
     private boolean isRequestCorrect(String token, HttpServletResponse response, String... params)
