@@ -31,9 +31,7 @@ import java.util.stream.Collectors;
 public class TeamServiceImpl implements TeamService {
 
     private static final int TEAM_SIZE = 4;
-
     private final UserService userService;
-
     private final TeamRepository teamRepository;
 
     @Inject
@@ -46,16 +44,17 @@ public class TeamServiceImpl implements TeamService {
     public Team activateTeam(String text) {
         Utils.checkNull(text, "Text must not be null!");
         List<String> slackNames = SlackNameHandler.getSlackNamesFromText(text);
-
         if (slackNames.size() != TEAM_SIZE) {
             throw new WrongCommandFormatException(String.format("We found %d slack names in your command." +
                     " But size of the team must be %s.", slackNames.size(), TEAM_SIZE));
         }
         Set<User> users = new HashSet<>(userService.findUsersBySlackNames(slackNames));
+        if (users.size() != slackNames.size()) {
+            throwUserExchangeException();
+        }
         Set<String> uuids = users.stream()
                 .map(User::getUuid)
                 .collect(Collectors.toSet());
-
         TeamRequest teamRequest = new TeamRequest(uuids);
         Team activatedTeam = teamRepository.activateTeam(teamRequest);
         checkTeamMembersEquality(teamRequest.getMembers(), activatedTeam.getMembers());
@@ -64,7 +63,8 @@ public class TeamServiceImpl implements TeamService {
     }
 
     private void checkTeamMembersEquality(Set<String> requestMembers, Set<String> responseMembers) {
-        log.debug("Before check members equality. Request '{}'. Response '{}'", requestMembers, responseMembers);
+        log.debug("Before check team members equality. Request to Team service '{}'. Response from Team service '{}'",
+                requestMembers, responseMembers);
         if (!(requestMembers.containsAll(responseMembers) && responseMembers.containsAll(requestMembers))) {
             Exception ex = new Exception("Team members is not equals in request and response from Teams Service");
             ApiError apiError = new ApiError(
@@ -99,7 +99,6 @@ public class TeamServiceImpl implements TeamService {
         Set<String> teamSlackNames = teamUsers.stream()
                 .map(User::getSlack)
                 .collect(Collectors.toSet());
-
         log.info("Team got: '{}'", team.getId());
         return teamSlackNames;
     }

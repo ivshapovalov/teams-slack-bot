@@ -224,6 +224,25 @@ public class TeamsSlackBotIntegrationTest {
 
     @Test
     public void
+    onReceiveSlashCommandActivateTeamWhenFindUsersBySlackNamesReturnsWrongUsersCountShouldReturnErrorMessage()
+            throws Exception {
+        final String commandText = String.format("%s %s %s %s", user1.getSlack(), user2.getSlack(), user3.getSlack(),
+                user4.getSlack());
+        final List<User> usersInCommand = new ArrayList<>(Collections.singletonList(user1));
+        String responseUrl = "http://example.com";
+        mockFailUsersServiceFindUsersBySlackNamesReturnsWrongUsersNumber(usersInCommand);
+        mockSlackResponseUrl(responseUrl,
+                new RichMessage("Users count is not equals in request and response from Users Service"));
+
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullActivateTeamUrl),
+                SlackUrlUtils.getUriVars("slashCommandToken", "/command", commandText, responseUrl))
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andExpect(status().isOk())
+                .andExpect(content().string(ACTIVATE_TEAM_INSTANT_MESSAGE));
+    }
+
+    @Test
+    public void
     onReceiveSlashCommandActivateTeamWhenTeamsServiceRequestAndResponseContainsDifferentUuidsShouldReturnErrorMessage()
             throws Exception {
         final String commandText = String.format("%s %s %s %s", user1.getSlack(), user2.getSlack(), user3.getSlack(),
