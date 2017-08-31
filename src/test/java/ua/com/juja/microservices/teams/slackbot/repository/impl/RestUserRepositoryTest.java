@@ -21,8 +21,8 @@ import ua.com.juja.microservices.utils.TestUtils;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static net.javacrumbs.jsonunit.core.util.ResourceUtils.resource;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -57,29 +57,34 @@ public class RestUserRepositoryTest {
     @Value("${users.endpoint.usersByUuids}")
     private String usersFindUsersByUuidsUrl;
 
+    private User user1;
+    private User user2;
+    private User user3;
+    private User user4;
+
     @Before
     public void setup() {
         mockServer = MockRestServiceServer.bindTo(restTemplate).build();
+
+        user1 = new User("uuid1", "@slack1");
+        user2 = new User("uuid2", "@slack2");
+        user3 = new User("uuid3", "@slack3");
+        user4 = new User("uuid4", "@slack4");
     }
 
     @Test
     public void findUsersBySlackNamesIfUserServerReturnsUserCorrectly() throws IOException {
 
         List<String> incorrectSlackNames = new ArrayList<>();
-        incorrectSlackNames.add("user1");
-        incorrectSlackNames.add("@user2");
-        incorrectSlackNames.add("user3");
-        incorrectSlackNames.add("@user4");
+        incorrectSlackNames.add("slack1");
+        incorrectSlackNames.add("@slack2");
+        incorrectSlackNames.add("slack3");
+        incorrectSlackNames.add("@slack4");
 
-        List<String> correctSlackNames = new ArrayList<>();
-        correctSlackNames.add("@user1");
-        correctSlackNames.add("@user2");
-        correctSlackNames.add("@user3");
-        correctSlackNames.add("@user4");
+        List<String> correctSlackNames = Arrays.asList(user1.getSlack(), user2.getSlack(),
+                user3.getSlack(), user4.getSlack());
 
-        final int[] number = {1};
-        List<User> expected = correctSlackNames.stream().map(slackName -> new User(String.valueOf(number[0]++), slackName))
-                .collect(Collectors.toList());
+        List<User> expected = Arrays.asList(user1, user2, user3, user4);
 
         String jsonContentRequest = TestUtils.convertToString(ResourceUtils.resource
                 ("request/requestUserRepositoryGetUsersBySlacknames.json"));
@@ -102,10 +107,10 @@ public class RestUserRepositoryTest {
     public void findUsersBySlackNamesIfUserServerReturnsException() throws IOException {
 
         List<String> slackNames = new ArrayList<>();
-        slackNames.add("user1");
-        slackNames.add("@user2");
-        slackNames.add("user3");
-        slackNames.add("@user4");
+        slackNames.add("slack1");
+        slackNames.add("@slack2");
+        slackNames.add("slack3");
+        slackNames.add("@slack4");
 
         String jsonContentRequest = TestUtils.convertToString(ResourceUtils.resource
                 ("request/requestUserRepositoryGetUsersBySlacknames.json"));
@@ -128,15 +133,9 @@ public class RestUserRepositoryTest {
 
     @Test
     public void findUsersByUuidsIfUserServerReturnsUserCorrectly() throws IOException {
-
-        List<String> uuids = new ArrayList<>();
-        uuids.add("1");
-        uuids.add("2");
-        uuids.add("3");
-        uuids.add("4");
-        List<User> expected = uuids.stream().map(uuid -> new User(uuid, "@user" + uuid))
-                .collect(Collectors.toList());
-
+        List<String> uuids = Arrays.asList(user1.getUuid(), user2.getUuid(),
+                user3.getUuid(), user4.getUuid());
+        List<User> expected = Arrays.asList(user1, user2, user3, user4);
         String jsonContentRequest = TestUtils.convertToString(ResourceUtils.resource
                 ("request/requestUserRepositoryGetUsersByUuids.json"));
 
@@ -156,16 +155,10 @@ public class RestUserRepositoryTest {
 
     @Test
     public void findUsersByUuidsIfUserServerReturnsException() throws IOException {
-
-        List<String> uuids = new ArrayList<>();
-        uuids.add("1");
-        uuids.add("2");
-        uuids.add("3");
-        uuids.add("4");
-
+        List<String> uuids = Arrays.asList(user1.getUuid(), user2.getUuid(),
+                user3.getUuid(), user4.getUuid());
         String jsonContentRequest = TestUtils.convertToString(ResourceUtils.resource
                 ("request/requestUserRepositoryGetUsersByUuids.json"));
-
         String jsonContentExpectedResponse = TestUtils.convertToString(
                 resource("response/responseUserRepositoryThrowsException.json"));
         mockServer.expect(requestTo(usersBaseUrl + usersRestApiVersion + usersFindUsersByUuidsUrl))

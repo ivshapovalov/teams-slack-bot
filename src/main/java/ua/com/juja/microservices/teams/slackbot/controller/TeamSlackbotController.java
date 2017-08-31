@@ -16,6 +16,7 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -24,17 +25,31 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TeamSlackbotController {
 
-    private final static String SORRY_MESSAGE = "Sorry! You're not lucky enough to use our slack command";
-    private final static String ACTIVATE_TEAM_MESSAGE = "Thanks, Activate Team job started!";
-    private final static String GET_TEAM_MESSAGE = "Thanks, Get Team for user '%s' job started!";
-    private final static String GET_MY_TEAM_MESSAGE = "Thanks, Get My Team for user '%s' job started!";
-    private final static String DEACTIVATE_TEAM_MESSAGE = "Thanks, Deactivate Team for user '%s' job started!";
-
     private final RestTemplate restTemplate;
     private final TeamService teamService;
     private final ExceptionsHandler exceptionsHandler;
+
     @Value("${slack.slashCommandToken}")
     private String slackToken;
+    @Value("${message.sorry}")
+    private String SORRY_MESSAGE;
+    @Value("${message.activate.team.instant}")
+    private String ACTIVATE_TEAM_INSTANT_MESSAGE;
+    @Value("${message.activate.team.delayed}")
+    private String ACTIVATE_TEAM_DELAYED_MESSAGE;
+    @Value("${message.get.team.instant}")
+    private String GET_TEAM_INSTANT_MESSAGE;
+    @Value("${message.get.team.delayed}")
+    private String GET_TEAM_DELAYED_MESSAGE;
+    @Value("${message.get.my.team.instant}")
+    private String GET_MY_TEAM_INSTANT_MESSAGE;
+    @Value("${message.get.my.team.delayed}")
+    private String GET_MY_TEAM_DELAYED_MESSAGE;
+    @Value("${message.deactivate.team.instant}")
+    private String DEACTIVATE_TEAM_INSTANT_MESSAGE;
+    @Value("${message.deactivate.team.delayed}")
+    private String DEACTIVATE_TEAM_DELAYED_MESSAGE;
+
 
     @Inject
     public TeamSlackbotController(TeamService teamService,
@@ -52,10 +67,10 @@ public class TeamSlackbotController {
                                                   @RequestParam("response_url") String responseUrl,
                                                   HttpServletResponse response) throws IOException {
         exceptionsHandler.setResponseUrl(responseUrl);
-        if (isTokenCorrect(token, response)) {
-            sendInstantResponseMessage(response, ACTIVATE_TEAM_MESSAGE);
+        if (isRequestCorrect(token, response, fromUser, responseUrl)) {
+            sendInstantResponseMessage(response, ACTIVATE_TEAM_INSTANT_MESSAGE);
             teamService.activateTeam(text);
-            RichMessage message = new RichMessage(String.format("Thanks, new Team for '%s' activated", text));
+            RichMessage message = new RichMessage(String.format(ACTIVATE_TEAM_DELAYED_MESSAGE, text));
             sendDelayedResponseMessage(responseUrl, message);
             log.info("'Activate team' command processed : user: '{}' text: '{}' and sent message to slack: '{}'",
                     fromUser, text, message.getText());
@@ -70,12 +85,12 @@ public class TeamSlackbotController {
                                                     @RequestParam("response_url") String responseUrl,
                                                     HttpServletResponse response) throws IOException {
         exceptionsHandler.setResponseUrl(responseUrl);
-        if (isTokenCorrect(token, response)) {
-            sendInstantResponseMessage(response, String.format(DEACTIVATE_TEAM_MESSAGE, text));
+        if (isRequestCorrect(token, response, fromUser, responseUrl)) {
+            sendInstantResponseMessage(response, String.format(DEACTIVATE_TEAM_INSTANT_MESSAGE, text));
             Set<String> slackNames = teamService.deactivateTeam(text);
-            RichMessage message = new RichMessage(String.format("Thanks, Team '%s' deactivated",
-                    slackNames.stream().collect(Collectors.joining(" "))));
-            restTemplate.postForObject(responseUrl, message, String.class);
+            RichMessage message = new RichMessage(String.format(DEACTIVATE_TEAM_DELAYED_MESSAGE,
+                    slackNames.stream().sorted().collect(Collectors.joining(" "))));
+            sendDelayedResponseMessage(responseUrl, message);
             log.info("'Deactivate team' command processed : user: '{}' text: '{}' and sent message to slack: '{}'",
                     fromUser, text, message.getText());
         }
@@ -88,11 +103,11 @@ public class TeamSlackbotController {
                                              @RequestParam("response_url") String responseUrl,
                                              HttpServletResponse response) throws IOException {
         exceptionsHandler.setResponseUrl(responseUrl);
-        if (isTokenCorrect(token, response)) {
-            sendInstantResponseMessage(response, String.format(GET_TEAM_MESSAGE, text));
+        if (isRequestCorrect(token, response, fromUser, responseUrl)) {
+            sendInstantResponseMessage(response, String.format(GET_TEAM_INSTANT_MESSAGE, text));
             Set<String> slackNames = teamService.getTeam(text);
-            RichMessage message = new RichMessage(String.format("Thanks, Team for '%s' is '%s'",
-                    text, slackNames.stream().collect(Collectors.joining(" "))));
+            RichMessage message = new RichMessage(String.format(GET_TEAM_DELAYED_MESSAGE,
+                    text, slackNames.stream().sorted().collect(Collectors.joining(" "))));
             sendDelayedResponseMessage(responseUrl, message);
             log.info("'Get team' command processed : user: '{}' text: '{}' and sent message to slack: '{}'",
                     fromUser, text, message.getText());
@@ -105,12 +120,12 @@ public class TeamSlackbotController {
                                                @RequestParam("response_url") String responseUrl,
                                                HttpServletResponse response) throws IOException {
         exceptionsHandler.setResponseUrl(responseUrl);
-        if (isTokenCorrect(token, response)) {
+        if (isRequestCorrect(token, response, fromUser, responseUrl)) {
             fromUser = fromUser.startsWith("@") ? fromUser : "@" + fromUser;
-            sendInstantResponseMessage(response, String.format(GET_MY_TEAM_MESSAGE, fromUser));
+            sendInstantResponseMessage(response, String.format(GET_MY_TEAM_INSTANT_MESSAGE, fromUser));
             Set<String> slackNames = teamService.getTeam(fromUser);
-            RichMessage message = new RichMessage(String.format("Thanks, Team for user '%s' is '%s'",
-                    fromUser, slackNames.stream().collect(Collectors.joining(" "))));
+            RichMessage message = new RichMessage(String.format(GET_MY_TEAM_DELAYED_MESSAGE,
+                    fromUser, slackNames.stream().sorted().collect(Collectors.joining(" "))));
             sendDelayedResponseMessage(responseUrl, message);
             log.info("'Get my team' command processed : user: '{}' and sent message to slack: '{}'",
                     fromUser, message.getText());
@@ -128,14 +143,16 @@ public class TeamSlackbotController {
     }
 
     private void sendDelayedResponseMessage(String responseUrl, RichMessage message) {
-        log.debug("Before sending delayed response message '{}' to slack url '{}' ", message, responseUrl);
+        log.debug("Before sending delayed response message '{}' to slack url '{}' ", message.getText(), responseUrl);
         String response = restTemplate.postForObject(responseUrl, message, String.class);
         log.debug("After sending delayed response message. Response is '{}'", response);
     }
 
-    private boolean isTokenCorrect(String token, HttpServletResponse response)
+    private boolean isRequestCorrect(String token, HttpServletResponse response, String... params)
             throws IOException {
-        if (!token.equals(slackToken)) {
+        if (!token.equals(slackToken) ||
+                Arrays.stream(params).filter(param -> param == null || param.isEmpty()).collect(Collectors.toList()).size() >
+                        0) {
             sendInstantResponseMessage(response, SORRY_MESSAGE);
             return false;
         }

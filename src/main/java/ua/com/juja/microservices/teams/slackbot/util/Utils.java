@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class Utils {
+
     public static <T> void checkNull(T parameter, String message) {
         if (parameter == null) {
             throw new IllegalArgumentException(message);

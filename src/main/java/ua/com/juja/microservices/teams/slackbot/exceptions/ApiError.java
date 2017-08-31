@@ -31,7 +31,7 @@ public class ApiError {
      */
     private String exceptionMessage;
     /**
-     * List of detail error messages
+     * List of detail error message
      */
     private List<String> detailErrors;
 }

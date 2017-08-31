@@ -5,6 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -17,9 +18,10 @@ import java.util.List;
 
 @SpringBootApplication
 @EnableAspectJAutoProxy
+@PropertySource(value = {"classpath:application.properties", "classpath:messages/message.properties"})
 public class TeamSlackBotApplication {
 
-    public static void main(String[]  args) {
+    public static void main(String[] args) {
         SpringApplication.run(TeamSlackBotApplication.class);
     }
 
