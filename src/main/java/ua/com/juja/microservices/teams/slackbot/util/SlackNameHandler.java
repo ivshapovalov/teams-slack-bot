@@ -21,13 +21,14 @@ public class SlackNameHandler {
     private static final String SLACK_NAME_PATTERN = "@([a-zA-z0-9\\.\\_\\-]){1,21}";
 
     public static List<String> getSlackNamesFromText(String text) {
+        log.debug("Before extract slackNames from text '{}", text);
         List<String> slackNames = new ArrayList<>();
         Pattern pattern = Pattern.compile(SLACK_NAME_PATTERN);
         Matcher matcher = pattern.matcher(text);
         while (matcher.find()) {
             slackNames.add(matcher.group());
         }
-        log.info("Extracted slackNames '{}' from text '{}", slackNames.toString(), text);
+        log.info("After extract slackNames '{}' from text '{}", slackNames.toString(), text);
         return slackNames;
     }
 

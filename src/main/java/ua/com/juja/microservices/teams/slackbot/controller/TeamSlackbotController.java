@@ -50,7 +50,6 @@ public class TeamSlackbotController {
     @Value("${message.deactivate.team.delayed}")
     private String DEACTIVATE_TEAM_DELAYED_MESSAGE;
 
-
     @Inject
     public TeamSlackbotController(TeamService teamService,
                                   ExceptionsHandler exceptionsHandler,
@@ -72,8 +71,8 @@ public class TeamSlackbotController {
             teamService.activateTeam(text);
             RichMessage message = new RichMessage(String.format(ACTIVATE_TEAM_DELAYED_MESSAGE, text));
             sendDelayedResponseMessage(responseUrl, message);
-            log.info("'Activate team' command processed : user: '{}' text: '{}' and sent message to slack: '{}'",
-                    fromUser, text, message.getText());
+            log.info("'Activate team' command processed : fromUser: '{}', text: '{}', response_url: '{}' and sent " +
+                    "message to slack: '{}'", fromUser, text, responseUrl, message.getText());
         }
     }
 
@@ -91,8 +90,8 @@ public class TeamSlackbotController {
             RichMessage message = new RichMessage(String.format(DEACTIVATE_TEAM_DELAYED_MESSAGE,
                     slackNames.stream().sorted().collect(Collectors.joining(" "))));
             sendDelayedResponseMessage(responseUrl, message);
-            log.info("'Deactivate team' command processed : user: '{}' text: '{}' and sent message to slack: '{}'",
-                    fromUser, text, message.getText());
+            log.info("'Deactivate team' command processed : fromUser: '{}', text: '{}', response_url: '{}' and sent " +
+                    "message to slack: '{}'", fromUser, text, responseUrl, message.getText());
         }
     }
 
@@ -109,8 +108,8 @@ public class TeamSlackbotController {
             RichMessage message = new RichMessage(String.format(GET_TEAM_DELAYED_MESSAGE,
                     text, slackNames.stream().sorted().collect(Collectors.joining(" "))));
             sendDelayedResponseMessage(responseUrl, message);
-            log.info("'Get team' command processed : user: '{}' text: '{}' and sent message to slack: '{}'",
-                    fromUser, text, message.getText());
+            log.info("'Get team' command processed : fromUser: '{}', text: '{}', response_url: '{}' and sent " +
+                    "message to slack: '{}'", fromUser, text, responseUrl, message.getText());
         }
     }
 
@@ -127,8 +126,8 @@ public class TeamSlackbotController {
             RichMessage message = new RichMessage(String.format(GET_MY_TEAM_DELAYED_MESSAGE,
                     fromUser, slackNames.stream().sorted().collect(Collectors.joining(" "))));
             sendDelayedResponseMessage(responseUrl, message);
-            log.info("'Get my team' command processed : user: '{}' and sent message to slack: '{}'",
-                    fromUser, message.getText());
+            log.info("'Get my team' command processed : fromUser: '{}', text: '{}', response_url: '{}' and sent " +
+                    "message to slack: '{}'", fromUser, responseUrl, message.getText());
         }
     }
 
@@ -139,23 +138,26 @@ public class TeamSlackbotController {
         printWriter.print(message);
         printWriter.flush();
         printWriter.close();
-        log.info("Sent instant response message to slack '{}' ", message);
+        log.info("After sending instant response message to slack '{}' ", message);
     }
 
     private void sendDelayedResponseMessage(String responseUrl, RichMessage message) {
-        log.debug("Before sending delayed response message '{}' to slack url '{}' ", message.getText(), responseUrl);
+        log.debug("Before sending delayed response message '{}' to slack response_url '{}' ", message.getText(),
+                responseUrl);
         String response = restTemplate.postForObject(responseUrl, message, String.class);
         log.debug("After sending delayed response message. Response is '{}'", response);
     }
 
     private boolean isRequestCorrect(String token, HttpServletResponse response, String... params)
             throws IOException {
+        log.debug("Before checking parameters of request from slack. Token '{}', other '{}' ", token,
+                Arrays.stream(params).sorted().collect(Collectors.joining(",")));
         if (!token.equals(slackToken) ||
-                Arrays.stream(params).filter(param -> param == null || param.isEmpty()).collect(Collectors.toList()).size() >
-                        0) {
+                Arrays.stream(params).filter(param -> param == null || param.isEmpty()).collect(Collectors.toList()).size() > 0) {
             sendInstantResponseMessage(response, SORRY_MESSAGE);
             return false;
         }
+        log.debug("After checking parameters of request from slack. Parameters is correct");
         return true;
     }
 }

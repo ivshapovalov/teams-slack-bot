@@ -21,9 +21,6 @@ public class Team {
     @Getter
     @JsonProperty("id")
     private String id;
-    @JsonProperty("members")
-    private final Set<String> members;
-
     @JsonProperty("activateDate")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ")
     private Date activateDate;
@@ -31,6 +28,9 @@ public class Team {
     @JsonProperty("deactivateDate")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ")
     private Date deactivateDate;
+
+    @JsonProperty("members")
+    private final Set<String> members;
 
     @JsonCreator
     public Team(@JsonProperty("members") Set<String> members) {

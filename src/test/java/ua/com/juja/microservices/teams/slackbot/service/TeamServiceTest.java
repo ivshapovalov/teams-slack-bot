@@ -85,6 +85,21 @@ public class TeamServiceTest {
     }
 
     @Test
+    public void activateTeamIfUserServiceFindUsersBySlackNamesReturnsWrongUsersCountThrowsException() {
+        String text = "@slack1 @slack2 @slack3 @slack4 ";
+        List<String> slackNamesInText = Collections.singletonList(user1.getSlack());
+        List<User> users = Arrays.asList(user1, user2);
+        given(userService.findUsersBySlackNames(slackNamesInText)).willReturn(users);
+        expectedException.expect(UserExchangeException.class);
+        expectedException.expectMessage("Users count is not equals in request and response from Users Service");
+
+        teamService.activateTeam(text);
+
+        verify(userService).findUsersBySlackNames(slackNamesInText);
+        verifyNoMoreInteractions(teamRepository, userService);
+    }
+
+    @Test
     public void activateTeamIfMembersSizeNotEqualsFourThrowsException() {
         String text = "@slack1 @slack2 @slack3";
         Set<String> members = new LinkedHashSet<>(Arrays.asList(user1.getUuid(), user2.getUuid(), user3.getUuid()));

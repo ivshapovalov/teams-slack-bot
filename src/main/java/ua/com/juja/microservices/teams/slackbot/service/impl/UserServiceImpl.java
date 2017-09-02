@@ -32,7 +32,7 @@ public class UserServiceImpl implements UserService {
     public List<User> findUsersBySlackNames(List<String> slackNames) {
         Utils.checkNull(slackNames, "SlackNames must not be null!");
         List<User> users = userRepository.findUsersBySlackNames(slackNames);
-        log.info("Found users '{}' in User repo", users.toString());
+        log.info("Found '{}' users in User repository", users.size());
         return users;
     }
 
@@ -40,7 +40,7 @@ public class UserServiceImpl implements UserService {
     public List<User> findUsersByUuids(List<String> uuids) {
         Utils.checkNull(uuids, "Uuids must not be null!");
         List<User> users = userRepository.findUsersByUuids(uuids);
-        log.info("Found users '{}' in User repo", users.toString());
+        log.info("Found '{}' users in User repository", users.size());
         return users;
     }
 

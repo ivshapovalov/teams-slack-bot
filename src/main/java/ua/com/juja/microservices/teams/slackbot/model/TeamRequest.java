@@ -13,6 +13,7 @@ import java.util.Set;
 @ToString
 @Slf4j
 public class TeamRequest {
+
     @NotEmpty
     private final Set<String> members;
 

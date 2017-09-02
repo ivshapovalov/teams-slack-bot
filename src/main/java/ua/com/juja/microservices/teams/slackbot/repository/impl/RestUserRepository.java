@@ -51,7 +51,7 @@ public class RestUserRepository implements UserRepository {
         HttpEntity<UserSlackNameRequest> request = new HttpEntity<>(userSlackNameRequest, Utils.setupJsonHttpHeaders());
         String userServiceURL = usersUrlBase + usersRestApiVersion + usersUrlFindUsersBySlackNames;
         List<User> users = getUsers(request, userServiceURL);
-        log.info("Found User: '{}' for slackNames: {}", users, slackNames);
+        log.info("Found Users: '{}' by slackNames: '{}'", users, slackNames);
         return users;
     }
 
@@ -61,7 +61,7 @@ public class RestUserRepository implements UserRepository {
         HttpEntity<UserUuidRequest> request = new HttpEntity<>(userUuidRequest, Utils.setupJsonHttpHeaders());
         String userServiceURL = usersUrlBase + usersRestApiVersion + usersUrlFindUsersByUuids;
         List<User> users = getUsers(request, userServiceURL);
-        log.info("Found User:{} for uuids: {}", users, uuids);
+        log.info("Found Users:{} by uuids: '{}'", users, uuids);
         return users;
     }
 

@@ -62,11 +62,15 @@ public class ExceptionsHandler {
     }
 
     private void sendErrorResponseAsRichMessage(RichMessage richMessage) {
+        log.debug("Before sending error response message '{}' to slack response_url '{}' ", richMessage.getText(),
+                responseUrl.get());
         try {
             restTemplate.postForObject(responseUrl.get(), richMessage, String.class);
         } catch (Exception ex) {
             log.warn("Nested exception : '{}' with text '{}' . Unable to send response to slack", ex.getMessage(),
                     richMessage.getText());
         }
+        log.debug("After sending error response message '{}' to slack response_url '{}' ", richMessage.getText(),
+                responseUrl.get());
     }
 }
