@@ -25,10 +25,6 @@ import javax.inject.Inject;
 public class RestTeamRepository implements TeamRepository {
 
     private final RestTemplate restTemplate;
-    @Value("${teams.rest.api.version}")
-    private String teamsRestApiVersion;
-    @Value("${teams.baseURL}")
-    private String teamsBaseUrl;
     @Value("${teams.endpoint.activateTeam}")
     private String teamsActivateTeamUrl;
     @Value("${teams.endpoint.deactivateTeam}")
@@ -46,9 +42,8 @@ public class RestTeamRepository implements TeamRepository {
         HttpEntity<TeamRequest> request = new HttpEntity<>(teamRequest, Utils.setupJsonHttpHeaders());
         Team activatedTeam;
         try {
-            String teamsServiceURL = teamsBaseUrl + "/" + teamsRestApiVersion + teamsActivateTeamUrl;
-            log.debug("Send 'Activate team' request '{}' to Teams service to url '{}'", teamRequest, teamsServiceURL);
-            ResponseEntity<Team> response = restTemplate.exchange(teamsServiceURL,
+            log.debug("Send 'Activate team' request '{}' to Teams service to url '{}'", teamRequest, teamsActivateTeamUrl);
+            ResponseEntity<Team> response = restTemplate.exchange(teamsActivateTeamUrl,
                     HttpMethod.POST, request, Team.class);
             log.debug("Get 'Activate team' response '{}' from Teams service", response);
             activatedTeam = response.getBody();
@@ -65,7 +60,7 @@ public class RestTeamRepository implements TeamRepository {
         HttpEntity<TeamRequest> request = new HttpEntity<>(Utils.setupJsonHttpHeaders());
         Team deactivatedTeam;
         try {
-            String teamsServiceURL = teamsBaseUrl + "/" + teamsRestApiVersion + teamsDeactivateTeamUrl + "/" + uuid;
+            String teamsServiceURL = teamsDeactivateTeamUrl + "/" + uuid;
             log.debug("Send 'Deactivate team' request to Teams service to url '{}'", teamsServiceURL);
             ResponseEntity<Team> response = restTemplate.exchange(teamsServiceURL,
                     HttpMethod.PUT, request, Team.class);
@@ -84,7 +79,7 @@ public class RestTeamRepository implements TeamRepository {
         HttpEntity<TeamRequest> request = new HttpEntity<>(Utils.setupJsonHttpHeaders());
         Team team;
         try {
-            String teamsServiceURL = teamsBaseUrl + "/" + teamsRestApiVersion + teamsGetTeamUrl + "/" + uuid;
+            String teamsServiceURL = teamsGetTeamUrl + "/" + uuid;
             log.debug("Send 'Get team' request to Teams service to url '{}'", teamsServiceURL);
             ResponseEntity<Team> response = restTemplate.exchange(teamsServiceURL,
                     HttpMethod.GET, request, Team.class);

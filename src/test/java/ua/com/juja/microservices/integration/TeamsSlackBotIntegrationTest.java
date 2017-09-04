@@ -27,7 +27,6 @@ import ua.com.juja.microservices.utils.SlackUrlUtils;
 import ua.com.juja.microservices.utils.TestUtils;
 
 import javax.inject.Inject;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -75,10 +74,6 @@ public class TeamsSlackBotIntegrationTest {
     @Value("${message.deactivate.team.delayed}")
     private String DEACTIVATE_TEAM_DELAYED_MESSAGE;
 
-    @Value("${teams.slackbot.rest.api.version}")
-    private String teamsSlackbotRestApiVersion;
-    @Value("${teams.slackbot.commandsUrl}")
-    private String teamsSlackbotCommandsUrl;
     @Value("${teams.slackbot.endpoint.activateTeam}")
     private String teamsSlackbotActivateTeamUrl;
     @Value("${teams.slackbot.endpoint.getTeam}")
@@ -88,10 +83,6 @@ public class TeamsSlackBotIntegrationTest {
     @Value("${teams.slackbot.endpoint.deactivateTeam}")
     private String teamsSlackbotDeactivateTeamUrl;
 
-    @Value("${teams.rest.api.version}")
-    private String teamsRestApiVersion;
-    @Value("${teams.baseURL}")
-    private String teamsBaseUrl;
     @Value("${teams.endpoint.activateTeam}")
     private String teamsActivateTeamUrl;
     @Value("${teams.endpoint.deactivateTeam}")
@@ -99,23 +90,10 @@ public class TeamsSlackBotIntegrationTest {
     @Value("${teams.endpoint.getTeam}")
     private String teamsGetTeamUrl;
 
-    @Value("${users.rest.api.version}")
-    private String usersRestApiVersion;
-    @Value("${users.baseURL}")
-    private String usersUrlBase;
     @Value("${users.endpoint.usersBySlackNames}")
     private String usersUrlFindUsersBySlackNames;
     @Value("${users.endpoint.usersByUuids}")
     private String usersUrlFindUsersByUuids;
-
-    private String teamsSlackbotFullActivateTeamUrl;
-    private String teamsSlackbotFullDeactivateTeamUrl;
-    private String teamsSlackbotFullGetTeamUrl;
-    private String teamsSlackbotFullGetMyTeamUrl;
-
-    private String teamsFullActivateTeamUrl;
-    private String teamsFullDeactivateTeamUrl;
-    private String teamsFullGetTeamUrl;
 
     @Inject
     private RestTemplate restTemplate;
@@ -135,19 +113,6 @@ public class TeamsSlackBotIntegrationTest {
 
         mockServer = MockRestServiceServer.bindTo(restTemplate).build();
 
-        teamsSlackbotFullActivateTeamUrl = "/" + teamsSlackbotRestApiVersion + teamsSlackbotCommandsUrl +
-                teamsSlackbotActivateTeamUrl;
-        teamsSlackbotFullDeactivateTeamUrl = "/" + teamsSlackbotRestApiVersion + teamsSlackbotCommandsUrl +
-                teamsSlackbotDeactivateTeamUrl;
-        teamsSlackbotFullGetTeamUrl = "/" + teamsSlackbotRestApiVersion + teamsSlackbotCommandsUrl +
-                teamsSlackbotGetTeamUrl;
-        teamsSlackbotFullGetMyTeamUrl = "/" + teamsSlackbotRestApiVersion + teamsSlackbotCommandsUrl +
-                teamsSlackbotGetMyTeamUrl;
-
-        teamsFullActivateTeamUrl = teamsBaseUrl + "/" + teamsRestApiVersion + teamsActivateTeamUrl;
-        teamsFullDeactivateTeamUrl = teamsBaseUrl + "/" + teamsRestApiVersion + teamsDeactivateTeamUrl;
-        teamsFullGetTeamUrl = teamsBaseUrl + "/" + teamsRestApiVersion + teamsGetTeamUrl;
-
         user1 = new User("uuid1", "@slack1");
         user2 = new User("uuid2", "@slack2");
         user3 = new User("uuid3", "@slack3");
@@ -160,10 +125,10 @@ public class TeamsSlackBotIntegrationTest {
         final String commandText = "@slack1";
         String responseUrl = "http:/example.com";
         List<String> urls = Arrays.asList(
-                teamsSlackbotFullActivateTeamUrl,
-                teamsSlackbotFullDeactivateTeamUrl,
-                teamsSlackbotFullGetTeamUrl,
-                teamsSlackbotFullGetMyTeamUrl);
+                teamsSlackbotActivateTeamUrl,
+                teamsSlackbotDeactivateTeamUrl,
+                teamsSlackbotGetTeamUrl,
+                teamsSlackbotGetMyTeamUrl);
         urls.forEach(url -> {
             try {
                 mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(url),
@@ -182,10 +147,10 @@ public class TeamsSlackBotIntegrationTest {
         final String commandText = user1.getSlack();
         String responseUrl = "";
         List<String> urls = Arrays.asList(
-                teamsSlackbotFullActivateTeamUrl,
-                teamsSlackbotFullDeactivateTeamUrl,
-                teamsSlackbotFullGetTeamUrl,
-                teamsSlackbotFullGetMyTeamUrl);
+                teamsSlackbotActivateTeamUrl,
+                teamsSlackbotDeactivateTeamUrl,
+                teamsSlackbotGetTeamUrl,
+                teamsSlackbotGetMyTeamUrl);
         urls.forEach(url -> {
             try {
                 mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(url),
@@ -211,11 +176,11 @@ public class TeamsSlackBotIntegrationTest {
         Set<String> uuids = new LinkedHashSet<>(Arrays.asList(user1.getUuid(), user2.getUuid(),
                 user3.getUuid(), user4.getUuid()));
         Team activatedTeam = new Team(uuids);
-        mockSuccessTeamsServiceReturnsTeam(HttpMethod.POST, teamsFullActivateTeamUrl, teamsJsonRequestBody,
+        mockSuccessTeamsServiceReturnsTeam(HttpMethod.POST, teamsActivateTeamUrl, teamsJsonRequestBody,
                 activatedTeam);
         mockSlackResponseUrl(responseUrl, new RichMessage(String.format(ACTIVATE_TEAM_DELAYED_MESSAGE, commandText)));
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullActivateTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", commandText, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
@@ -234,7 +199,7 @@ public class TeamsSlackBotIntegrationTest {
         mockSlackResponseUrl(responseUrl,
                 new RichMessage("Users count is not equals in request and response from Users Service"));
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullActivateTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", commandText, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
@@ -255,12 +220,12 @@ public class TeamsSlackBotIntegrationTest {
         Set<String> uuids = new LinkedHashSet<>(Arrays.asList(user1.getUuid(), user2.getUuid(),
                 user3.getUuid(), "illegal-uuid"));
         Team activatedTeam = new Team(uuids);
-        mockSuccessTeamsServiceReturnsTeam(HttpMethod.POST, teamsFullActivateTeamUrl, teamsJsonRequestBody,
+        mockSuccessTeamsServiceReturnsTeam(HttpMethod.POST, teamsActivateTeamUrl, teamsJsonRequestBody,
                 activatedTeam);
         mockSlackResponseUrl(responseUrl,
                 new RichMessage("Team members is not equals in request and response from Teams Service"));
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullActivateTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", commandText, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
@@ -279,7 +244,7 @@ public class TeamsSlackBotIntegrationTest {
                 ("request/requestTeamRepositoryActivateTeamIfUsersNotInActiveTeam.json"));
         String teamsJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
                 ("response/responseTeamRepositoryActivateTeamIfUsersInActiveTeamThrowsException.json"));
-        mockFailTeamsServiceReturnsTeamException(HttpMethod.POST, teamsFullActivateTeamUrl, teamsJsonRequestBody,
+        mockFailTeamsServiceReturnsTeamException(HttpMethod.POST, teamsActivateTeamUrl, teamsJsonRequestBody,
                 teamsJsonResponseBody);
         mockSuccessUsersServiceFindUsersByUuids(usersInCommand);
         mockSlackResponseUrl(responseUrl,
@@ -288,7 +253,7 @@ public class TeamsSlackBotIntegrationTest {
                                 map(User::getSlack)
                                 .collect(Collectors.joining(",")))));
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullActivateTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", commandText, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
@@ -306,7 +271,7 @@ public class TeamsSlackBotIntegrationTest {
                 String.format("We found %d slack names in your command." +
                         " But size of the team must be %s.", usersInCommand.size(), TEAM_SIZE)));
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullActivateTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", commandText, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
@@ -323,7 +288,7 @@ public class TeamsSlackBotIntegrationTest {
         mockFailUsersServiceFindUsersBySlackNamesReturnsError(usersInCommand);
         mockSlackResponseUrl(responseUrl, new RichMessage("Oops something went wrong :("));
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullActivateTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", commandText, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
@@ -338,14 +303,14 @@ public class TeamsSlackBotIntegrationTest {
         mockSuccessUsersServiceFindUsersBySlackNames(usersInCommand);
         List<User> users = Arrays.asList(user1, user2, user3, user4);
         Team deactivatedTeam = new Team(users.stream().map(User::getUuid).collect(Collectors.toSet()));
-        mockSuccessTeamsServiceReturnsTeam(HttpMethod.PUT, teamsFullDeactivateTeamUrl + "/" + user1.getUuid(), "",
+        mockSuccessTeamsServiceReturnsTeam(HttpMethod.PUT, teamsDeactivateTeamUrl + "/" + user1.getUuid(), "",
                 deactivatedTeam);
         mockSuccessUsersServiceFindUsersByUuids(users);
         mockSlackResponseUrl(responseUrl, new RichMessage(
                 String.format(DEACTIVATE_TEAM_DELAYED_MESSAGE,
                         users.stream().map(User::getSlack).collect(Collectors.joining(" ")))));
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullDeactivateTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotDeactivateTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", commandText, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
@@ -361,7 +326,7 @@ public class TeamsSlackBotIntegrationTest {
                 String.format("We found %d slack names in your command." +
                         " But expect one slack name.", 3)));
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullDeactivateTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotDeactivateTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", commandText, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
@@ -379,7 +344,7 @@ public class TeamsSlackBotIntegrationTest {
         mockSlackResponseUrl(responseUrl,
                 new RichMessage("Users count is not equals in request and response from Users Service"));
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullDeactivateTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotDeactivateTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", commandText, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
@@ -396,12 +361,12 @@ public class TeamsSlackBotIntegrationTest {
         mockSuccessUsersServiceFindUsersBySlackNames(usersInCommand);
         List<User> users = new ArrayList<>(Arrays.asList(user1, user2, user3, user4));
         Team team = new Team(users.stream().map(User::getUuid).collect(Collectors.toSet()));
-        mockSuccessTeamsServiceReturnsTeam(HttpMethod.PUT, teamsFullDeactivateTeamUrl + "/" + user1.getUuid(), "",
+        mockSuccessTeamsServiceReturnsTeam(HttpMethod.PUT, teamsDeactivateTeamUrl + "/" + user1.getUuid(), "",
                 team);
         mockFailUsersServiceFindUsersByUuidsReturnsWrongUsersNumber(users);
         mockSlackResponseUrl(responseUrl, new RichMessage(
                 "Users count is not equals in request and response from Users Service"));
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullDeactivateTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotDeactivateTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", commandText, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
@@ -417,13 +382,13 @@ public class TeamsSlackBotIntegrationTest {
         mockSuccessUsersServiceFindUsersBySlackNames(usersInCommand);
         String teamsJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
                 ("response/responseTeamRepositoryGetAndDeactivateTeamIfUsersNotInActiveTeamThrowsException.json"));
-        mockFailTeamsServiceReturnsTeamException(HttpMethod.PUT, teamsFullDeactivateTeamUrl + "/" + user1.getUuid(), "",
+        mockFailTeamsServiceReturnsTeamException(HttpMethod.PUT, teamsDeactivateTeamUrl + "/" + user1.getUuid(), "",
                 teamsJsonResponseBody);
         mockSlackResponseUrl(responseUrl,
                 new RichMessage("You cannot get/deactivate team if the user not a member of any " +
                         "team!"));
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullDeactivateTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotDeactivateTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", commandText, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
@@ -440,13 +405,13 @@ public class TeamsSlackBotIntegrationTest {
         String slackNames = users.stream()
                 .map(User::getSlack).collect(Collectors.joining(" "));
         Team team = new Team(users.stream().map(User::getUuid).collect(Collectors.toSet()));
-        mockSuccessTeamsServiceReturnsTeam(HttpMethod.GET, teamsFullGetTeamUrl + "/" + user1.getUuid(), "", team);
+        mockSuccessTeamsServiceReturnsTeam(HttpMethod.GET, teamsGetTeamUrl + "/" + user1.getUuid(), "", team);
         mockSuccessUsersServiceFindUsersByUuids(users);
         mockSlackResponseUrl(responseUrl, new RichMessage(
                 String.format(GET_MY_TEAM_DELAYED_MESSAGE,
                         fromUser, slackNames)));
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullGetMyTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotGetMyTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", "", responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
@@ -463,7 +428,7 @@ public class TeamsSlackBotIntegrationTest {
         mockSlackResponseUrl(responseUrl,
                 new RichMessage("Oops something went wrong :("));
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullGetMyTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotGetMyTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", fromUser, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
@@ -481,7 +446,7 @@ public class TeamsSlackBotIntegrationTest {
         mockSlackResponseUrl(responseUrl,
                 new RichMessage("Users count is not equals in request and response from Users Service"));
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullGetMyTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotGetMyTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", fromUser, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
@@ -498,12 +463,12 @@ public class TeamsSlackBotIntegrationTest {
         mockSuccessUsersServiceFindUsersBySlackNames(usersInFromUser);
         List<User> users = new ArrayList<>(Arrays.asList(user1, user2, user3, user4));
         Team team = new Team(users.stream().map(User::getUuid).collect(Collectors.toSet()));
-        mockSuccessTeamsServiceReturnsTeam(HttpMethod.GET, teamsFullGetTeamUrl + "/" + user1.getUuid(), "",
+        mockSuccessTeamsServiceReturnsTeam(HttpMethod.GET, teamsGetTeamUrl + "/" + user1.getUuid(), "",
                 team);
         mockFailUsersServiceFindUsersByUuidsReturnsWrongUsersNumber(users);
         mockSlackResponseUrl(responseUrl,
                 new RichMessage("Users count is not equals in request and response from Users Service"));
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullGetMyTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotGetMyTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", fromUser, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
@@ -519,12 +484,12 @@ public class TeamsSlackBotIntegrationTest {
         mockSuccessUsersServiceFindUsersBySlackNames(usersInFromUser);
         String teamsJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
                 ("response/responseTeamRepositoryGetAndDeactivateTeamIfUsersNotInActiveTeamThrowsException.json"));
-        mockFailTeamsServiceReturnsTeamException(HttpMethod.GET, teamsFullGetTeamUrl + "/" + user1.getUuid(), "",
+        mockFailTeamsServiceReturnsTeamException(HttpMethod.GET, teamsGetTeamUrl + "/" + user1.getUuid(), "",
                 teamsJsonResponseBody);
         mockSlackResponseUrl(responseUrl,
                 new RichMessage("You cannot get/deactivate team if the user not a member of any team!"));
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullGetMyTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotGetMyTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", fromUser, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
@@ -541,14 +506,14 @@ public class TeamsSlackBotIntegrationTest {
         String slackNames = users.stream()
                 .map(User::getSlack).collect(Collectors.joining(" "));
         Team team = new Team(users.stream().map(User::getUuid).collect(Collectors.toSet()));
-        mockSuccessTeamsServiceReturnsTeam(HttpMethod.GET, teamsFullGetTeamUrl + "/" + user1.getUuid(), "",
+        mockSuccessTeamsServiceReturnsTeam(HttpMethod.GET, teamsGetTeamUrl + "/" + user1.getUuid(), "",
                 team);
         mockSuccessUsersServiceFindUsersByUuids(users);
         mockSlackResponseUrl(responseUrl, new RichMessage(
                 String.format(GET_TEAM_DELAYED_MESSAGE,
                         commandText, slackNames)));
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullGetTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotGetTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", commandText, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
@@ -564,7 +529,7 @@ public class TeamsSlackBotIntegrationTest {
                 String.format("We found %d slack names in your command." +
                         " But expect one slack name.", 3)));
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullGetTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotGetTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", commandText, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
@@ -581,7 +546,7 @@ public class TeamsSlackBotIntegrationTest {
         mockSlackResponseUrl(responseUrl,
                 new RichMessage("Oops something went wrong :("));
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullGetTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotGetTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", commandText, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
@@ -599,7 +564,7 @@ public class TeamsSlackBotIntegrationTest {
         mockSlackResponseUrl(responseUrl,
                 new RichMessage("Users count is not equals in request and response from Users Service"));
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullGetTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotGetTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", commandText, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
@@ -616,12 +581,12 @@ public class TeamsSlackBotIntegrationTest {
         mockSuccessUsersServiceFindUsersBySlackNames(usersInCommand);
         List<User> users = new ArrayList<>(Arrays.asList(user1, user2, user3, user4));
         Team team = new Team(users.stream().map(User::getUuid).collect(Collectors.toSet()));
-        mockSuccessTeamsServiceReturnsTeam(HttpMethod.GET, teamsFullGetTeamUrl + "/" + user1.getUuid(), "",
+        mockSuccessTeamsServiceReturnsTeam(HttpMethod.GET, teamsGetTeamUrl + "/" + user1.getUuid(), "",
                 team);
         mockFailUsersServiceFindUsersByUuidsReturnsWrongUsersNumber(users);
         mockSlackResponseUrl(responseUrl,
                 new RichMessage("Users count is not equals in request and response from Users Service"));
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullGetTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotGetTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", commandText, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
@@ -637,12 +602,12 @@ public class TeamsSlackBotIntegrationTest {
         mockSuccessUsersServiceFindUsersBySlackNames(usersInCommand);
         String teamsJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
                 ("response/responseTeamRepositoryGetAndDeactivateTeamIfUsersNotInActiveTeamThrowsException.json"));
-        mockFailTeamsServiceReturnsTeamException(HttpMethod.GET, teamsFullGetTeamUrl + "/" + user1.getUuid(), "",
+        mockFailTeamsServiceReturnsTeamException(HttpMethod.GET, teamsGetTeamUrl + "/" + user1.getUuid(), "",
                 teamsJsonResponseBody);
         mockSlackResponseUrl(responseUrl,
                 new RichMessage("You cannot get/deactivate team if the user not a member of any team!"));
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullGetTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotGetTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", commandText, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
@@ -655,10 +620,8 @@ public class TeamsSlackBotIntegrationTest {
         for (User user : users) {
             slackNames.add(user.getSlack());
         }
-        String userServiceURL = usersUrlBase + usersRestApiVersion + usersUrlFindUsersBySlackNames;
-
         ObjectMapper mapper = new ObjectMapper();
-        mockServer.expect(requestTo(userServiceURL))
+        mockServer.expect(requestTo(usersUrlFindUsersBySlackNames))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(MockRestRequestMatchers.content().contentType(APPLICATION_JSON_UTF8))
                 .andExpect(MockRestRequestMatchers.content().string(String.format("{\"slackNames\":%s}", mapper.writeValueAsString(slackNames))))
@@ -675,10 +638,9 @@ public class TeamsSlackBotIntegrationTest {
             slackNames.add(user.getSlack());
         }
         users.add(user5);
-        String userServiceURL = usersUrlBase + usersRestApiVersion + usersUrlFindUsersBySlackNames;
 
         ObjectMapper mapper = new ObjectMapper();
-        mockServer.expect(requestTo(userServiceURL))
+        mockServer.expect(requestTo(usersUrlFindUsersBySlackNames))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(MockRestRequestMatchers.content().contentType(APPLICATION_JSON_UTF8))
                 .andExpect(MockRestRequestMatchers.content().string(String.format("{\"slackNames\":%s}", mapper.writeValueAsString(slackNames))))
@@ -690,10 +652,9 @@ public class TeamsSlackBotIntegrationTest {
         for (User user : users) {
             slackNames.add(user.getSlack());
         }
-        String userServiceURL = usersUrlBase + usersRestApiVersion + usersUrlFindUsersBySlackNames;
         ObjectMapper mapper = new ObjectMapper();
 
-        mockServer.expect(requestTo(userServiceURL))
+        mockServer.expect(requestTo(usersUrlFindUsersBySlackNames))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(MockRestRequestMatchers.content().contentType(APPLICATION_JSON_UTF8))
                 .andExpect(MockRestRequestMatchers.content().string(String.format("{\"slackNames\":%s}", mapper.writeValueAsString(slackNames))))
@@ -705,10 +666,9 @@ public class TeamsSlackBotIntegrationTest {
         for (User user : users) {
             uuids.add(user.getUuid());
         }
-        String userServiceURL = usersUrlBase + usersRestApiVersion + usersUrlFindUsersByUuids;
         ObjectMapper mapper = new ObjectMapper();
 
-        mockServer.expect(requestTo(userServiceURL))
+        mockServer.expect(requestTo(usersUrlFindUsersByUuids))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(MockRestRequestMatchers.content().contentType(APPLICATION_JSON_UTF8))
                 .andExpect(request -> assertThatJson(request.getBody().toString()).when(Option.IGNORING_ARRAY_ORDER)
@@ -723,10 +683,9 @@ public class TeamsSlackBotIntegrationTest {
             uuids.add(user.getUuid());
         }
         users.add(user5);
-        String userServiceURL = usersUrlBase + usersRestApiVersion + usersUrlFindUsersByUuids;
         ObjectMapper mapper = new ObjectMapper();
 
-        mockServer.expect(requestTo(userServiceURL))
+        mockServer.expect(requestTo(usersUrlFindUsersByUuids))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(MockRestRequestMatchers.content().contentType(APPLICATION_JSON_UTF8))
                 .andExpect(request -> assertThatJson(request.getBody().toString()).when(Option.IGNORING_ARRAY_ORDER)

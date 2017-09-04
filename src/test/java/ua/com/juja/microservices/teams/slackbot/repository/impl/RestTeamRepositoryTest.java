@@ -49,10 +49,6 @@ public class RestTeamRepositoryTest {
     @Inject
     private RestTemplate restTemplate;
     private MockRestServiceServer mockServer;
-    @Value("${teams.rest.api.version}")
-    private String teamsRestApiVersion;
-    @Value("${teams.baseURL}")
-    private String teamsBaseUrl;
     @Value("${teams.endpoint.activateTeam}")
     private String teamsActivateTeamUrl;
     @Value("${teams.endpoint.deactivateTeam}")
@@ -60,17 +56,9 @@ public class RestTeamRepositoryTest {
     @Value("${teams.endpoint.getTeam}")
     private String teamsGetTeamUrl;
 
-    private String teamsFullActivateTeamUrl;
-    private String teamsFullDeactivateTeamUrl;
-    private String teamsFullGetTeamUrl;
-
     @Before
     public void setup() {
         mockServer = MockRestServiceServer.bindTo(restTemplate).build();
-
-        teamsFullActivateTeamUrl = teamsBaseUrl + "/" + teamsRestApiVersion + teamsActivateTeamUrl;
-        teamsFullDeactivateTeamUrl = teamsBaseUrl + "/" + teamsRestApiVersion + teamsDeactivateTeamUrl;
-        teamsFullGetTeamUrl = teamsBaseUrl + "/" + teamsRestApiVersion + teamsGetTeamUrl;
     }
 
     @Test
@@ -84,7 +72,7 @@ public class RestTeamRepositoryTest {
         String expectedJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
                 ("response/responseTeamRepositoryActivateTeamIfUsersNotInActiveTeam.json"));
         String expectedRequestHeader = "application/json";
-        mockServer.expect(requestTo(teamsFullActivateTeamUrl))
+        mockServer.expect(requestTo(teamsActivateTeamUrl))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(request -> assertThat(request.getHeaders().getContentType().toString(), containsString(expectedRequestHeader)))
                 .andExpect(request -> assertThat(request.getBody().toString(), equalTo(expectedJsonRequestBody)))
@@ -107,7 +95,7 @@ public class RestTeamRepositoryTest {
         String expectedJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
                 ("response/responseTeamRepositoryActivateTeamIfUsersInActiveTeamThrowsException.json"));
         String expectedRequestHeader = "application/json";
-        mockServer.expect(requestTo(teamsFullActivateTeamUrl))
+        mockServer.expect(requestTo(teamsActivateTeamUrl))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(request -> assertThat(request.getHeaders().getContentType().toString(), containsString(expectedRequestHeader)))
                 .andExpect(request -> assertThat(request.getBody().toString(), equalTo(expectedJsonRequestBody)))
@@ -127,7 +115,7 @@ public class RestTeamRepositoryTest {
         Set<String> expected = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4"));
         String expectedJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
                 ("response/responseTeamRepositoryGetAndDeactivateTeamIfUsersInActiveTeam.json"));
-        mockServer.expect(requestTo(teamsFullGetTeamUrl + "/" + uuid))
+        mockServer.expect(requestTo(teamsGetTeamUrl + "/" + uuid))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(expectedJsonResponseBody, MediaType.APPLICATION_JSON));
 
@@ -143,7 +131,7 @@ public class RestTeamRepositoryTest {
         String uuid = "uuid";
         String expectedJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
                 ("response/responseTeamRepositoryGetAndDeactivateTeamIfUsersNotInActiveTeamThrowsException.json"));
-        mockServer.expect(requestTo(teamsFullGetTeamUrl + "/" + uuid))
+        mockServer.expect(requestTo(teamsGetTeamUrl + "/" + uuid))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withBadRequest().body(expectedJsonResponseBody));
         expectedException.expect(TeamExchangeException.class);
@@ -160,7 +148,7 @@ public class RestTeamRepositoryTest {
         String uuid = "uuid";
         String expectedJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
                 ("response/responseTeamRepositoryGetTeamUnknownException.json"));
-        mockServer.expect(requestTo(teamsFullGetTeamUrl + "/" + uuid))
+        mockServer.expect(requestTo(teamsGetTeamUrl + "/" + uuid))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withBadRequest().body(expectedJsonResponseBody));
 
@@ -176,7 +164,7 @@ public class RestTeamRepositoryTest {
     public void deactivateTeamSendRequestToRemoteTeamsServerAndReturnDeactivatedTeamExecutedCorrectly() throws
             IOException {
         String uuid = "uuid";
-        String teamsServiceURL = teamsFullDeactivateTeamUrl + "/" + uuid;
+        String teamsServiceURL = teamsDeactivateTeamUrl + "/" + uuid;
 
         Set<String> expected = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4"));
 
@@ -197,7 +185,7 @@ public class RestTeamRepositoryTest {
     public void deactivateTeamSendRequestToRemoteTeamsServerWhichReturnsErrorThrowsException() throws IOException {
         String uuid = "uuid";
 
-        String teamsServiceURL = teamsFullDeactivateTeamUrl + "/" + uuid;
+        String teamsServiceURL = teamsDeactivateTeamUrl + "/" + uuid;
 
         String expectedJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
                 ("response/responseTeamRepositoryGetAndDeactivateTeamIfUsersNotInActiveTeamThrowsException.json"));

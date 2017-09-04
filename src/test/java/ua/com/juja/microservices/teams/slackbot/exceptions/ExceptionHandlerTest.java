@@ -46,12 +46,6 @@ public class ExceptionHandlerTest {
     private final User user3 = new User("uuid3", "@slack3");
     private final User user4 = new User("uuid4", "@slack4");
 
-    @Value("${teams.slackbot.rest.api.version}")
-    private String teamsSlackbotRestApiVersion;
-
-    @Value("${teams.slackbot.commandsUrl}")
-    private String teamsSlackbotCommandsUrl;
-
     @Value("${teams.slackbot.endpoint.activateTeam}")
     private String teamsSlackbotActivateTeamUrl;
     @Inject
@@ -68,8 +62,6 @@ public class ExceptionHandlerTest {
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        teamsSlackbotActivateTeamUrl = "/" + teamsSlackbotRestApiVersion + teamsSlackbotCommandsUrl +
-                teamsSlackbotActivateTeamUrl;
     }
 
     @Test
