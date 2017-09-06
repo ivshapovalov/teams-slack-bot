@@ -23,12 +23,13 @@ import ua.com.juja.microservices.utils.SlackUrlUtils;
 
 import javax.inject.Inject;
 import java.util.Collections;
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -146,23 +147,21 @@ public class ExceptionHandlerTest {
         when(userService.replaceUuidsBySlackNamesInExceptionMessage(messageWithUuids2)).thenReturn
                 (messageWithSlackNames2);
 
-        Thread newThread = new Thread(
-                () -> {
-                    try {
-                        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
-                                SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate",
-                                        activateTeamCommandText2, responseUrl2))
-                                .contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                                .andExpect(status().isOk())
-                                .andExpect(content().string(ACTIVATE_TEAM_MESSAGE));
-
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-        );
-        newThread.start();
+        Callable<Boolean> call = () -> {
+            try {
+                mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
+                        SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate",
+                                activateTeamCommandText2, responseUrl2))
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                        .andExpect(status().isOk())
+                        .andExpect(content().string(ACTIVATE_TEAM_MESSAGE));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return true;
+        };
+        FutureTask<Boolean> task = new FutureTask<>(call);
+        new Thread(task).start();
 
         mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate",
@@ -171,7 +170,7 @@ public class ExceptionHandlerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(ACTIVATE_TEAM_MESSAGE));
 
-        Thread.sleep(5000);
+        Boolean SecondThreadIsFinished = task.get();
 
         verify(teamService).activateTeam(activateTeamCommandText1);
         verify(userService).replaceUuidsBySlackNamesInExceptionMessage(messageWithUuids1);
