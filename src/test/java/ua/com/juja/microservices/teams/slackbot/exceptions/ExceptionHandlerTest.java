@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.controller.TeamSlackbotController;
+import ua.com.juja.microservices.teams.slackbot.model.Team;
 import ua.com.juja.microservices.teams.slackbot.model.User;
 import ua.com.juja.microservices.teams.slackbot.service.TeamService;
 import ua.com.juja.microservices.teams.slackbot.service.UserService;
@@ -27,6 +28,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -67,7 +69,7 @@ public class ExceptionHandlerTest {
     @Test
     public void handleTeamExchangeException() throws Exception {
 
-        final String activateTeamCommandText = "@a @b @c @d";
+        final String activateTeamCommandText = "@slack1 @slack2 @slack3 @slack4";
         final String responseUrl = "example.com";
         String messageWithUuids = String.format("User(s) '#%s#' exist(s) in another teams", "uuid1,uuid2,uuid3,uuid4");
         String messageWithSlackNames = String.format("User(s) '#%s#' exist(s) in another teams",
@@ -98,6 +100,96 @@ public class ExceptionHandlerTest {
         verify(restTemplate).postForObject(eq(responseUrl), captor.capture(), eq(String.class));
         assertTrue(captor.getValue().getText().contains(messageWithSlackNames));
         verifyNoMoreInteractions(teamService, restTemplate, userService);
+    }
+
+    @Test
+    public void handleMultithreadingTeamExchangeException() throws Exception {
+        final String activateTeamCommandText1 = "@slack1 @slack2 @slack3 @slack4";
+        final String activateTeamCommandText2 = "@slack5 @slack6 @slack7 @slack8";
+        final String responseUrl1 = "example1.com";
+        final String responseUrl2 = "example2.com";
+        String messageWithUuids1 = String.format("User(s) '#%s#' exist(s) in another teams", "uuid1,uuid2,uuid3," +
+                "uuid4");
+        String messageWithUuids2 = String.format("User(s) '#%s#' exist(s) in another teams", "uuid5,uuid6,uuid7," +
+                "uuid8");
+        String messageWithSlackNames1 = String.format("User(s) '#%s#' exist(s) in another teams",
+                "@slack1,@slack2,@slack3,@slack4");
+        String messageWithSlackNames2 = String.format("User(s) '#%s#' exist(s) in another teams",
+                "@slack5,@slack6,@slack7,@slack8");
+        ApiError apiError1 = new ApiError(
+                400, "TMF-F2-D3",
+                "Sorry, but the user already exists in team!",
+                "The reason of the exception is that user already in team",
+                messageWithUuids1,
+                Collections.emptyList()
+        );
+        ApiError apiError2 = new ApiError(
+                400, "TMF-F2-D3",
+                "Sorry, but the user already exists in team!",
+                "The reason of the exception is that user already in team",
+                messageWithUuids2,
+                Collections.emptyList()
+        );
+
+        TeamExchangeException exception1 = new TeamExchangeException(apiError1, new RuntimeException("exception"));
+        TeamExchangeException exception2 = new TeamExchangeException(apiError2, new RuntimeException("exception"));
+
+        when(teamService.activateTeam(activateTeamCommandText1)).thenThrow(exception1);
+        when(restTemplate.postForObject(eq(responseUrl1), any(RichMessage.class), eq(String.class))).thenReturn("");
+        when(userService.replaceUuidsBySlackNamesInExceptionMessage(messageWithUuids1)).thenReturn
+                (messageWithSlackNames1);
+
+        when(teamService.activateTeam(activateTeamCommandText2)).then(invocation -> pauseThread
+                (exception2));
+        when(restTemplate.postForObject(eq(responseUrl2), any(RichMessage.class), eq(String.class)))
+                .thenReturn("");
+        when(userService.replaceUuidsBySlackNamesInExceptionMessage(messageWithUuids2)).thenReturn
+                (messageWithSlackNames2);
+
+        Thread newThread = new Thread(
+                () -> {
+                    try {
+                        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
+                                SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate",
+                                        activateTeamCommandText2, responseUrl2))
+                                .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                                .andExpect(status().isOk())
+                                .andExpect(content().string(ACTIVATE_TEAM_MESSAGE));
+
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+        );
+        newThread.start();
+
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
+                SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate",
+                        activateTeamCommandText1, responseUrl1))
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andExpect(status().isOk())
+                .andExpect(content().string(ACTIVATE_TEAM_MESSAGE));
+
+        Thread.sleep(5000);
+
+        verify(teamService).activateTeam(activateTeamCommandText1);
+        verify(userService).replaceUuidsBySlackNamesInExceptionMessage(messageWithUuids1);
+        ArgumentCaptor<RichMessage> captor = ArgumentCaptor.forClass(RichMessage.class);
+        verify(restTemplate).postForObject(eq(responseUrl1), captor.capture(), eq(String.class));
+        assertTrue(captor.getValue().getText().contains(messageWithSlackNames1));
+
+        verify(teamService).activateTeam(activateTeamCommandText2);
+        verify(userService).replaceUuidsBySlackNamesInExceptionMessage(messageWithUuids2);
+        verify(restTemplate).postForObject(eq(responseUrl2), captor.capture(), eq(String.class));
+        assertTrue(captor.getValue().getText().contains(messageWithSlackNames2));
+
+        verifyNoMoreInteractions(teamService, restTemplate, userService);
+    }
+
+    private Team pauseThread(TeamExchangeException exception1) throws InterruptedException {
+        Thread.sleep(1000);
+        throw exception1;
     }
 
     @Test
