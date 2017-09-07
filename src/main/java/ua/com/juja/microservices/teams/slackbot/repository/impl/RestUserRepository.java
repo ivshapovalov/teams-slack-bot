@@ -30,10 +30,6 @@ import java.util.List;
 @Profile({"production", "default"})
 public class RestUserRepository implements UserRepository {
     private final RestTemplate restTemplate;
-    @Value("${users.rest.api.version}")
-    private String usersRestApiVersion;
-    @Value("${users.baseURL}")
-    private String usersUrlBase;
     @Value("${users.endpoint.usersBySlackNames}")
     private String usersUrlFindUsersBySlackNames;
     @Value("${users.endpoint.usersByUuids}")
@@ -49,8 +45,7 @@ public class RestUserRepository implements UserRepository {
         SlackNameHandler.addAtToSlackNames(slackNames);
         UserSlackNameRequest userSlackNameRequest = new UserSlackNameRequest(slackNames);
         HttpEntity<UserSlackNameRequest> request = new HttpEntity<>(userSlackNameRequest, Utils.setupJsonHttpHeaders());
-        String userServiceURL = usersUrlBase + usersRestApiVersion + usersUrlFindUsersBySlackNames;
-        List<User> users = getUsers(request, userServiceURL);
+        List<User> users = getUsers(request, usersUrlFindUsersBySlackNames);
         log.info("Found Users: '{}' by slackNames: '{}'", users, slackNames);
         return users;
     }
@@ -59,8 +54,7 @@ public class RestUserRepository implements UserRepository {
     public List<User> findUsersByUuids(List<String> uuids) {
         UserUuidRequest userUuidRequest = new UserUuidRequest(uuids);
         HttpEntity<UserUuidRequest> request = new HttpEntity<>(userUuidRequest, Utils.setupJsonHttpHeaders());
-        String userServiceURL = usersUrlBase + usersRestApiVersion + usersUrlFindUsersByUuids;
-        List<User> users = getUsers(request, userServiceURL);
+        List<User> users = getUsers(request, usersUrlFindUsersByUuids);
         log.info("Found Users:{} by uuids: '{}'", users, uuids);
         return users;
     }

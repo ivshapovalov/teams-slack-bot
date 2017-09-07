@@ -42,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @RunWith(SpringRunner.class)
 @WebMvcTest(TeamSlackbotController.class)
-@TestPropertySource(value = {"classpath:application.properties","classpath:messages/message.properties"})
+@TestPropertySource(value = {"classpath:application.properties", "classpath:messages/message.properties"})
 public class TeamSlackbotControllerTest {
 
     @Value("${message.sorry}")
@@ -64,10 +64,6 @@ public class TeamSlackbotControllerTest {
     @Value("${message.deactivate.team.delayed}")
     private String DEACTIVATE_TEAM_DELAYED_MESSAGE;
 
-    @Value("${teams.slackbot.rest.api.version}")
-    private String teamsSlackbotRestApiVersion;
-    @Value("${teams.slackbot.commandsUrl}")
-    private String teamsSlackbotCommandsUrl;
     @Value("${teams.slackbot.endpoint.activateTeam}")
     private String teamsSlackbotActivateTeamUrl;
     @Value("${teams.slackbot.endpoint.getTeam}")
@@ -76,11 +72,6 @@ public class TeamSlackbotControllerTest {
     private String teamsSlackbotGetMyTeamUrl;
     @Value("${teams.slackbot.endpoint.deactivateTeam}")
     private String teamsSlackbotDeactivateTeamUrl;
-
-    private String teamsSlackbotFullActivateTeamUrl;
-    private String teamsSlackbotFullDeactivateTeamUrl;
-    private String teamsSlackbotFullGetTeamUrl;
-    private String teamsSlackbotFullGetMyTeamUrl;
 
     @Inject
     private MockMvc mvc;
@@ -101,15 +92,6 @@ public class TeamSlackbotControllerTest {
 
     @Before
     public void setup() {
-        teamsSlackbotFullActivateTeamUrl = "/" + teamsSlackbotRestApiVersion + teamsSlackbotCommandsUrl +
-                teamsSlackbotActivateTeamUrl;
-        teamsSlackbotFullDeactivateTeamUrl = "/" + teamsSlackbotRestApiVersion + teamsSlackbotCommandsUrl +
-                teamsSlackbotDeactivateTeamUrl;
-        teamsSlackbotFullGetTeamUrl = "/" + teamsSlackbotRestApiVersion + teamsSlackbotCommandsUrl +
-                teamsSlackbotGetTeamUrl;
-        teamsSlackbotFullGetMyTeamUrl = "/" + teamsSlackbotRestApiVersion + teamsSlackbotCommandsUrl +
-                teamsSlackbotGetMyTeamUrl;
-
         user1 = new User("uuid1", "@slack1");
         user2 = new User("uuid2", "@slack2");
         user3 = new User("uuid3", "@slack3");
@@ -121,10 +103,10 @@ public class TeamSlackbotControllerTest {
         final String commandText = user1.getSlack();
         String responseUrl = "http://example.com";
         List<String> urls = Arrays.asList(
-                teamsSlackbotFullActivateTeamUrl,
-                teamsSlackbotFullDeactivateTeamUrl,
-                teamsSlackbotFullGetTeamUrl,
-                teamsSlackbotFullGetMyTeamUrl);
+                teamsSlackbotActivateTeamUrl,
+                teamsSlackbotDeactivateTeamUrl,
+                teamsSlackbotGetTeamUrl,
+                teamsSlackbotGetMyTeamUrl);
         urls.forEach(url -> {
             try {
                 mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(url),
@@ -145,10 +127,10 @@ public class TeamSlackbotControllerTest {
         final String commandText = user1.getSlack();
         String responseUrl = "";
         List<String> urls = Arrays.asList(
-                teamsSlackbotFullActivateTeamUrl,
-                teamsSlackbotFullDeactivateTeamUrl,
-                teamsSlackbotFullGetTeamUrl,
-                teamsSlackbotFullGetMyTeamUrl);
+                teamsSlackbotActivateTeamUrl,
+                teamsSlackbotDeactivateTeamUrl,
+                teamsSlackbotGetTeamUrl,
+                teamsSlackbotGetMyTeamUrl);
         urls.forEach(url -> {
             try {
                 mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(url),
@@ -175,7 +157,7 @@ public class TeamSlackbotControllerTest {
         when(teamService.activateTeam(commandText)).thenReturn(activatedTeam);
         when(restTemplate.postForObject(eq(responseUrl), any(RichMessage.class), eq(String.class))).thenReturn("");
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullActivateTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", commandText, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
@@ -198,7 +180,7 @@ public class TeamSlackbotControllerTest {
         when(teamService.getTeam(commandText)).thenReturn(slackNames);
         when(restTemplate.postForObject(eq(responseUrl), any(RichMessage.class), eq(String.class))).thenReturn("");
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullGetTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotGetTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/teams",
                         commandText, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
@@ -224,7 +206,7 @@ public class TeamSlackbotControllerTest {
         when(teamService.getTeam(fromUserWithAt)).thenReturn(slackNames);
         when(restTemplate.postForObject(eq(responseUrl), any(RichMessage.class), eq(String.class))).thenReturn("");
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullGetMyTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotGetMyTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/myteam",
                         fromUser, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
@@ -249,7 +231,7 @@ public class TeamSlackbotControllerTest {
         when(teamService.deactivateTeam(commandText)).thenReturn(slackNames);
         when(restTemplate.postForObject(eq(responseUrl), any(RichMessage.class), eq(String.class))).thenReturn("");
 
-        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotFullDeactivateTeamUrl),
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotDeactivateTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/teams-deactivate",
                         commandText, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))

@@ -48,10 +48,6 @@ public class RestUserRepositoryTest {
     @Inject
     private RestTemplate restTemplate;
     private MockRestServiceServer mockServer;
-    @Value("${users.rest.api.version}")
-    private String usersRestApiVersion;
-    @Value("${users.baseURL}")
-    private String usersBaseUrl;
     @Value("${users.endpoint.usersBySlackNames}")
     private String usersFindUsersBySlackNamesUrl;
     @Value("${users.endpoint.usersByUuids}")
@@ -91,7 +87,7 @@ public class RestUserRepositoryTest {
 
         String jsonContentExpectedResponse = TestUtils.convertToString(
                 resource("response/responseUserRepositoryGetUsersBySlacknames.json"));
-        mockServer.expect(requestTo(usersBaseUrl + usersRestApiVersion + usersFindUsersBySlackNamesUrl))
+        mockServer.expect(requestTo(usersFindUsersBySlackNamesUrl))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8))
                 .andExpect(content().string(jsonContentRequest))
@@ -117,7 +113,7 @@ public class RestUserRepositoryTest {
 
         String jsonContentExpectedResponse = TestUtils.convertToString(
                 resource("response/responseUserRepositoryThrowsException.json"));
-        mockServer.expect(requestTo(usersBaseUrl + usersRestApiVersion + usersFindUsersBySlackNamesUrl))
+        mockServer.expect(requestTo(usersFindUsersBySlackNamesUrl))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8))
                 .andExpect(content().string(jsonContentRequest))
@@ -141,7 +137,7 @@ public class RestUserRepositoryTest {
 
         String jsonContentExpectedResponse = TestUtils.convertToString(
                 resource("response/responseUserRepositoryGetUsersByUuids.json"));
-        mockServer.expect(requestTo(usersBaseUrl + usersRestApiVersion + usersFindUsersByUuidsUrl))
+        mockServer.expect(requestTo(usersFindUsersByUuidsUrl))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8))
                 .andExpect(content().string(jsonContentRequest))
@@ -161,7 +157,7 @@ public class RestUserRepositoryTest {
                 ("request/requestUserRepositoryGetUsersByUuids.json"));
         String jsonContentExpectedResponse = TestUtils.convertToString(
                 resource("response/responseUserRepositoryThrowsException.json"));
-        mockServer.expect(requestTo(usersBaseUrl + usersRestApiVersion + usersFindUsersByUuidsUrl))
+        mockServer.expect(requestTo(usersFindUsersByUuidsUrl))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(content().contentType(APPLICATION_JSON_UTF8))
                 .andExpect(content().string(jsonContentRequest))
