@@ -5,6 +5,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -105,14 +107,15 @@ public class ExceptionHandlerTest {
 
     @Test
     public void handleMultithreadingTeamExchangeException() throws Exception {
+        //given
         final String activateTeamCommandText1 = "@slack1 @slack2 @slack3 @slack4";
         final String activateTeamCommandText2 = "@slack5 @slack6 @slack7 @slack8";
         final String responseUrl1 = "example1.com";
         final String responseUrl2 = "example2.com";
-        String messageWithUuids1 = String.format("User(s) '#%s#' exist(s) in another teams", "uuid1,uuid2,uuid3," +
-                "uuid4");
-        String messageWithUuids2 = String.format("User(s) '#%s#' exist(s) in another teams", "uuid5,uuid6,uuid7," +
-                "uuid8");
+        String messageWithUuids1 = String.format("User(s) '#%s#' exist(s) in another teams",
+                "uuid1,uuid2,uuid3,uuid4");
+        String messageWithUuids2 = String.format("User(s) '#%s#' exist(s) in another teams",
+                "uuid5,uuid6,uuid7,uuid8");
         String messageWithSlackNames1 = String.format("User(s) '#%s#' exist(s) in another teams",
                 "@slack1,@slack2,@slack3,@slack4");
         String messageWithSlackNames2 = String.format("User(s) '#%s#' exist(s) in another teams",
@@ -132,21 +135,18 @@ public class ExceptionHandlerTest {
                 Collections.emptyList()
         );
 
-        TeamExchangeException exception1 = new TeamExchangeException(apiError1, new RuntimeException("exception"));
-        TeamExchangeException exception2 = new TeamExchangeException(apiError2, new RuntimeException("exception"));
+        TeamExchangeException exception1 = new TeamExchangeException(apiError1, new RuntimeException("exception1"));
+        TeamExchangeException exception2 = new TeamExchangeException(apiError2, new RuntimeException("exception2"));
 
         when(teamService.activateTeam(activateTeamCommandText1)).thenThrow(exception1);
         when(restTemplate.postForObject(eq(responseUrl1), any(RichMessage.class), eq(String.class))).thenReturn("");
-        when(userService.replaceUuidsBySlackNamesInExceptionMessage(messageWithUuids1)).thenReturn
-                (messageWithSlackNames1);
+        when(userService.replaceUuidsBySlackNamesInExceptionMessage(messageWithUuids1)).thenReturn(messageWithSlackNames1);
 
-        when(teamService.activateTeam(activateTeamCommandText2)).then(invocation -> pauseThread
-                (exception2));
-        when(restTemplate.postForObject(eq(responseUrl2), any(RichMessage.class), eq(String.class)))
-                .thenReturn("");
-        when(userService.replaceUuidsBySlackNamesInExceptionMessage(messageWithUuids2)).thenReturn
-                (messageWithSlackNames2);
+        when(teamService.activateTeam(activateTeamCommandText2)).then(invocation -> pauseThread(exception2));
+        when(restTemplate.postForObject(eq(responseUrl2), any(RichMessage.class), eq(String.class))).thenReturn("");
+        when(userService.replaceUuidsBySlackNamesInExceptionMessage(messageWithUuids2)).thenReturn(messageWithSlackNames2);
 
+        //when
         Callable<Boolean> call = () -> {
             try {
                 mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
@@ -162,6 +162,7 @@ public class ExceptionHandlerTest {
         };
         FutureTask<Boolean> task = new FutureTask<>(call);
         new Thread(task).start();
+        Thread.sleep(2000);
 
         mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate",
@@ -172,23 +173,29 @@ public class ExceptionHandlerTest {
 
         Boolean SecondThreadIsFinished = task.get();
 
-        verify(teamService).activateTeam(activateTeamCommandText1);
-        verify(userService).replaceUuidsBySlackNamesInExceptionMessage(messageWithUuids1);
-        ArgumentCaptor<RichMessage> captor = ArgumentCaptor.forClass(RichMessage.class);
-        verify(restTemplate).postForObject(eq(responseUrl1), captor.capture(), eq(String.class));
-        assertTrue(captor.getValue().getText().contains(messageWithSlackNames1));
+        //then
+        InOrder teamServiceOrderVerifier = Mockito.inOrder(teamService);
+        teamServiceOrderVerifier.verify(teamService).activateTeam(activateTeamCommandText2);
+        teamServiceOrderVerifier.verify(teamService).activateTeam(activateTeamCommandText1);
 
-        verify(teamService).activateTeam(activateTeamCommandText2);
-        verify(userService).replaceUuidsBySlackNamesInExceptionMessage(messageWithUuids2);
-        verify(restTemplate).postForObject(eq(responseUrl2), captor.capture(), eq(String.class));
+        InOrder userServiceOrderVerifier = Mockito.inOrder(userService);
+        userServiceOrderVerifier.verify(userService).replaceUuidsBySlackNamesInExceptionMessage(messageWithUuids1);
+        userServiceOrderVerifier.verify(userService).replaceUuidsBySlackNamesInExceptionMessage(messageWithUuids2);
+
+        ArgumentCaptor<RichMessage> captor = ArgumentCaptor.forClass(RichMessage.class);
+
+        InOrder restTemplateOrderVerifier = Mockito.inOrder(restTemplate);
+        restTemplateOrderVerifier.verify(restTemplate).postForObject(eq(responseUrl1), captor.capture(), eq(String.class));
+        assertTrue(captor.getValue().getText().contains(messageWithSlackNames1));
+        restTemplateOrderVerifier.verify(restTemplate).postForObject(eq(responseUrl2), captor.capture(), eq(String.class));
         assertTrue(captor.getValue().getText().contains(messageWithSlackNames2));
 
         verifyNoMoreInteractions(teamService, restTemplate, userService);
     }
 
-    private Team pauseThread(TeamExchangeException exception1) throws InterruptedException {
-        Thread.sleep(1000);
-        throw exception1;
+    private Team pauseThread(TeamExchangeException exception) throws InterruptedException {
+        Thread.sleep(5000);
+        throw exception;
     }
 
     @Test
