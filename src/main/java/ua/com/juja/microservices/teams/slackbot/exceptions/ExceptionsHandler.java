@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.ramswaroop.jbot.core.slack.models.RichMessage;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.service.UserService;
 
@@ -40,6 +41,11 @@ public class ExceptionsHandler {
     @ExceptionHandler(WrongCommandFormatException.class)
     public void handleWrongCommandFormatException(Exception ex) {
         sendErrorResponseAsRichMessage(new RichMessage(ex.getMessage()));
+    }
+
+    @ExceptionHandler(ResourceAccessException.class)
+    public void handleResourceAccessException(ResourceAccessException ex) {
+        sendErrorResponseAsRichMessage(new RichMessage("Some service unavailable"));
     }
 
     @ExceptionHandler(UserExchangeException.class)
