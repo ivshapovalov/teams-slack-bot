@@ -44,16 +44,16 @@ public class ExceptionsHandler {
 
     @ExceptionHandler(UserExchangeException.class)
     public void handleUserExchangeException(UserExchangeException ex) {
-        sendErrorResponseAsRichMessage(new RichMessage(ex.getError().getExceptionMessage()));
+        sendErrorResponseAsRichMessage(new RichMessage(ex.getExceptionMessage()));
     }
 
     @ExceptionHandler(TeamExchangeException.class)
     public void handleTeamExchangeException(TeamExchangeException ex) {
         String message = ex.getMessage();
-        ApiError apiError = ex.getError();
-        if (apiError != null && apiError.getExceptionMessage().contains("#")) {
+        String exceptionMessage= ex.getExceptionMessage();
+        if (exceptionMessage != null && exceptionMessage.contains("#")) {
             try {
-                message = userService.replaceUuidsBySlackNamesInExceptionMessage(apiError.getExceptionMessage());
+                message = userService.replaceUuidsBySlackNamesInExceptionMessage(exceptionMessage);
             } catch (Exception e) {
                 log.warn("Nested exception : '{}'", e.getMessage());
             }
