@@ -24,7 +24,4 @@ public class BaseBotException extends RuntimeException {
     public String getExceptionMessage() {
         return error.getExceptionMessage();
     }
-
-
-
 }
