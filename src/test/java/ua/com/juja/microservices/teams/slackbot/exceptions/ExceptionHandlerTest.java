@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.controller.TeamSlackbotController;
 import ua.com.juja.microservices.teams.slackbot.model.User;
@@ -148,6 +149,28 @@ public class ExceptionHandlerTest {
         ArgumentCaptor<RichMessage> captor = ArgumentCaptor.forClass(RichMessage.class);
         verify(restTemplate).postForObject(eq(responseUrl), captor.capture(), eq(String.class));
         assertTrue(captor.getValue().getText().contains("wrong command"));
+        verifyNoMoreInteractions(teamService, restTemplate);
+    }
+
+    @Test
+    public void handleResourceAccessException() throws Exception {
+        final String activateTeamCommandText = "@a @b @c @d";
+        final String responseUrl = "example.com";
+        ResourceAccessException exception = new ResourceAccessException("Some service unavailable");
+        when(teamService.activateTeam(activateTeamCommandText)).thenThrow(exception);
+        when(restTemplate.postForObject(eq(responseUrl), any(RichMessage.class), eq(String.class))).thenReturn("");
+
+        mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
+                SlackUrlUtils.getUriVars("slashCommandToken", "/teams-activate", activateTeamCommandText,
+                        "example.com"))
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andExpect(status().isOk())
+                .andExpect(content().string(ACTIVATE_TEAM_MESSAGE));
+
+        verify(teamService).activateTeam(activateTeamCommandText);
+        ArgumentCaptor<RichMessage> captor = ArgumentCaptor.forClass(RichMessage.class);
+        verify(restTemplate).postForObject(eq(responseUrl), captor.capture(), eq(String.class));
+        assertTrue(captor.getValue().getText().contains("Some service unavailable"));
         verifyNoMoreInteractions(teamService, restTemplate);
     }
 
