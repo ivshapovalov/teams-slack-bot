@@ -44,7 +44,7 @@ public class ExceptionsHandler {
 
     @ExceptionHandler(UserExchangeException.class)
     public void handleUserExchangeException(UserExchangeException ex) {
-        sendErrorResponseAsRichMessage(new RichMessage(ex.getMessage()));
+        sendErrorResponseAsRichMessage(new RichMessage(ex.getError().getExceptionMessage()));
     }
 
     @ExceptionHandler(TeamExchangeException.class)
