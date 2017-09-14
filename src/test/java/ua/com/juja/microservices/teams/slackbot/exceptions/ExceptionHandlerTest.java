@@ -125,7 +125,7 @@ public class ExceptionHandlerTest {
         verify(teamService).activateTeam(activateTeamCommandText);
         ArgumentCaptor<RichMessage> captor = ArgumentCaptor.forClass(RichMessage.class);
         verify(restTemplate).postForObject(eq(responseUrl), captor.capture(), eq(String.class));
-        assertTrue(captor.getValue().getText().contains(apiError.getClientMessage()));
+        assertTrue(captor.getValue().getText().contains(apiError.getExceptionMessage()));
         verifyNoMoreInteractions(teamService, restTemplate);
     }
 

@@ -286,7 +286,7 @@ public class TeamsSlackBotIntegrationTest {
         final List<User> usersInCommand = Arrays.asList(user1, user2, user3, user4);
         String responseUrl = "http://example.com";
         mockFailUsersServiceFindUsersBySlackNamesReturnsError(usersInCommand);
-        mockSlackResponseUrl(responseUrl, new RichMessage("Oops something went wrong :("));
+        mockSlackResponseUrl(responseUrl, new RichMessage("very big and scare error"));
 
         mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", commandText, responseUrl))
@@ -544,7 +544,7 @@ public class TeamsSlackBotIntegrationTest {
         String responseUrl = "http://example.com";
         mockFailUsersServiceFindUsersBySlackNamesReturnsError(usersInCommand);
         mockSlackResponseUrl(responseUrl,
-                new RichMessage("Oops something went wrong :("));
+                new RichMessage("very big and scare error"));
 
         mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotGetTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/command", commandText, responseUrl))
