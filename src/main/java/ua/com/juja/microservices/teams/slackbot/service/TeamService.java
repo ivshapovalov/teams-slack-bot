@@ -1,6 +1,6 @@
 package ua.com.juja.microservices.teams.slackbot.service;
 
-import ua.com.juja.microservices.teams.slackbot.model.Team;
+import ua.com.juja.microservices.teams.slackbot.model.teams.Team;
 
 import java.util.Set;
 
@@ -9,9 +9,9 @@ import java.util.Set;
  */
 public interface TeamService {
 
-    Team activateTeam(String text);
+    Team activateTeam(String fromUser, String text);
 
     Set<String> getTeam(String text);
 
-    Set<String> deactivateTeam(String text);
+    Set<String> deactivateTeam(String fromUser, String text);
 }
