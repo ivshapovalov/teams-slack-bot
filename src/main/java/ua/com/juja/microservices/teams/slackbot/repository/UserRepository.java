@@ -1,6 +1,6 @@
 package ua.com.juja.microservices.teams.slackbot.repository;
 
-import ua.com.juja.microservices.teams.slackbot.model.User;
+import ua.com.juja.microservices.teams.slackbot.model.users.User;
 
 import java.util.List;
 

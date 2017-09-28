@@ -2,7 +2,7 @@ package ua.com.juja.microservices.teams.slackbot.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ua.com.juja.microservices.teams.slackbot.model.User;
+import ua.com.juja.microservices.teams.slackbot.model.users.User;
 import ua.com.juja.microservices.teams.slackbot.repository.UserRepository;
 import ua.com.juja.microservices.teams.slackbot.service.UserService;
 import ua.com.juja.microservices.teams.slackbot.util.Utils;
