@@ -25,7 +25,7 @@ public class SlackUrlUtils {
                 "UHASHB8JB",
                 "test-channel",
                 "UNJSD9OKM",
-                "@from-user",
+                "@slack-from",
                 command,
                 description,
                 responseUrl};
