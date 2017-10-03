@@ -19,9 +19,7 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -54,29 +52,35 @@ public class TeamServiceImpl implements TeamService {
         fromUser = SlackNameHandler.addAtToSlackName(fromUser);
         slackNames.add(fromUser);
         Set<User> users = new HashSet<>(userService.findUsersBySlackNames(new ArrayList<>(slackNames)));
-        Map<String, String> usersMap = users.stream()
-                .collect(Collectors.toMap(User::getSlack, User::getUuid, (e1, e2) -> e1,
-                        LinkedHashMap::new));
-        String fromUserUuid = usersMap.get(fromUser);
-        ActivateTeamRequest activateTeamRequest = new ActivateTeamRequest(fromUserUuid, new HashSet<>
-                (extractMembersFromMap(fromUser, usersMap, TEAM_SIZE)));
+        String fromUserUuid = getFromUserUuid(fromUser, users);
+        Set<String> membersUuids = getMembersUuids(fromUser, users, TEAM_SIZE);
+        ActivateTeamRequest activateTeamRequest = new ActivateTeamRequest(fromUserUuid, membersUuids);
         Team activatedTeam = teamRepository.activateTeam(activateTeamRequest);
         checkTeamMembersEquality(activateTeamRequest.getMembers(), activatedTeam.getMembers());
         log.info("Team activated: '{}'", activatedTeam.getId());
         return activatedTeam;
     }
 
-    private List<String> extractMembersFromMap(String fromUser, Map<String, String> usersMap, int expectedSize) {
-        log.debug("Before extract members from users map: '{}'. Expected size '{}'. FromUser is '{}'", usersMap,
+    private String getFromUserUuid(String fromUserSlackName, Set<User> users) {
+        log.debug("Before extract fromUser from users : '{}'.FromUser is '{}'", users, fromUserSlackName);
+        User fromUser = users.stream()
+                .filter(user -> user.getSlack().equals(fromUserSlackName))
+                .collect(Collectors.toList()).get(0);
+        log.debug("After extract fromUser from users map. Uuid is '{}'", fromUser.getUuid());
+        return fromUser.getUuid();
+    }
+
+    private Set<String> getMembersUuids(String fromUser, Set<User> users, int expectedSize) {
+        log.debug("Before extract members from users : '{}'. Expected size '{}'. FromUser is '{}'", users,
                 expectedSize, fromUser);
-        List<String> uuids;
-        if (usersMap.size() == expectedSize) {
-            uuids = new ArrayList<>(usersMap.values());
+        Set<String> uuids;
+        if (users.size() == expectedSize) {
+            uuids = users.stream().map(User::getUuid).collect(Collectors.toSet());
         } else {
-            uuids = usersMap.entrySet().stream()
-                    .filter(entry -> !entry.getKey().equals(fromUser))
-                    .map(Map.Entry::getValue)
-                    .collect(Collectors.toList());
+            uuids = users.stream()
+                    .filter(user -> !user.getSlack().equals(fromUser))
+                    .map(User::getUuid)
+                    .collect(Collectors.toSet());
         }
         log.debug("After extract members from users map. Uuids is '{}'", uuids);
         return uuids;
@@ -126,12 +130,9 @@ public class TeamServiceImpl implements TeamService {
         }
         fromUser = SlackNameHandler.addAtToSlackName(fromUser);
         slackNames.add(fromUser);
-        List<User> users = userService.findUsersBySlackNames(new ArrayList<>(slackNames));
-        Map<String, String> usersMap = users.stream()
-                .collect(Collectors.toMap(User::getSlack, User::getUuid, (e1, e2) -> e1,
-                        LinkedHashMap::new));
-        String fromUserUuid = usersMap.get(fromUser);
-        String uuid = extractMembersFromMap(fromUser, usersMap, 1).get(0);
+        Set<User> users = new HashSet<>(userService.findUsersBySlackNames(new ArrayList<>(slackNames)));
+        String fromUserUuid = getFromUserUuid(fromUser, users);
+        String uuid = new ArrayList<>(getMembersUuids(fromUser, users, 1)).get(0);
         DeactivateTeamRequest deactivateTeamRequest = new DeactivateTeamRequest(fromUserUuid, uuid);
         Team deactivatedTeam = teamRepository.deactivateTeam(deactivateTeamRequest);
         List<User> teamUsers = userService.findUsersByUuids(new ArrayList<>(deactivatedTeam.getMembers()));
