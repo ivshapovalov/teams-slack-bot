@@ -22,6 +22,7 @@ import ua.com.juja.microservices.teams.slackbot.repository.TeamRepository;
 import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -82,7 +83,7 @@ public class TeamServiceTest {
                 user1.getUuid(), user2.getUuid(), user3.getUuid(), userFrom.getUuid()));
         List<User> users = Arrays.asList(user1, user2, user3, userFrom);
         when(userService.findUsersBySlackNames(anyListOf(String.class))).thenReturn(users);
-        Team expected = new Team(userFrom.getUuid(), uuids);
+        Team expected = new Team(uuids, userFrom.getUuid(), "id", new Date(), new Date());
         given(teamRepository.activateTeam(any(ActivateTeamRequest.class))).willReturn(expected);
 
         Team actual = teamService.activateTeam(userFrom.getSlack(), text);
@@ -105,7 +106,7 @@ public class TeamServiceTest {
                 user1.getUuid(), user2.getUuid(), user3.getUuid(), user4.getUuid()));
         List<User> users = Arrays.asList(user1, user2, user3, user4, userFrom);
         when(userService.findUsersBySlackNames(anyListOf(String.class))).thenReturn(users);
-        Team expected = new Team(userFrom.getUuid(), uuids);
+        Team expected = new Team(uuids, userFrom.getUuid(), "id", new Date(), new Date());
         given(teamRepository.activateTeam(any(ActivateTeamRequest.class))).willReturn(expected);
 
         Team actual = teamService.activateTeam(from, text);
@@ -145,7 +146,7 @@ public class TeamServiceTest {
         ));
         List<User> users = Arrays.asList(user1, user2, user3, user4, userFrom);
         when(userService.findUsersBySlackNames(slackNames)).thenReturn(users);
-        Team activatedTeam = new Team(userFrom.getUuid(), responseMembers);
+        Team activatedTeam = new Team(responseMembers, userFrom.getUuid(), "id", new Date(), new Date());
         given(teamRepository.activateTeam(any(ActivateTeamRequest.class))).willReturn(activatedTeam);
 
         expectedException.expect(TeamExchangeException.class);
@@ -189,7 +190,7 @@ public class TeamServiceTest {
         Set<String> uuids = teamUsers.stream().map(User::getUuid).collect(Collectors.toSet());
         Set<String> expected = new LinkedHashSet<>(Arrays.asList(user1.getSlack(), user2.getSlack(), user3.getSlack(),
                 user4.getSlack()));
-        Team team = new Team(userFrom.getUuid(), uuids);
+        Team team = new Team(uuids, userFrom.getUuid(), "id", new Date(), new Date());
         given(userService.findUsersBySlackNames(slackNamesInText)).willReturn(users);
         given(teamRepository.getTeam(user1.getUuid())).willReturn(team);
         given(userService.findUsersByUuids(anyListOf(String.class))).willReturn(teamUsers);
@@ -236,7 +237,8 @@ public class TeamServiceTest {
         given(userService.findUsersBySlackNames(slackNames)).willReturn(users);
         List<User> teamUsers = Arrays.asList(user1, user2, user3, user4);
         given(userService.findUsersByUuids(anyListOf(String.class))).willReturn(teamUsers);
-        Team team = new Team(userFrom.getUuid(), teamUsers.stream().map(User::getUuid).collect(Collectors.toSet()));
+        Team team = new Team(teamUsers.stream().map(User::getUuid).collect(Collectors.toSet()), userFrom.getUuid(),
+                "id", new Date(), new Date());
         given(teamRepository.deactivateTeam(any(DeactivateTeamRequest.class))).willReturn(team);
 
         Set<String> actual = teamService.deactivateTeam(from, text);
@@ -262,7 +264,8 @@ public class TeamServiceTest {
         given(userService.findUsersByUuids(anyListOf(String.class))).willReturn(teamUsers);
         Set<String> expected = new LinkedHashSet<>(Arrays.asList(
                 user1.getSlack(), user2.getSlack(), user3.getSlack(), user4.getSlack()));
-        Team team = new Team(userFrom.getUuid(), teamUsers.stream().map(User::getUuid).collect(Collectors.toSet()));
+        Team team = new Team(teamUsers.stream().map(User::getUuid).collect(Collectors.toSet()), userFrom.getUuid(),
+                "id", new Date(), new Date());
         given(teamRepository.deactivateTeam(any(DeactivateTeamRequest.class))).willReturn(team);
 
         Set<String> actual = new LinkedHashSet<>(teamService.deactivateTeam(from, text));

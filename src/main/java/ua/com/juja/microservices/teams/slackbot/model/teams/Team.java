@@ -28,11 +28,6 @@ public class Team {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ")
     private Date deactivateDate;
 
-    public Team(String from, Set<String> members) {
-        this.from = from;
-        this.members = members;
-    }
-
     public Set<String> getMembers() {
         return Collections.unmodifiableSet(members);
     }

@@ -21,6 +21,7 @@ import ua.com.juja.microservices.utils.SlackUrlUtils;
 import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -137,7 +138,7 @@ public class TeamSlackbotControllerTest {
         String from = "@slack-from";
         final String commandText = "@slack1 @slack2 @slack3 @slack4";
         Set<String> members = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4"));
-        Team activatedTeam = new Team("uuid-from", members);
+        Team activatedTeam = new Team(members, "uuid-from", "id", new Date(), new Date());
         String responseUrl = "http://example.com";
         when(teamService.activateTeam(from, commandText)).thenReturn(activatedTeam);
         when(restTemplate.postForObject(eq(responseUrl), any(RichMessage.class), eq(String.class))).thenReturn("");
