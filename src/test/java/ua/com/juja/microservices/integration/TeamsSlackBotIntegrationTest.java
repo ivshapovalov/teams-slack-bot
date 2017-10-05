@@ -173,7 +173,7 @@ public class TeamsSlackBotIntegrationTest {
         String teamsJsonRequestBody = TestUtils.convertToString(ResourceUtils.resource
                 ("request/requestTeamRepositoryActivateTeamIfUsersNotInActiveTeamAndFromUserInText.json"));
         Set<String> uuids = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid-from"));
-        Team activatedTeam = new Team(uuids);
+        Team activatedTeam = new Team("uuid-from", uuids);
         mockSuccessTeamsServiceReturnsTeam(HttpMethod.POST, teamsActivateTeamUrl, teamsJsonRequestBody,
                 activatedTeam);
         mockSlackResponseUrl(responseUrl, new RichMessage(String.format(ACTIVATE_TEAM_DELAYED_MESSAGE, commandText)));
@@ -196,7 +196,7 @@ public class TeamsSlackBotIntegrationTest {
                 ("request/requestTeamRepositoryActivateTeamIfUsersNotInActiveTeamAndFromUserNotInText.json"));
         Set<String> uuids = new LinkedHashSet<>(Arrays.asList(user1.getUuid(), user2.getUuid(),
                 user3.getUuid(), user4.getUuid()));
-        Team activatedTeam = new Team(uuids);
+        Team activatedTeam = new Team("uuid-from", uuids);
         mockSuccessTeamsServiceReturnsTeam(HttpMethod.POST, teamsActivateTeamUrl, teamsJsonRequestBody,
                 activatedTeam);
         mockSlackResponseUrl(responseUrl, new RichMessage(String.format(ACTIVATE_TEAM_DELAYED_MESSAGE, commandText)));
@@ -221,7 +221,7 @@ public class TeamsSlackBotIntegrationTest {
                 ("request/requestTeamRepositoryActivateTeamIfUsersNotInActiveTeamAndFromUserInText.json"));
         Set<String> uuids = new LinkedHashSet<>(Arrays.asList(user1.getUuid(), user2.getUuid(),
                 user3.getUuid(), "illegal-uuid"));
-        Team activatedTeam = new Team(uuids);
+        Team activatedTeam = new Team("uuid-from", uuids);
         mockSuccessTeamsServiceReturnsTeam(HttpMethod.POST, teamsActivateTeamUrl, teamsJsonRequestBody,
                 activatedTeam);
         mockSlackResponseUrl(responseUrl,
@@ -304,7 +304,7 @@ public class TeamsSlackBotIntegrationTest {
         String responseUrl = "http://example.com";
         mockSuccessUsersServiceFindUsersBySlackNames(usersInCommand);
         List<User> users = Arrays.asList(user1, user2, user3, user4);
-        Team deactivatedTeam = new Team(users.stream().map(User::getUuid).collect(Collectors.toSet()));
+        Team deactivatedTeam = new Team("uuid-from", users.stream().map(User::getUuid).collect(Collectors.toSet()));
         mockSuccessTeamsServiceReturnsTeam(HttpMethod.PUT, teamsDeactivateTeamUrl + "/" + user1.getUuid(), "",
                 deactivatedTeam);
         mockSuccessUsersServiceFindUsersByUuids(users);
@@ -366,7 +366,7 @@ public class TeamsSlackBotIntegrationTest {
         List<User> users = Arrays.asList(user1, user2, user3, user4);
         String slackNames = users.stream()
                 .map(User::getSlack).collect(Collectors.joining(" "));
-        Team team = new Team(users.stream().map(User::getUuid).collect(Collectors.toSet()));
+        Team team = new Team("uuid-from", users.stream().map(User::getUuid).collect(Collectors.toSet()));
         mockSuccessTeamsServiceReturnsTeam(HttpMethod.GET, teamsGetTeamUrl + "/" + user1.getUuid(), "", team);
         mockSuccessUsersServiceFindUsersByUuids(users);
         mockSlackResponseUrl(responseUrl, new RichMessage(
@@ -445,7 +445,7 @@ public class TeamsSlackBotIntegrationTest {
         List<User> users = Arrays.asList(user1, user2, user3, user4);
         String slackNames = users.stream()
                 .map(User::getSlack).collect(Collectors.joining(" "));
-        Team team = new Team(users.stream().map(User::getUuid).collect(Collectors.toSet()));
+        Team team = new Team("uuid-from", users.stream().map(User::getUuid).collect(Collectors.toSet()));
         mockSuccessTeamsServiceReturnsTeam(HttpMethod.GET, teamsGetTeamUrl + "/" + user1.getUuid(), "",
                 team);
         mockSuccessUsersServiceFindUsersByUuids(users);
