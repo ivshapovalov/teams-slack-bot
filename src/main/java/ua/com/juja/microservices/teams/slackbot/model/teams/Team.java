@@ -1,5 +1,6 @@
 package ua.com.juja.microservices.teams.slackbot.model.teams;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
@@ -34,6 +35,7 @@ public class Team {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ")
     private Date deactivateDate;
 
+    @JsonCreator
     public Team(@JsonProperty("from") String from, @JsonProperty("id") String id,
                 @JsonProperty("activateDate") Date activateDate, @JsonProperty("deactivateDate") Date deactivateDate,
                 @JsonProperty("members") Set<String> members) {
@@ -44,10 +46,12 @@ public class Team {
         this.members = members;
     }
 
+    @JsonCreator
     public Team(@JsonProperty("members") Set<String> members) {
         this.members = members;
     }
 
+    @JsonCreator
     public Team(@JsonProperty("from") String from,
                 @JsonProperty("members") Set<String> members) {
         this.from = from;

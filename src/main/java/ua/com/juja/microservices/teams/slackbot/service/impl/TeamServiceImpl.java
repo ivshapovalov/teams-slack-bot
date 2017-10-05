@@ -71,12 +71,19 @@ public class TeamServiceImpl implements TeamService {
     }
 
     private Set<String> getMembersUuids(String fromUser, Set<User> users, int expectedSize) {
+        //Set<users> contain all users of request (fromUser and all users in text)
+        //Response depends on:
+        //case Activate Team    -  is fromUser a member of new Team or not
+        //case Deactivate Team  -  is fromUser deactivate his team or not
         log.debug("Before extract members from users : '{}'. Expected size '{}'. FromUser is '{}'", users,
                 expectedSize, fromUser);
         Set<String> uuids;
         if (users.size() == expectedSize) {
+            //if fromUser in new Team or fromUser deactivate his Team
             uuids = users.stream().map(User::getUuid).collect(Collectors.toSet());
         } else {
+            //if fromUser not in new Team or fromUser deactivate not his Team
+            //That's why we exclude him from response
             uuids = users.stream()
                     .filter(user -> !user.getSlack().equals(fromUser))
                     .map(User::getUuid)
