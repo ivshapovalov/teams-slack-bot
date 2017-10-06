@@ -2,6 +2,7 @@ package ua.com.juja.microservices.teams.slackbot.repository.impl;
 
 import net.javacrumbs.jsonunit.core.util.ResourceUtils;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -14,7 +15,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.exceptions.UserExchangeException;
-import ua.com.juja.microservices.teams.slackbot.model.User;
+import ua.com.juja.microservices.teams.slackbot.model.users.User;
 import ua.com.juja.microservices.teams.slackbot.repository.UserRepository;
 import ua.com.juja.microservices.utils.TestUtils;
 
@@ -41,6 +42,10 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class RestUserRepositoryTest {
+    private static User user1;
+    private static User user2;
+    private static User user3;
+    private static User user4;
     @Rule
     final public ExpectedException expectedException = ExpectedException.none();
     @Inject
@@ -53,32 +58,27 @@ public class RestUserRepositoryTest {
     @Value("${users.endpoint.usersByUuids}")
     private String usersFindUsersByUuidsUrl;
 
-    private User user1;
-    private User user2;
-    private User user3;
-    private User user4;
-
-    @Before
-    public void setup() {
-        mockServer = MockRestServiceServer.bindTo(restTemplate).build();
-
+    @BeforeClass
+    public static void oneTimeSetup() {
         user1 = new User("uuid1", "@slack1");
         user2 = new User("uuid2", "@slack2");
         user3 = new User("uuid3", "@slack3");
         user4 = new User("uuid4", "@slack4");
     }
 
+    @Before
+    public void setup() {
+        mockServer = MockRestServiceServer.bindTo(restTemplate).build();
+    }
+
     @Test
-    public void findUsersBySlackNamesIfUserServerReturnsUserCorrectly() throws IOException {
+    public void findUsersBySlackNamesIfUserServerReturnsUsersCorrectly() throws IOException {
 
         List<String> incorrectSlackNames = new ArrayList<>();
         incorrectSlackNames.add("slack1");
         incorrectSlackNames.add("@slack2");
         incorrectSlackNames.add("slack3");
         incorrectSlackNames.add("@slack4");
-
-        List<String> correctSlackNames = Arrays.asList(user1.getSlack(), user2.getSlack(),
-                user3.getSlack(), user4.getSlack());
 
         List<User> expected = Arrays.asList(user1, user2, user3, user4);
 
@@ -95,7 +95,6 @@ public class RestUserRepositoryTest {
 
         List<User> actual = userRepository.findUsersBySlackNames(incorrectSlackNames);
 
-        mockServer.verify();
         assertThat(actual, is(expected));
     }
 
@@ -123,8 +122,6 @@ public class RestUserRepositoryTest {
         expectedException.expectMessage(containsString("Sorry, User server return an error"));
 
         userRepository.findUsersBySlackNames(slackNames);
-
-        mockServer.verify();
     }
 
     @Test
@@ -145,7 +142,6 @@ public class RestUserRepositoryTest {
 
         List<User> actual = userRepository.findUsersByUuids(uuids);
 
-        mockServer.verify();
         assertThat(actual, is(expected));
     }
 
@@ -167,7 +163,5 @@ public class RestUserRepositoryTest {
         expectedException.expectMessage(containsString("Sorry, User server return an error"));
 
         userRepository.findUsersByUuids(uuids);
-
-        mockServer.verify();
     }
 }

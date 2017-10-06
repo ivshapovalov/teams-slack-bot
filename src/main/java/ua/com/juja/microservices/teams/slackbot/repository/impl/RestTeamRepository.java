@@ -10,8 +10,9 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.exceptions.ApiError;
 import ua.com.juja.microservices.teams.slackbot.exceptions.TeamExchangeException;
-import ua.com.juja.microservices.teams.slackbot.model.Team;
-import ua.com.juja.microservices.teams.slackbot.model.TeamRequest;
+import ua.com.juja.microservices.teams.slackbot.model.teams.ActivateTeamRequest;
+import ua.com.juja.microservices.teams.slackbot.model.teams.DeactivateTeamRequest;
+import ua.com.juja.microservices.teams.slackbot.model.teams.Team;
 import ua.com.juja.microservices.teams.slackbot.repository.TeamRepository;
 import ua.com.juja.microservices.teams.slackbot.util.Utils;
 
@@ -38,11 +39,11 @@ public class RestTeamRepository implements TeamRepository {
     }
 
     @Override
-    public Team activateTeam(TeamRequest teamRequest) {
-        HttpEntity<TeamRequest> request = new HttpEntity<>(teamRequest, Utils.setupJsonHttpHeaders());
+    public Team activateTeam(ActivateTeamRequest activateTeamRequest) {
+        HttpEntity<ActivateTeamRequest> request = new HttpEntity<>(activateTeamRequest, Utils.setupJsonHttpHeaders());
         Team activatedTeam;
         try {
-            log.debug("Send 'Activate team' request '{}' to Teams service to url '{}'", teamRequest, teamsActivateTeamUrl);
+            log.debug("Send 'Activate team' request '{}' to Teams service to url '{}'", activateTeamRequest, teamsActivateTeamUrl);
             ResponseEntity<Team> response = restTemplate.exchange(teamsActivateTeamUrl,
                     HttpMethod.POST, request, Team.class);
             log.debug("Get 'Activate team' response '{}' from Teams service", response);
@@ -56,13 +57,12 @@ public class RestTeamRepository implements TeamRepository {
     }
 
     @Override
-    public Team deactivateTeam(String uuid) {
-        HttpEntity<TeamRequest> request = new HttpEntity<>(Utils.setupJsonHttpHeaders());
+    public Team deactivateTeam(DeactivateTeamRequest deactivateTeamRequest) {
+        HttpEntity<DeactivateTeamRequest> request = new HttpEntity<>(deactivateTeamRequest, Utils.setupJsonHttpHeaders());
         Team deactivatedTeam;
         try {
-            String teamsServiceURL = teamsDeactivateTeamUrl + "/" + uuid;
-            log.debug("Send 'Deactivate team' request to Teams service to url '{}'", teamsServiceURL);
-            ResponseEntity<Team> response = restTemplate.exchange(teamsServiceURL,
+            log.debug("Send 'Deactivate team' request to Teams service to url '{}'", teamsDeactivateTeamUrl);
+            ResponseEntity<Team> response = restTemplate.exchange(teamsDeactivateTeamUrl,
                     HttpMethod.PUT, request, Team.class);
             log.debug("Get 'Deactivate team' response '{}' from Teams service", response);
             deactivatedTeam = response.getBody();
@@ -76,7 +76,7 @@ public class RestTeamRepository implements TeamRepository {
 
     @Override
     public Team getTeam(String uuid) {
-        HttpEntity<TeamRequest> request = new HttpEntity<>(Utils.setupJsonHttpHeaders());
+        HttpEntity<ActivateTeamRequest> request = new HttpEntity<>(Utils.setupJsonHttpHeaders());
         Team team;
         try {
             String teamsServiceURL = teamsGetTeamUrl + "/" + uuid;

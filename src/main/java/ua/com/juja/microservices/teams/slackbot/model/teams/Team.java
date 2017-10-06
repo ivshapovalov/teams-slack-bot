@@ -1,8 +1,7 @@
-package ua.com.juja.microservices.teams.slackbot.model;
+package ua.com.juja.microservices.teams.slackbot.model.teams;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -16,29 +15,20 @@ import java.util.Set;
  */
 @ToString
 @Slf4j
+@AllArgsConstructor
 public class Team {
-
+    private final Set<String> members;
+    private String from;
     @Getter
-    @JsonProperty("id")
     private String id;
-    @JsonProperty("activateDate")
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ")
     private Date activateDate;
 
-    @JsonProperty("deactivateDate")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ")
     private Date deactivateDate;
-
-    @JsonProperty("members")
-    private final Set<String> members;
-
-    @JsonCreator
-    public Team(@JsonProperty("members") Set<String> members) {
-        this.members = members;
-    }
 
     public Set<String> getMembers() {
         return Collections.unmodifiableSet(members);
     }
-
 }

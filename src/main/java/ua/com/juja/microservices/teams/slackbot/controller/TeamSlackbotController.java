@@ -66,7 +66,7 @@ public class TeamSlackbotController {
         exceptionsHandler.setResponseUrl(responseUrl);
         if (isRequestCorrect(token, response, fromUser, responseUrl)) {
             sendInstantResponseMessage(response, ACTIVATE_TEAM_INSTANT_MESSAGE);
-            teamService.activateTeam(text);
+            teamService.activateTeam(fromUser,text);
             RichMessage message = new RichMessage(String.format(ACTIVATE_TEAM_DELAYED_MESSAGE, text));
             sendDelayedResponseMessage(responseUrl, message);
             log.info("'Activate team' command processed : fromUser: '{}', text: '{}', response_url: '{}' and sent " +
@@ -84,7 +84,7 @@ public class TeamSlackbotController {
         exceptionsHandler.setResponseUrl(responseUrl);
         if (isRequestCorrect(token, response, fromUser, responseUrl)) {
             sendInstantResponseMessage(response, String.format(DEACTIVATE_TEAM_INSTANT_MESSAGE, text));
-            Set<String> slackNames = teamService.deactivateTeam(text);
+            Set<String> slackNames = teamService.deactivateTeam(fromUser, text);
             RichMessage message = new RichMessage(String.format(DEACTIVATE_TEAM_DELAYED_MESSAGE,
                     slackNames.stream().sorted().collect(Collectors.joining(" "))));
             sendDelayedResponseMessage(responseUrl, message);

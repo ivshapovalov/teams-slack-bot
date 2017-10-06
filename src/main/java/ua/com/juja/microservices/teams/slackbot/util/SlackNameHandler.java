@@ -2,8 +2,9 @@ package ua.com.juja.microservices.teams.slackbot.util;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,15 +21,15 @@ public class SlackNameHandler {
      */
     private static final String SLACK_NAME_PATTERN = "@([a-zA-z0-9\\.\\_\\-]){1,21}";
 
-    public static List<String> getSlackNamesFromText(String text) {
-        log.debug("Before extract slackNames from text '{}", text);
-        List<String> slackNames = new ArrayList<>();
+    public static Set<String> getSlackNamesFromText(String text) {
+        log.debug("Before extract slackNames from text '{}'", text);
+        Set<String> slackNames = new LinkedHashSet<>();
         Pattern pattern = Pattern.compile(SLACK_NAME_PATTERN);
         Matcher matcher = pattern.matcher(text);
         while (matcher.find()) {
             slackNames.add(matcher.group());
         }
-        log.info("After extract slackNames '{}' from text '{}", slackNames.toString(), text);
+        log.info("After extract slackNames '{}' from text '{}'", slackNames.toString(), text);
         return slackNames;
     }
 
@@ -38,6 +39,14 @@ public class SlackNameHandler {
                 String slackName = slackNames.get(i);
                 slackNames.set(i, "@" + slackName);
             }
+        }
+    }
+
+    public static String addAtToSlackName(String slackName) {
+        if (!slackName.startsWith("@")) {
+            return "@" + slackName;
+        } else {
+            return slackName;
         }
     }
 }

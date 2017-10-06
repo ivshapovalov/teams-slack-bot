@@ -14,8 +14,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.exceptions.TeamExchangeException;
-import ua.com.juja.microservices.teams.slackbot.model.Team;
-import ua.com.juja.microservices.teams.slackbot.model.TeamRequest;
+import ua.com.juja.microservices.teams.slackbot.model.teams.DeactivateTeamRequest;
+import ua.com.juja.microservices.teams.slackbot.model.teams.Team;
+import ua.com.juja.microservices.teams.slackbot.model.teams.ActivateTeamRequest;
 import ua.com.juja.microservices.teams.slackbot.repository.TeamRepository;
 import ua.com.juja.microservices.utils.TestUtils;
 
@@ -41,7 +42,6 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class RestTeamRepositoryTest {
-
     @Rule
     public final ExpectedException expectedException = ExpectedException.none();
     @Inject
@@ -63,12 +63,12 @@ public class RestTeamRepositoryTest {
 
     @Test
     public void activateTeamSendRequestToRemoteTeamsServerAndReturnActivatedTeamExecutedCorrectly() throws IOException {
-
+        String uuidFrom = "uuid-from";
         Set<String> members = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4"));
-        TeamRequest teamRequest = new TeamRequest(members);
+        ActivateTeamRequest activateTeamRequest = new ActivateTeamRequest(uuidFrom, members);
 
         String expectedJsonRequestBody = TestUtils.convertToString(ResourceUtils.resource
-                ("request/requestTeamRepositoryActivateTeamIfUsersNotInActiveTeam.json"));
+                ("request/requestTeamRepositoryActivateTeamIfUsersNotInActiveTeamAndFromUserNotInText.json"));
         String expectedJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
                 ("response/responseTeamRepositoryActivateTeamIfUsersNotInActiveTeam.json"));
         String expectedRequestHeader = "application/json";
@@ -78,34 +78,33 @@ public class RestTeamRepositoryTest {
                 .andExpect(request -> assertThat(request.getBody().toString(), equalTo(expectedJsonRequestBody)))
                 .andRespond(withSuccess(expectedJsonResponseBody, MediaType.APPLICATION_JSON));
 
-        Team actual = teamRepository.activateTeam(teamRequest);
+        Team actual = teamRepository.activateTeam(activateTeamRequest);
 
-        mockServer.verify();
         assertNotNull(actual);
         assertThat(actual.getMembers(), is(members));
     }
 
     @Test
     public void activateTeamSendRequestToRemoteTeamsServerWhichReturnsErrorThrowsException() throws IOException {
-
+        String uuidFrom = "uuid-from";
         Set<String> members = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4"));
-        TeamRequest teamRequest = new TeamRequest(members);
+        ActivateTeamRequest activateTeamRequest = new ActivateTeamRequest(uuidFrom, members);
         String expectedJsonRequestBody = TestUtils.convertToString(ResourceUtils.resource
-                ("request/requestTeamRepositoryActivateTeamIfUsersNotInActiveTeam.json"));
+                ("request/requestTeamRepositoryActivateTeamIfUsersNotInActiveTeamAndFromUserNotInText.json"));
         String expectedJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
                 ("response/responseTeamRepositoryActivateTeamIfUsersInActiveTeamThrowsException.json"));
         String expectedRequestHeader = "application/json";
+
         mockServer.expect(requestTo(teamsActivateTeamUrl))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(request -> assertThat(request.getHeaders().getContentType().toString(), containsString(expectedRequestHeader)))
+                .andExpect(request -> assertThat(request.getHeaders().getContentType().toString(),
+                        containsString(expectedRequestHeader)))
                 .andExpect(request -> assertThat(request.getBody().toString(), equalTo(expectedJsonRequestBody)))
                 .andRespond(withBadRequest().body(expectedJsonResponseBody));
         expectedException.expect(TeamExchangeException.class);
         expectedException.expectMessage(containsString("Sorry, but the user already exists in team"));
 
-        teamRepository.activateTeam(teamRequest);
-
-        mockServer.verify();
+        teamRepository.activateTeam(activateTeamRequest);
     }
 
     @Test
@@ -121,7 +120,6 @@ public class RestTeamRepositoryTest {
 
         Team actual = teamRepository.getTeam(uuid);
 
-        mockServer.verify();
         assertNotNull(actual);
         assertThat(actual.getMembers(), is(expected));
     }
@@ -138,8 +136,6 @@ public class RestTeamRepositoryTest {
         expectedException.expectMessage(containsString("You cannot get/deactivate team if the user not a member of any team!"));
 
         teamRepository.getTeam(uuid);
-
-        mockServer.verify();
     }
 
     @Test
@@ -156,48 +152,43 @@ public class RestTeamRepositoryTest {
         expectedException.expectMessage(containsString("I'm, sorry. I cannot parse api error message from remote service :("));
 
         teamRepository.getTeam(uuid);
-
-        mockServer.verify();
     }
 
     @Test
     public void deactivateTeamSendRequestToRemoteTeamsServerAndReturnDeactivatedTeamExecutedCorrectly() throws
             IOException {
-        String uuid = "uuid";
-        String teamsServiceURL = teamsDeactivateTeamUrl + "/" + uuid;
-
+        String uuidFrom = "uuid-from";
+        String uuid ="uuid2";
+        DeactivateTeamRequest deactivateTeamRequest = new DeactivateTeamRequest(uuidFrom, uuid);
         Set<String> expected = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4"));
 
         String expectedJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
                 ("response/responseTeamRepositoryGetAndDeactivateTeamIfUsersInActiveTeam.json"));
-        mockServer.expect(requestTo(teamsServiceURL))
+        mockServer.expect(requestTo(teamsDeactivateTeamUrl))
                 .andExpect(method(HttpMethod.PUT))
                 .andRespond(withSuccess(expectedJsonResponseBody, MediaType.APPLICATION_JSON));
 
-        Team actual = teamRepository.deactivateTeam(uuid);
+        Team actual = teamRepository.deactivateTeam(deactivateTeamRequest);
 
-        mockServer.verify();
         assertNotNull(actual);
         assertThat(actual.getMembers(), is(expected));
     }
 
     @Test
     public void deactivateTeamSendRequestToRemoteTeamsServerWhichReturnsErrorThrowsException() throws IOException {
-        String uuid = "uuid";
-
-        String teamsServiceURL = teamsDeactivateTeamUrl + "/" + uuid;
+        String uuidFrom = "uuid-from";
+        String uuid ="uuid2";
+        DeactivateTeamRequest deactivateTeamRequest = new DeactivateTeamRequest(uuidFrom, uuid);
 
         String expectedJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
                 ("response/responseTeamRepositoryGetAndDeactivateTeamIfUsersNotInActiveTeamThrowsException.json"));
-        mockServer.expect(requestTo(teamsServiceURL))
+        mockServer.expect(requestTo(teamsDeactivateTeamUrl))
                 .andExpect(method(HttpMethod.PUT))
                 .andRespond(withBadRequest().body(expectedJsonResponseBody));
 
         expectedException.expect(TeamExchangeException.class);
         expectedException.expectMessage(containsString("You cannot get/deactivate team if the user not a member of any team!"));
 
-        teamRepository.deactivateTeam(uuid);
-
-        mockServer.verify();
+        teamRepository.deactivateTeam(deactivateTeamRequest);
     }
 }

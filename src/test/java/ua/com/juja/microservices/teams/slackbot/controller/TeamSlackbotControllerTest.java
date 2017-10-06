@@ -1,7 +1,6 @@
 package ua.com.juja.microservices.teams.slackbot.controller;
 
 import me.ramswaroop.jbot.core.slack.models.RichMessage;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -15,13 +14,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.exceptions.ExceptionsHandler;
-import ua.com.juja.microservices.teams.slackbot.model.Team;
-import ua.com.juja.microservices.teams.slackbot.model.User;
+import ua.com.juja.microservices.teams.slackbot.model.teams.Team;
 import ua.com.juja.microservices.teams.slackbot.service.TeamService;
 import ua.com.juja.microservices.utils.SlackUrlUtils;
 
 import javax.inject.Inject;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -85,22 +85,9 @@ public class TeamSlackbotControllerTest {
     @MockBean
     private RestTemplate restTemplate;
 
-    private User user1;
-    private User user2;
-    private User user3;
-    private User user4;
-
-    @Before
-    public void setup() {
-        user1 = new User("uuid1", "@slack1");
-        user2 = new User("uuid2", "@slack2");
-        user3 = new User("uuid3", "@slack3");
-        user4 = new User("uuid4", "@slack4");
-    }
-
     @Test
     public void onReceiveAllSlashCommandsWhenIncorrectTokenShouldReturnSorryMessage() throws Exception {
-        final String commandText = user1.getSlack();
+        final String commandText = "@slack1";
         String responseUrl = "http://example.com";
         List<String> urls = Arrays.asList(
                 teamsSlackbotActivateTeamUrl,
@@ -124,7 +111,7 @@ public class TeamSlackbotControllerTest {
 
     @Test
     public void onReceiveAllSlashCommandsWhenAnyParamIsNullShouldReturnSorryMessage() throws Exception {
-        final String commandText = user1.getSlack();
+        final String commandText = "@slack1";
         String responseUrl = "";
         List<String> urls = Arrays.asList(
                 teamsSlackbotActivateTeamUrl,
@@ -148,13 +135,12 @@ public class TeamSlackbotControllerTest {
 
     @Test
     public void onReceiveSlashCommandActivateTeamWhenAllCorrectShouldReturnOkMessage() throws Exception {
-        final String commandText = String.format("%s %s %s %s", user1.getSlack(), user2.getSlack(), user3.getSlack(),
-                user4.getSlack());
-        Set<String> members = new LinkedHashSet<>(Arrays.asList(user1.getUuid(), user2.getUuid(),
-                user3.getUuid(), user4.getUuid()));
-        Team activatedTeam = new Team(members);
+        String from = "@slack-from";
+        final String commandText = "@slack1 @slack2 @slack3 @slack4";
+        Set<String> members = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4"));
+        Team activatedTeam = new Team(members, "uuid-from", "id", new Date(), new Date());
         String responseUrl = "http://example.com";
-        when(teamService.activateTeam(commandText)).thenReturn(activatedTeam);
+        when(teamService.activateTeam(from, commandText)).thenReturn(activatedTeam);
         when(restTemplate.postForObject(eq(responseUrl), any(RichMessage.class), eq(String.class))).thenReturn("");
 
         mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
@@ -164,7 +150,7 @@ public class TeamSlackbotControllerTest {
                 .andExpect(content().string(ACTIVATE_TEAM_INSTANT_MESSAGE));
 
         verify(exceptionsHandler).setResponseUrl(responseUrl);
-        verify(teamService).activateTeam(commandText);
+        verify(teamService).activateTeam(from, commandText);
         ArgumentCaptor<RichMessage> captor = ArgumentCaptor.forClass(RichMessage.class);
         verify(restTemplate).postForObject(eq(responseUrl), captor.capture(), eq(String.class));
         assertTrue(captor.getValue().getText().contains(String.format(ACTIVATE_TEAM_DELAYED_MESSAGE, commandText)));
@@ -173,9 +159,8 @@ public class TeamSlackbotControllerTest {
 
     @Test
     public void onReceiveSlashCommandGetTeamWhenAllCorrectShouldReturnOkMessage() throws Exception {
-        final String commandText = user2.getSlack();
-        Set<String> slackNames = new LinkedHashSet<>(Arrays.asList(user1.getSlack(), user2.getSlack(),
-                user3.getSlack(), user4.getSlack()));
+        final String commandText = "@slack2";
+        Set<String> slackNames = new LinkedHashSet<>(Arrays.asList("@slack1", "@slack2", "@slack3", "@slack4"));
         String responseUrl = "http://example.com";
         when(teamService.getTeam(commandText)).thenReturn(slackNames);
         when(restTemplate.postForObject(eq(responseUrl), any(RichMessage.class), eq(String.class))).thenReturn("");
@@ -185,7 +170,7 @@ public class TeamSlackbotControllerTest {
                         commandText, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
-                .andExpect(content().string(String.format(GET_TEAM_INSTANT_MESSAGE, user2.getSlack())));
+                .andExpect(content().string(String.format(GET_TEAM_INSTANT_MESSAGE, "@slack2")));
 
         verify(exceptionsHandler).setResponseUrl(responseUrl);
         verify(teamService).getTeam(commandText);
@@ -198,17 +183,16 @@ public class TeamSlackbotControllerTest {
 
     @Test
     public void onReceiveSlashCommandGetMyTeamWhenAllCorrectShouldReturnOkMessage() throws Exception {
-        final String fromUser = "from-user";
-        final String fromUserWithAt = "@from-user";
-        Set<String> slackNames = new LinkedHashSet<>(Arrays.asList(user1.getSlack(), user2.getSlack(),
-                user3.getSlack(), user4.getSlack()));
+        final String from = "slack-from";
+        final String fromUserWithAt = "@slack-from";
+        Set<String> slackNames = new LinkedHashSet<>(Arrays.asList("@slack1", "@slack2", "@slack3", "@slack4"));
         String responseUrl = "http://example.com";
         when(teamService.getTeam(fromUserWithAt)).thenReturn(slackNames);
         when(restTemplate.postForObject(eq(responseUrl), any(RichMessage.class), eq(String.class))).thenReturn("");
 
         mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotGetMyTeamUrl),
                 SlackUrlUtils.getUriVars("slashCommandToken", "/myteam",
-                        fromUser, responseUrl))
+                        from, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
                 .andExpect(content().string(String.format(GET_MY_TEAM_INSTANT_MESSAGE, fromUserWithAt)));
@@ -224,11 +208,11 @@ public class TeamSlackbotControllerTest {
 
     @Test
     public void onReceiveSlashCommandDeactivateTeamWhenAllCorrectShouldReturnOkMessage() throws Exception {
-        final String commandText = user1.getSlack();
-        Set<String> slackNames = new LinkedHashSet<>(Arrays.asList(user1.getSlack(), user2.getSlack(),
-                user3.getSlack(), user4.getSlack()));
+        final String from = "@slack-from";
+        final String commandText = "@slack1";
+        Set<String> slackNames = new LinkedHashSet<>(Collections.singletonList("@slack1"));
         String responseUrl = "http://example.com";
-        when(teamService.deactivateTeam(commandText)).thenReturn(slackNames);
+        when(teamService.deactivateTeam(from, commandText)).thenReturn(slackNames);
         when(restTemplate.postForObject(eq(responseUrl), any(RichMessage.class), eq(String.class))).thenReturn("");
 
         mvc.perform(MockMvcRequestBuilders.post(SlackUrlUtils.getUrlTemplate(teamsSlackbotDeactivateTeamUrl),
@@ -236,10 +220,10 @@ public class TeamSlackbotControllerTest {
                         commandText, responseUrl))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
-                .andExpect(content().string(String.format(DEACTIVATE_TEAM_INSTANT_MESSAGE, user1.getSlack())));
+                .andExpect(content().string(String.format(DEACTIVATE_TEAM_INSTANT_MESSAGE, "@slack1")));
 
         verify(exceptionsHandler).setResponseUrl(responseUrl);
-        verify(teamService).deactivateTeam(commandText);
+        verify(teamService).deactivateTeam(from, commandText);
         ArgumentCaptor<RichMessage> captor = ArgumentCaptor.forClass(RichMessage.class);
         verify(restTemplate).postForObject(eq(responseUrl), captor.capture(), eq(String.class));
         assertTrue(captor.getValue().getText().contains(String.format(DEACTIVATE_TEAM_DELAYED_MESSAGE,

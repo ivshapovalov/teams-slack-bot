@@ -5,7 +5,7 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
-import ua.com.juja.microservices.teams.slackbot.model.User;
+import ua.com.juja.microservices.teams.slackbot.model.users.User;
 import ua.com.juja.microservices.teams.slackbot.repository.UserRepository;
 
 import javax.inject.Inject;
@@ -34,8 +34,8 @@ public class UserServiceImplTest {
 
     @Test
     public void findUsersBySlackNamesExecutedCorrectly() throws Exception {
-        List<String> slackNamesRequest = Arrays.asList("@user11", "@user22");
-        List<User> expected = Arrays.asList(new User("uuid1", "@user11"),
+        List<String> slackNamesRequest = Arrays.asList("@user1", "@user2");
+        List<User> expected = Arrays.asList(new User("uuid1", "@user1"),
                 new User("uuid2", "user2"));
         given(userRepository.findUsersBySlackNames(slackNamesRequest)).willReturn(expected);
 

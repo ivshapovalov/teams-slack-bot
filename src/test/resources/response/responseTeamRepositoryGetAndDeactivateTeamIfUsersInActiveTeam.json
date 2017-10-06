@@ -1,4 +1,5 @@
 {
+  "from": "uuid-from",
   "members": [
     "uuid1",
     "uuid2",
