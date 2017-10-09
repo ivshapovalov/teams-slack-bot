@@ -1,5 +1,6 @@
 package ua.com.juja.microservices.teams.slackbot.repository.impl;
 
+import com.netflix.discovery.EurekaClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -23,7 +24,7 @@ import javax.inject.Inject;
  */
 @Repository
 @Slf4j
-public class RestTeamRepository implements TeamRepository {
+public class RestTeamRepository extends RestRepository implements TeamRepository {
 
     private final RestTemplate restTemplate;
     @Value("${teams.endpoint.activateTeam}")
@@ -34,17 +35,19 @@ public class RestTeamRepository implements TeamRepository {
     private String teamsGetTeamUrl;
 
     @Inject
-    public RestTeamRepository(RestTemplate restTemplate) {
+    public RestTeamRepository(RestTemplate restTemplate, EurekaClient eurekaClient) {
+        super(eurekaClient);
         this.restTemplate = restTemplate;
     }
 
     @Override
     public Team activateTeam(ActivateTeamRequest activateTeamRequest) {
+        String fullTeamsActivateTeamUrl = discovery(teamsActivateTeamUrl);
         HttpEntity<ActivateTeamRequest> request = new HttpEntity<>(activateTeamRequest, Utils.setupJsonHttpHeaders());
         Team activatedTeam;
         try {
-            log.debug("Send 'Activate team' request '{}' to Teams service to url '{}'", activateTeamRequest, teamsActivateTeamUrl);
-            ResponseEntity<Team> response = restTemplate.exchange(teamsActivateTeamUrl,
+            log.debug("Send 'Activate team' request '{}' to Teams service to url '{}'", activateTeamRequest, fullTeamsActivateTeamUrl);
+            ResponseEntity<Team> response = restTemplate.exchange(fullTeamsActivateTeamUrl,
                     HttpMethod.POST, request, Team.class);
             log.debug("Get 'Activate team' response '{}' from Teams service", response);
             activatedTeam = response.getBody();
@@ -58,11 +61,12 @@ public class RestTeamRepository implements TeamRepository {
 
     @Override
     public Team deactivateTeam(DeactivateTeamRequest deactivateTeamRequest) {
+        String fullTeamsDeactivateTeamUrl = discovery(teamsDeactivateTeamUrl);
         HttpEntity<DeactivateTeamRequest> request = new HttpEntity<>(deactivateTeamRequest, Utils.setupJsonHttpHeaders());
         Team deactivatedTeam;
         try {
-            log.debug("Send 'Deactivate team' request to Teams service to url '{}'", teamsDeactivateTeamUrl);
-            ResponseEntity<Team> response = restTemplate.exchange(teamsDeactivateTeamUrl,
+            log.debug("Send 'Deactivate team' request to Teams service to url '{}'", fullTeamsDeactivateTeamUrl);
+            ResponseEntity<Team> response = restTemplate.exchange(fullTeamsDeactivateTeamUrl,
                     HttpMethod.PUT, request, Team.class);
             log.debug("Get 'Deactivate team' response '{}' from Teams service", response);
             deactivatedTeam = response.getBody();
@@ -76,12 +80,12 @@ public class RestTeamRepository implements TeamRepository {
 
     @Override
     public Team getTeam(String uuid) {
+        String fullTeamsGetTeamUrl = discovery(teamsGetTeamUrl) + "/" + uuid;
         HttpEntity<ActivateTeamRequest> request = new HttpEntity<>(Utils.setupJsonHttpHeaders());
         Team team;
         try {
-            String teamsServiceURL = teamsGetTeamUrl + "/" + uuid;
-            log.debug("Send 'Get team' request to Teams service to url '{}'", teamsServiceURL);
-            ResponseEntity<Team> response = restTemplate.exchange(teamsServiceURL,
+            log.debug("Send 'Get team' request to Teams service to url '{}'", fullTeamsGetTeamUrl);
+            ResponseEntity<Team> response = restTemplate.exchange(fullTeamsGetTeamUrl,
                     HttpMethod.GET, request, Team.class);
             log.debug("Get 'Get team' response '{}' from Teams service", response);
             team = response.getBody();

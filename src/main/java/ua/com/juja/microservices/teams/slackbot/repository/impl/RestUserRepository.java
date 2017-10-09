@@ -1,5 +1,6 @@
 package ua.com.juja.microservices.teams.slackbot.repository.impl;
 
+import com.netflix.discovery.EurekaClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
@@ -28,7 +29,7 @@ import java.util.List;
 @Repository
 @Slf4j
 @Profile({"production", "default"})
-public class RestUserRepository implements UserRepository {
+public class RestUserRepository extends RestRepository implements UserRepository {
     private final RestTemplate restTemplate;
     @Value("${users.endpoint.usersBySlackNames}")
     private String usersUrlFindUsersBySlackNames;
@@ -36,25 +37,28 @@ public class RestUserRepository implements UserRepository {
     private String usersUrlFindUsersByUuids;
 
     @Inject
-    public RestUserRepository(RestTemplate restTemplate) {
+    public RestUserRepository(RestTemplate restTemplate, EurekaClient eurekaClient) {
+        super(eurekaClient);
         this.restTemplate = restTemplate;
     }
 
     @Override
     public List<User> findUsersBySlackNames(List<String> slackNames) {
+        String fullUsersUrlFindUsersBySlackNames = discovery(usersUrlFindUsersBySlackNames);
         SlackNameHandler.addAtToSlackNames(slackNames);
         UserSlackNameRequest userSlackNameRequest = new UserSlackNameRequest(slackNames);
         HttpEntity<UserSlackNameRequest> request = new HttpEntity<>(userSlackNameRequest, Utils.setupJsonHttpHeaders());
-        List<User> users = getUsers(request, usersUrlFindUsersBySlackNames);
+        List<User> users = getUsers(request, fullUsersUrlFindUsersBySlackNames);
         log.info("Found Users: '{}' by slackNames: '{}'", users, slackNames);
         return users;
     }
 
     @Override
     public List<User> findUsersByUuids(List<String> uuids) {
+        String fullUsersUrlFindUsersByUuids = discovery(usersUrlFindUsersByUuids);
         UserUuidRequest userUuidRequest = new UserUuidRequest(uuids);
         HttpEntity<UserUuidRequest> request = new HttpEntity<>(userUuidRequest, Utils.setupJsonHttpHeaders());
-        List<User> users = getUsers(request, usersUrlFindUsersByUuids);
+        List<User> users = getUsers(request, fullUsersUrlFindUsersByUuids);
         log.info("Found Users:{} by uuids: '{}'", users, uuids);
         return users;
     }
