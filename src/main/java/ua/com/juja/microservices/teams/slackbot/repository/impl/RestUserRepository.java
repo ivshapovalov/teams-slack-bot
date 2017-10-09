@@ -44,7 +44,7 @@ public class RestUserRepository extends RestRepository implements UserRepository
 
     @Override
     public List<User> findUsersBySlackNames(List<String> slackNames) {
-        String fullUsersUrlFindUsersBySlackNames = discovery(usersUrlFindUsersBySlackNames);
+        String fullUsersUrlFindUsersBySlackNames = getCommandGatewayUrl(usersUrlFindUsersBySlackNames);
         SlackNameHandler.addAtToSlackNames(slackNames);
         UserSlackNameRequest userSlackNameRequest = new UserSlackNameRequest(slackNames);
         HttpEntity<UserSlackNameRequest> request = new HttpEntity<>(userSlackNameRequest, Utils.setupJsonHttpHeaders());
@@ -55,7 +55,7 @@ public class RestUserRepository extends RestRepository implements UserRepository
 
     @Override
     public List<User> findUsersByUuids(List<String> uuids) {
-        String fullUsersUrlFindUsersByUuids = discovery(usersUrlFindUsersByUuids);
+        String fullUsersUrlFindUsersByUuids = getCommandGatewayUrl(usersUrlFindUsersByUuids);
         UserUuidRequest userUuidRequest = new UserUuidRequest(uuids);
         HttpEntity<UserUuidRequest> request = new HttpEntity<>(userUuidRequest, Utils.setupJsonHttpHeaders());
         List<User> users = getUsers(request, fullUsersUrlFindUsersByUuids);

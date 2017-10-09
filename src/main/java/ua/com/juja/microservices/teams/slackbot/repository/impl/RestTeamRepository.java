@@ -42,7 +42,7 @@ public class RestTeamRepository extends RestRepository implements TeamRepository
 
     @Override
     public Team activateTeam(ActivateTeamRequest activateTeamRequest) {
-        String fullTeamsActivateTeamUrl = discovery(teamsActivateTeamUrl);
+        String fullTeamsActivateTeamUrl = getCommandGatewayUrl(teamsActivateTeamUrl);
         HttpEntity<ActivateTeamRequest> request = new HttpEntity<>(activateTeamRequest, Utils.setupJsonHttpHeaders());
         Team activatedTeam;
         try {
@@ -61,7 +61,7 @@ public class RestTeamRepository extends RestRepository implements TeamRepository
 
     @Override
     public Team deactivateTeam(DeactivateTeamRequest deactivateTeamRequest) {
-        String fullTeamsDeactivateTeamUrl = discovery(teamsDeactivateTeamUrl);
+        String fullTeamsDeactivateTeamUrl = getCommandGatewayUrl(teamsDeactivateTeamUrl);
         HttpEntity<DeactivateTeamRequest> request = new HttpEntity<>(deactivateTeamRequest, Utils.setupJsonHttpHeaders());
         Team deactivatedTeam;
         try {
@@ -80,7 +80,7 @@ public class RestTeamRepository extends RestRepository implements TeamRepository
 
     @Override
     public Team getTeam(String uuid) {
-        String fullTeamsGetTeamUrl = discovery(teamsGetTeamUrl) + "/" + uuid;
+        String fullTeamsGetTeamUrl = getCommandGatewayUrl(teamsGetTeamUrl) + "/" + uuid;
         HttpEntity<ActivateTeamRequest> request = new HttpEntity<>(Utils.setupJsonHttpHeaders());
         Team team;
         try {

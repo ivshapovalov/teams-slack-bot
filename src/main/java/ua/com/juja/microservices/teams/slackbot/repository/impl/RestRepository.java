@@ -18,7 +18,7 @@ public class RestRepository {
         this.eurekaClient = eurekaClient;
     }
 
-    protected String discovery(String endPointUrl) {
+    protected String getCommandGatewayUrl(String endPointUrl) {
         Application gateway = eurekaClient.getApplication(gatewayName);
         InstanceInfo gatewayInfo = gateway.getInstances().get(0);
         String gatewayHost = gatewayInfo.getHostName();
