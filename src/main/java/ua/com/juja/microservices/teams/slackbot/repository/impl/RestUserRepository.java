@@ -1,8 +1,8 @@
 package ua.com.juja.microservices.teams.slackbot.repository.impl;
 
-import com.netflix.discovery.EurekaClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -37,8 +37,8 @@ public class RestUserRepository extends RestRepository implements UserRepository
     private String usersUrlFindUsersByUuids;
 
     @Inject
-    public RestUserRepository(RestTemplate restTemplate, EurekaClient eurekaClient) {
-        super(eurekaClient);
+    public RestUserRepository(RestTemplate restTemplate, DiscoveryClient discoveryClient) {
+        super(discoveryClient);
         this.restTemplate = restTemplate;
     }
 

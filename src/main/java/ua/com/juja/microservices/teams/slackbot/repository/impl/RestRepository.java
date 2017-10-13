@@ -1,29 +1,32 @@
 package ua.com.juja.microservices.teams.slackbot.repository.impl;
 
-import com.netflix.appinfo.InstanceInfo;
-import com.netflix.discovery.EurekaClient;
-import com.netflix.discovery.shared.Application;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
+
+import java.util.List;
 
 /**
  * @author Ivan Shapovalov
  */
-public class RestRepository {
+public abstract class RestRepository {
 
-    protected final EurekaClient eurekaClient;
+    protected final DiscoveryClient discoveryClient;
     @Value("${gateway.name}")
     private String gatewayName;
 
-    public RestRepository(EurekaClient eurekaClient) {
-        this.eurekaClient = eurekaClient;
+    public RestRepository(DiscoveryClient discoveryClient) {
+        this.discoveryClient = discoveryClient;
     }
 
     protected String getCommandGatewayUrl(String endPointUrl) {
-        Application gateway = eurekaClient.getApplication(gatewayName);
-        InstanceInfo gatewayInfo = gateway.getInstances().get(0);
-        String gatewayHost = gatewayInfo.getHostName();
+        List<ServiceInstance> instances = discoveryClient.getInstances(gatewayName);
+        if (instances == null || instances.size() == 0) {
+            throw new RuntimeException(String.format("Eureka may be not contain %s instance", gatewayName));
+        }
+        ServiceInstance gatewayInfo = instances.get(0);
+        String gatewayHost = gatewayInfo.getHost();
         int gatewayPort = gatewayInfo.getPort();
-        String gatewayFullUrl = "http://" + gatewayHost + ":" + gatewayPort + endPointUrl;
-        return gatewayFullUrl;
+        return "http://" + gatewayHost + ":" + gatewayPort + endPointUrl;
     }
 }
