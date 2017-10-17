@@ -46,6 +46,21 @@ public class Utils {
         }
     }
 
+    public static ApiError convertToApiError(String message) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return mapper.readValue(message, ApiError.class);
+        } catch (IOException e) {
+            return new ApiError(
+                    500, "BotInternalError",
+                    "I'm, sorry. I cannot parse api error message from remote service :(",
+                    "Cannot parse api error message from remote service",
+                    e.getMessage(),
+                    Collections.singletonList(message)
+            );
+        }
+    }
+
     private static String listToStringWithDelimeter(Set<String> list, String delimeter) {
         return list.stream().collect(Collectors.joining(delimeter));
     }

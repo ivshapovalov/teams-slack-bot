@@ -1,14 +1,10 @@
 package ua.com.juja.microservices.teams.slackbot.repository.impl;
 
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.exceptions.ApiError;
 import ua.com.juja.microservices.teams.slackbot.exceptions.TeamExchangeException;
 import ua.com.juja.microservices.teams.slackbot.model.teams.ActivateTeamRequest;
@@ -24,9 +20,8 @@ import javax.inject.Inject;
  */
 @Repository
 @Slf4j
-public class RestTeamRepository extends RestRepository implements TeamRepository {
+public class RestTeamRepository implements TeamRepository {
 
-    private final RestTemplate restTemplate;
     @Value("${teams.endpoint.activateTeam}")
     private String teamsActivateTeamUrl;
     @Value("${teams.endpoint.deactivateTeam}")
@@ -35,24 +30,20 @@ public class RestTeamRepository extends RestRepository implements TeamRepository
     private String teamsGetTeamUrl;
 
     @Inject
-    public RestTeamRepository(RestTemplate restTemplate, DiscoveryClient discoveryClient) {
-        super(discoveryClient);
-        this.restTemplate = restTemplate;
-    }
+    private GatewayClient gatewayClient;
 
     @Override
     public Team activateTeam(ActivateTeamRequest activateTeamRequest) {
-        String fullTeamsActivateTeamUrl = getCommandGatewayUrl(teamsActivateTeamUrl);
-        HttpEntity<ActivateTeamRequest> request = new HttpEntity<>(activateTeamRequest, Utils.setupJsonHttpHeaders());
         Team activatedTeam;
         try {
-            log.debug("Send 'Activate team' request '{}' to Teams service to url '{}'", activateTeamRequest, fullTeamsActivateTeamUrl);
-            ResponseEntity<Team> response = restTemplate.exchange(fullTeamsActivateTeamUrl,
-                    HttpMethod.POST, request, Team.class);
-            log.debug("Get 'Activate team' response '{}' from Teams service", response);
-            activatedTeam = response.getBody();
+            log.debug("Send 'Activate team' request '{}' to Teams service to url '{}'", activateTeamRequest, teamsActivateTeamUrl);
+            activatedTeam = gatewayClient.activateTeam(activateTeamRequest);
+            log.debug("Get 'Activate team' response '{}' from Teams service", activatedTeam);
         } catch (HttpClientErrorException ex) {
             ApiError error = Utils.convertToApiError(ex);
+            throw new TeamExchangeException(error, ex);
+        } catch (FeignException ex) {
+            ApiError error = Utils.convertToApiError(ex.getMessage().substring(ex.getMessage().indexOf("content:") + 8));
             throw new TeamExchangeException(error, ex);
         }
         log.info("Team activated: '{}'", activatedTeam.getId());
@@ -61,17 +52,16 @@ public class RestTeamRepository extends RestRepository implements TeamRepository
 
     @Override
     public Team deactivateTeam(DeactivateTeamRequest deactivateTeamRequest) {
-        String fullTeamsDeactivateTeamUrl = getCommandGatewayUrl(teamsDeactivateTeamUrl);
-        HttpEntity<DeactivateTeamRequest> request = new HttpEntity<>(deactivateTeamRequest, Utils.setupJsonHttpHeaders());
         Team deactivatedTeam;
         try {
-            log.debug("Send 'Deactivate team' request to Teams service to url '{}'", fullTeamsDeactivateTeamUrl);
-            ResponseEntity<Team> response = restTemplate.exchange(fullTeamsDeactivateTeamUrl,
-                    HttpMethod.PUT, request, Team.class);
-            log.debug("Get 'Deactivate team' response '{}' from Teams service", response);
-            deactivatedTeam = response.getBody();
+            log.debug("Send 'Deactivate team' request to Teams service to url '{}'", teamsDeactivateTeamUrl);
+            deactivatedTeam = gatewayClient.deactivateTeam(deactivateTeamRequest);
+            log.debug("Get 'Deactivate team' response '{}' from Teams service", deactivatedTeam);
         } catch (HttpClientErrorException ex) {
             ApiError error = Utils.convertToApiError(ex);
+            throw new TeamExchangeException(error, ex);
+        } catch (FeignException ex) {
+            ApiError error = Utils.convertToApiError(ex.getMessage().substring(ex.getMessage().indexOf("content:") + 8));
             throw new TeamExchangeException(error, ex);
         }
         log.info("Team deactivated: '{}'", deactivatedTeam.getId());
@@ -80,17 +70,16 @@ public class RestTeamRepository extends RestRepository implements TeamRepository
 
     @Override
     public Team getTeam(String uuid) {
-        String fullTeamsGetTeamUrl = getCommandGatewayUrl(teamsGetTeamUrl) + "/" + uuid;
-        HttpEntity<ActivateTeamRequest> request = new HttpEntity<>(Utils.setupJsonHttpHeaders());
         Team team;
         try {
-            log.debug("Send 'Get team' request to Teams service to url '{}'", fullTeamsGetTeamUrl);
-            ResponseEntity<Team> response = restTemplate.exchange(fullTeamsGetTeamUrl,
-                    HttpMethod.GET, request, Team.class);
-            log.debug("Get 'Get team' response '{}' from Teams service", response);
-            team = response.getBody();
+            log.debug("Send 'Get team' request to Teams service to url '{}'", teamsGetTeamUrl);
+            team = gatewayClient.getTeam(uuid);
+            log.debug("Get 'Get team' response '{}' from Teams service", team);
         } catch (HttpClientErrorException ex) {
             ApiError error = Utils.convertToApiError(ex);
+            throw new TeamExchangeException(error, ex);
+        } catch (FeignException ex) {
+            ApiError error = Utils.convertToApiError(ex.getMessage().substring(ex.getMessage().indexOf("content:") + 8));
             throw new TeamExchangeException(error, ex);
         }
         log.info("Team got: '{}'", team.getId());

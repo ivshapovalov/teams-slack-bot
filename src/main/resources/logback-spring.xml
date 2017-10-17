@@ -28,6 +28,10 @@
         <appender-ref ref="Console-Appender"/>
         <appender-ref ref="RollingFile-Appender"/>
     </logger>
+    <logger name="c.netflix" level="DEBUG" additivity="false">
+        <appender-ref ref="Console-Appender"/>
+        <appender-ref ref="RollingFile-Appender"/>
+    </logger>
 
     <root level="INFO" additivity="false">
         <appender-ref ref="Console-Appender"/>

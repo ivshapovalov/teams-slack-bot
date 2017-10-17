@@ -73,6 +73,8 @@ dependencies {
     compile('org.springframework.boot:spring-boot-starter-aop')
 
     compile('org.springframework.cloud:spring-cloud-starter-eureka-server')
+    compile 'org.springframework.cloud:spring-cloud-starter-feign'
+    compile group: 'com.netflix.feign', name: 'feign-httpclient', version: '8.18.0'
 
     compile 'org.apache.httpcomponents:httpclient:4.5.3'
     compile 'javax.inject:javax.inject:1'
@@ -80,6 +82,7 @@ dependencies {
     compile group: 'org.aspectj', name: 'aspectjrt', version: '1.7.3'
 
     compile 'me.ramswaroop.jbot:jbot:3.0.2'
+    testCompile group: 'org.springframework.boot', name: 'spring-boot-test', version: '1.4.0.RELEASE'
     testCompile 'org.springframework.boot:spring-boot-starter-test'
     testCompile 'net.javacrumbs.json-unit:json-unit-fluent:1.19.0'
     testCompile group: 'org.powermock', name: 'powermock-api-mockito', version: '1.7.1'
