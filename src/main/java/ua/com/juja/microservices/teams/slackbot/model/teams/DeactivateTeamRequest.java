@@ -1,5 +1,6 @@
 package ua.com.juja.microservices.teams.slackbot.model.teams;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +12,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 @ToString
 @Slf4j
 @Getter
+@EqualsAndHashCode
 public class DeactivateTeamRequest {
     @NotEmpty
     private final String from;

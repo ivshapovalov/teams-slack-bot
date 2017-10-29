@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import me.ramswaroop.jbot.core.slack.models.RichMessage;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.service.UserService;
 
@@ -21,7 +20,7 @@ public class ExceptionsHandler {
 
     private final UserService userService;
 
-    private ThreadLocal<String> responseUrl=new ThreadLocal<>();
+    private ThreadLocal<String> responseUrl = new ThreadLocal<>();
 
     @Inject
     public ExceptionsHandler(RestTemplate restTemplate, UserService userService) {
@@ -43,11 +42,6 @@ public class ExceptionsHandler {
         sendErrorResponseAsRichMessage(new RichMessage(ex.getMessage()));
     }
 
-    @ExceptionHandler(ResourceAccessException.class)
-    public void handleResourceAccessException(ResourceAccessException ex) {
-        sendErrorResponseAsRichMessage(new RichMessage("Some service unavailable"));
-    }
-
     @ExceptionHandler(UserExchangeException.class)
     public void handleUserExchangeException(UserExchangeException ex) {
         sendErrorResponseAsRichMessage(new RichMessage(ex.getExceptionMessage()));
@@ -56,7 +50,7 @@ public class ExceptionsHandler {
     @ExceptionHandler(TeamExchangeException.class)
     public void handleTeamExchangeException(TeamExchangeException ex) {
         String message = ex.getMessage();
-        String exceptionMessage= ex.getExceptionMessage();
+        String exceptionMessage = ex.getExceptionMessage();
         if (exceptionMessage != null && exceptionMessage.contains("#")) {
             try {
                 message = userService.replaceUuidsBySlackNamesInExceptionMessage(exceptionMessage);
