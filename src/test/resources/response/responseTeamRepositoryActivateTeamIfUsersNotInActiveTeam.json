@@ -1,9 +1,0 @@
-{
-  "from": "uuid-from",
-  "members": [
-    "uuid1",
-    "uuid2",
-    "uuid3",
-    "uuid4"
-  ]
-}
