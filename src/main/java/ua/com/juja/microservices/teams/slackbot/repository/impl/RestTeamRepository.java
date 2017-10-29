@@ -1,13 +1,9 @@
 package ua.com.juja.microservices.teams.slackbot.repository.impl;
 
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.exceptions.ApiError;
 import ua.com.juja.microservices.teams.slackbot.exceptions.TeamExchangeException;
 import ua.com.juja.microservices.teams.slackbot.model.teams.ActivateTeamRequest;
@@ -25,7 +21,6 @@ import javax.inject.Inject;
 @Slf4j
 public class RestTeamRepository implements TeamRepository {
 
-    private final RestTemplate restTemplate;
     @Value("${teams.endpoint.activateTeam}")
     private String teamsActivateTeamUrl;
     @Value("${teams.endpoint.deactivateTeam}")
@@ -34,22 +29,15 @@ public class RestTeamRepository implements TeamRepository {
     private String teamsGetTeamUrl;
 
     @Inject
-    public RestTeamRepository(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
-    }
+    private GatewayClient gatewayClient;
 
     @Override
     public Team activateTeam(ActivateTeamRequest activateTeamRequest) {
-        HttpEntity<ActivateTeamRequest> request = new HttpEntity<>(activateTeamRequest, Utils.setupJsonHttpHeaders());
         Team activatedTeam;
         try {
-            log.debug("Send 'Activate team' request '{}' to Teams service to url '{}'", activateTeamRequest, teamsActivateTeamUrl);
-            ResponseEntity<Team> response = restTemplate.exchange(teamsActivateTeamUrl,
-                    HttpMethod.POST, request, Team.class);
-            log.debug("Get 'Activate team' response '{}' from Teams service", response);
-            activatedTeam = response.getBody();
-        } catch (HttpClientErrorException ex) {
-            ApiError error = Utils.convertToApiError(ex);
+            activatedTeam = gatewayClient.activateTeam(activateTeamRequest);
+        } catch (FeignException ex) {
+            ApiError error = Utils.convertToApiError(ex.getMessage());
             throw new TeamExchangeException(error, ex);
         }
         log.info("Team activated: '{}'", activatedTeam.getId());
@@ -58,16 +46,11 @@ public class RestTeamRepository implements TeamRepository {
 
     @Override
     public Team deactivateTeam(DeactivateTeamRequest deactivateTeamRequest) {
-        HttpEntity<DeactivateTeamRequest> request = new HttpEntity<>(deactivateTeamRequest, Utils.setupJsonHttpHeaders());
         Team deactivatedTeam;
         try {
-            log.debug("Send 'Deactivate team' request to Teams service to url '{}'", teamsDeactivateTeamUrl);
-            ResponseEntity<Team> response = restTemplate.exchange(teamsDeactivateTeamUrl,
-                    HttpMethod.PUT, request, Team.class);
-            log.debug("Get 'Deactivate team' response '{}' from Teams service", response);
-            deactivatedTeam = response.getBody();
-        } catch (HttpClientErrorException ex) {
-            ApiError error = Utils.convertToApiError(ex);
+            deactivatedTeam = gatewayClient.deactivateTeam(deactivateTeamRequest);
+        } catch (FeignException ex) {
+            ApiError error = Utils.convertToApiError(ex.getMessage());
             throw new TeamExchangeException(error, ex);
         }
         log.info("Team deactivated: '{}'", deactivatedTeam.getId());
@@ -76,17 +59,11 @@ public class RestTeamRepository implements TeamRepository {
 
     @Override
     public Team getTeam(String uuid) {
-        HttpEntity<ActivateTeamRequest> request = new HttpEntity<>(Utils.setupJsonHttpHeaders());
         Team team;
         try {
-            String teamsServiceURL = teamsGetTeamUrl + "/" + uuid;
-            log.debug("Send 'Get team' request to Teams service to url '{}'", teamsServiceURL);
-            ResponseEntity<Team> response = restTemplate.exchange(teamsServiceURL,
-                    HttpMethod.GET, request, Team.class);
-            log.debug("Get 'Get team' response '{}' from Teams service", response);
-            team = response.getBody();
-        } catch (HttpClientErrorException ex) {
-            ApiError error = Utils.convertToApiError(ex);
+            team = gatewayClient.getTeam(uuid);
+        } catch (FeignException ex) {
+            ApiError error = Utils.convertToApiError(ex.getMessage());
             throw new TeamExchangeException(error, ex);
         }
         log.info("Team got: '{}'", team.getId());
