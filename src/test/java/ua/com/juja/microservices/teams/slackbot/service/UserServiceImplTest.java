@@ -23,7 +23,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
  * @author Ivan Shapovalov
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest
+@SpringBootTest({"eureka.client.enabled=false"})
 public class UserServiceImplTest {
 
     @Inject
@@ -34,15 +34,16 @@ public class UserServiceImplTest {
 
     @Test
     public void findUsersBySlackNamesExecutedCorrectly() throws Exception {
-        List<String> slackNamesRequest = Arrays.asList("@user1", "@user2");
+        List<String> incorrectSlackNames = Arrays.asList("user1", "@user2");
+        List<String> correctSlackNames = Arrays.asList("@user1", "@user2");
         List<User> expected = Arrays.asList(new User("uuid1", "@user1"),
                 new User("uuid2", "user2"));
-        given(userRepository.findUsersBySlackNames(slackNamesRequest)).willReturn(expected);
+        given(userRepository.findUsersBySlackNames(correctSlackNames)).willReturn(expected);
 
-        List<User> actual = userService.findUsersBySlackNames(slackNamesRequest);
+        List<User> actual = userService.findUsersBySlackNames(incorrectSlackNames);
 
         assertThat(actual, is(expected));
-        verify(userRepository).findUsersBySlackNames(slackNamesRequest);
+        verify(userRepository).findUsersBySlackNames(correctSlackNames);
         verifyNoMoreInteractions(userRepository);
     }
 

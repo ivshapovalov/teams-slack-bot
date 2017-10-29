@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import ua.com.juja.microservices.teams.slackbot.model.users.User;
 import ua.com.juja.microservices.teams.slackbot.repository.UserRepository;
 import ua.com.juja.microservices.teams.slackbot.service.UserService;
+import ua.com.juja.microservices.teams.slackbot.util.SlackNameHandler;
 import ua.com.juja.microservices.teams.slackbot.util.Utils;
 
 import javax.inject.Inject;
@@ -31,6 +32,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> findUsersBySlackNames(List<String> slackNames) {
         Utils.checkNull(slackNames, "SlackNames must not be null!");
+        SlackNameHandler.addAtToSlackNames(slackNames);
         List<User> users = userRepository.findUsersBySlackNames(slackNames);
         log.info("Found '{}' users in User repository", users.size());
         return users;
