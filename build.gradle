@@ -62,11 +62,18 @@ test {
         println "Executing test ${desc.name} [${desc.className}] with result: ${result.resultType}"
     }
 }
-
+dependencyManagement {
+    imports {
+        mavenBom 'org.springframework.cloud:spring-cloud-dependencies:Dalston.SR3'
+    }
+}
 dependencies {
     compile 'org.springframework.boot:spring-boot-starter'
     compile 'org.springframework:spring-web'
     compile('org.springframework.boot:spring-boot-starter-aop')
+
+    compile('org.springframework.cloud:spring-cloud-starter-eureka-server')
+    compile 'org.springframework.cloud:spring-cloud-starter-feign'
 
     compile 'org.apache.httpcomponents:httpclient:4.5.3'
     compile 'javax.inject:javax.inject:1'
@@ -78,7 +85,7 @@ dependencies {
     testCompile 'net.javacrumbs.json-unit:json-unit-fluent:1.19.0'
     testCompile group: 'org.powermock', name: 'powermock-api-mockito', version: '1.7.1'
     testCompile group: 'org.powermock', name: 'powermock-module-junit4', version: '1.7.1'
-
+    testCompile group: 'org.assertj', name: 'assertj-core', version: '3.8.0'
 }
 
 task wrapper(type: Wrapper) {

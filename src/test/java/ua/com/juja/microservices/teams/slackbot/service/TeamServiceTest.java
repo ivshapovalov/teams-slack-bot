@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
  * @author Ivan Shapovalov
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest
+@SpringBootTest({"eureka.client.enabled=false"})
 public class TeamServiceTest {
     private static final int TEAM_SIZE = 4;
     private static User user1;
@@ -71,7 +71,6 @@ public class TeamServiceTest {
 
     @Before
     public void setup() {
-
         MockitoAnnotations.initMocks(this);
     }
 

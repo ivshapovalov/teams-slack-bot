@@ -10,7 +10,6 @@ import java.util.List;
  * @author Ivan Shapovalov
  */
 @AllArgsConstructor
-@ToString
 public class UserSlackNameRequest {
     List<String> slackNames;
 

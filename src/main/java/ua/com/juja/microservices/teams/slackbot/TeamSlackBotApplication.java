@@ -3,6 +3,8 @@ package ua.com.juja.microservices.teams.slackbot;
 import org.apache.http.impl.client.HttpClients;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
+import org.springframework.cloud.netflix.feign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.PropertySource;
@@ -18,6 +20,8 @@ import java.util.List;
 
 @SpringBootApplication
 @EnableAspectJAutoProxy
+@EnableEurekaClient
+@EnableFeignClients
 @PropertySource(value = {"classpath:application.properties", "classpath:messages/message.properties"})
 public class TeamSlackBotApplication {
 
