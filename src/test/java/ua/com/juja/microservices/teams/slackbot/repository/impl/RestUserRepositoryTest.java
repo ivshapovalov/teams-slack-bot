@@ -17,6 +17,7 @@ import ua.com.juja.microservices.teams.slackbot.model.users.User;
 import ua.com.juja.microservices.teams.slackbot.model.users.UserSlackNameRequest;
 import ua.com.juja.microservices.teams.slackbot.model.users.UserUuidRequest;
 import ua.com.juja.microservices.teams.slackbot.repository.UserRepository;
+import ua.com.juja.microservices.teams.slackbot.repository.feign.UsersClient;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -33,7 +34,7 @@ import static org.mockito.Mockito.when;
  * @author Ivan Shapovalov
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest({"eureka.client.enabled=false"})
+@SpringBootTest()
 public class RestUserRepositoryTest {
     private static User user1;
     private static User user2;
@@ -44,7 +45,7 @@ public class RestUserRepositoryTest {
     @Inject
     private UserRepository userRepository;
     @MockBean
-    private GatewayClient gatewayClient;
+    private UsersClient usersClient;
 
     @BeforeClass
     public static void oneTimeSetup() {
@@ -59,7 +60,7 @@ public class RestUserRepositoryTest {
         List<String> slackNames = Arrays.asList("@slack1", "@slack2", "@slack3", "@slack4");
         List<User> expected = Arrays.asList(user1, user2, user3, user4);
         ArgumentCaptor<UserSlackNameRequest> captorUserSlackNameRequest = ArgumentCaptor.forClass(UserSlackNameRequest.class);
-        when(gatewayClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenReturn(expected);
+        when(usersClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenReturn(expected);
 
         List<User> actual = userRepository.findUsersBySlackNames(slackNames);
 
@@ -71,8 +72,8 @@ public class RestUserRepositoryTest {
                     .as("'captorUserSlackNameRequest' slacknames not contains 'slackNames'")
                     .containsExactlyInAnyOrder(slackNames.toArray(new String[slackNames.size()]));
         });
-        verify(gatewayClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
-        verifyNoMoreInteractions(gatewayClient);
+        verify(usersClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
+        verifyNoMoreInteractions(usersClient);
     }
 
     @Test
@@ -90,7 +91,7 @@ public class RestUserRepositoryTest {
                         "}";
         FeignException feignException = mock(FeignException.class);
         ArgumentCaptor<UserSlackNameRequest> captorUserSlackNameRequest = ArgumentCaptor.forClass(UserSlackNameRequest.class);
-        when(gatewayClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenThrow(feignException);
+        when(usersClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenThrow(feignException);
         when(feignException.getMessage()).thenReturn(expectedJsonResponseBody);
 
         expectedException.expect(UserExchangeException.class);
@@ -101,8 +102,8 @@ public class RestUserRepositoryTest {
         } finally {
             Assertions.assertThat(captorUserSlackNameRequest.getValue().getSlackNames())
                     .containsExactlyInAnyOrder((slackNames.toArray(new String[slackNames.size()])));
-            verify(gatewayClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
-            verifyNoMoreInteractions(gatewayClient);
+            verify(usersClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
+            verifyNoMoreInteractions(usersClient);
         }
     }
 
@@ -113,7 +114,7 @@ public class RestUserRepositoryTest {
                 "status 400 reading GatewayClient#activateTeam(ActivateTeamRequest); content: \n";
         FeignException feignException = mock(FeignException.class);
         ArgumentCaptor<UserSlackNameRequest> captorUserSlackNameRequest = ArgumentCaptor.forClass(UserSlackNameRequest.class);
-        when(gatewayClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenThrow(feignException);
+        when(usersClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenThrow(feignException);
         when(feignException.getMessage()).thenReturn(expectedJsonResponseBody);
 
         expectedException.expect(UserExchangeException.class);
@@ -125,8 +126,8 @@ public class RestUserRepositoryTest {
         } finally {
             Assertions.assertThat(captorUserSlackNameRequest.getValue().getSlackNames())
                     .containsExactlyInAnyOrder((slackNames.toArray(new String[slackNames.size()])));
-            verify(gatewayClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
-            verifyNoMoreInteractions(gatewayClient);
+            verify(usersClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
+            verifyNoMoreInteractions(usersClient);
         }
     }
 
@@ -136,7 +137,7 @@ public class RestUserRepositoryTest {
         String expectedJsonResponseBody = "";
         FeignException feignException = mock(FeignException.class);
         ArgumentCaptor<UserSlackNameRequest> captorUserSlackNameRequest = ArgumentCaptor.forClass(UserSlackNameRequest.class);
-        when(gatewayClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenThrow(feignException);
+        when(usersClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenThrow(feignException);
         when(feignException.getMessage()).thenReturn(expectedJsonResponseBody);
 
         expectedException.expect(UserExchangeException.class);
@@ -148,8 +149,8 @@ public class RestUserRepositoryTest {
         } finally {
             Assertions.assertThat(captorUserSlackNameRequest.getValue().getSlackNames())
                     .containsExactlyInAnyOrder((slackNames.toArray(new String[slackNames.size()])));
-            verify(gatewayClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
-            verifyNoMoreInteractions(gatewayClient);
+            verify(usersClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
+            verifyNoMoreInteractions(usersClient);
         }
     }
 
@@ -158,7 +159,7 @@ public class RestUserRepositoryTest {
         List<String> uuids = Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4");
         List<User> expected = Arrays.asList(user1, user2, user3, user4);
         ArgumentCaptor<UserUuidRequest> captorUserUuidRequest = ArgumentCaptor.forClass(UserUuidRequest.class);
-        when(gatewayClient.findUsersByUuids(captorUserUuidRequest.capture())).thenReturn(expected);
+        when(usersClient.findUsersByUuids(captorUserUuidRequest.capture())).thenReturn(expected);
 
         List<User> actual = userRepository.findUsersByUuids(uuids);
 
@@ -170,8 +171,8 @@ public class RestUserRepositoryTest {
                     .as("'captorUserUuidRequest' uuids not contains 'uuids'")
                     .containsExactlyInAnyOrder(uuids.toArray(new String[uuids.size()]));
         });
-        verify(gatewayClient).findUsersByUuids(captorUserUuidRequest.capture());
-        verifyNoMoreInteractions(gatewayClient);
+        verify(usersClient).findUsersByUuids(captorUserUuidRequest.capture());
+        verifyNoMoreInteractions(usersClient);
     }
 
     @Test
@@ -189,7 +190,7 @@ public class RestUserRepositoryTest {
                         "}";
         FeignException feignException = mock(FeignException.class);
         ArgumentCaptor<UserUuidRequest> captorUserUuidRequest = ArgumentCaptor.forClass(UserUuidRequest.class);
-        when(gatewayClient.findUsersByUuids(captorUserUuidRequest.capture())).thenThrow(feignException);
+        when(usersClient.findUsersByUuids(captorUserUuidRequest.capture())).thenThrow(feignException);
         when(feignException.getMessage()).thenReturn(expectedJsonResponseBody);
 
         expectedException.expect(UserExchangeException.class);
@@ -200,8 +201,8 @@ public class RestUserRepositoryTest {
         } finally {
             Assertions.assertThat(captorUserUuidRequest.getValue().getUuids())
                     .containsExactlyInAnyOrder(uuids.toArray(new String[uuids.size()]));
-            verify(gatewayClient).findUsersByUuids(captorUserUuidRequest.capture());
-            verifyNoMoreInteractions(gatewayClient);
+            verify(usersClient).findUsersByUuids(captorUserUuidRequest.capture());
+            verifyNoMoreInteractions(usersClient);
         }
     }
 }

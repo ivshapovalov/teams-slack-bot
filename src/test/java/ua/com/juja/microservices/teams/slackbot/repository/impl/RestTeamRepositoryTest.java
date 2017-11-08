@@ -13,6 +13,7 @@ import ua.com.juja.microservices.teams.slackbot.model.teams.ActivateTeamRequest;
 import ua.com.juja.microservices.teams.slackbot.model.teams.DeactivateTeamRequest;
 import ua.com.juja.microservices.teams.slackbot.model.teams.Team;
 import ua.com.juja.microservices.teams.slackbot.repository.TeamRepository;
+import ua.com.juja.microservices.teams.slackbot.repository.feign.TeamsClient;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -32,7 +33,7 @@ import static org.mockito.Mockito.when;
  * @author Ivan Shapovalov
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest({"eureka.client.enabled=false"})
+@SpringBootTest()
 public class RestTeamRepositoryTest {
     @Rule
     public final ExpectedException expectedException = ExpectedException.none();
@@ -40,7 +41,7 @@ public class RestTeamRepositoryTest {
     private TeamRepository teamRepository;
 
     @MockBean
-    private GatewayClient gatewayClient;
+    private TeamsClient teamsClient;
 
     @Test
     public void activateTeamSendRequestToRemoteTeamsServerAndReturnActivatedTeamExecutedCorrectly() throws IOException {
@@ -48,13 +49,13 @@ public class RestTeamRepositoryTest {
         Set<String> members = new LinkedHashSet<>(Arrays.asList("uuid5", "uuid2", "uuid3", "uuid4"));
         ActivateTeamRequest activateTeamRequest = new ActivateTeamRequest(uuidFrom, members);
         Team expected = new Team(members, uuidFrom, "id", new Date(), new Date());
-        when(gatewayClient.activateTeam(activateTeamRequest)).thenReturn(expected);
+        when(teamsClient.activateTeam(activateTeamRequest)).thenReturn(expected);
 
         Team actual = teamRepository.activateTeam(activateTeamRequest);
 
         assertEquals(expected, actual);
-        verify(gatewayClient).activateTeam(activateTeamRequest);
-        verifyNoMoreInteractions(gatewayClient);
+        verify(teamsClient).activateTeam(activateTeamRequest);
+        verifyNoMoreInteractions(teamsClient);
     }
 
     @Test
@@ -74,7 +75,7 @@ public class RestTeamRepositoryTest {
                         "}";
 
         FeignException feignException = mock(FeignException.class);
-        when(gatewayClient.activateTeam(activateTeamRequest)).thenThrow(feignException);
+        when(teamsClient.activateTeam(activateTeamRequest)).thenThrow(feignException);
         when(feignException.getMessage()).thenReturn(expectedJsonResponseBody);
 
         expectedException.expect(TeamExchangeException.class);
@@ -83,8 +84,8 @@ public class RestTeamRepositoryTest {
         try {
             teamRepository.activateTeam(activateTeamRequest);
         } finally {
-            verify(gatewayClient).activateTeam(activateTeamRequest);
-            verifyNoMoreInteractions(gatewayClient);
+            verify(teamsClient).activateTeam(activateTeamRequest);
+            verifyNoMoreInteractions(teamsClient);
         }
     }
 
@@ -95,13 +96,13 @@ public class RestTeamRepositoryTest {
         String uuidFrom = "uuid-from";
         Set<String> members = new LinkedHashSet<>(Arrays.asList("uuid5", "uuid2", "uuid3", "uuid4"));
         Team expected = new Team(members, uuidFrom, "id", new Date(), new Date());
-        when(gatewayClient.getTeam(uuid)).thenReturn(expected);
+        when(teamsClient.getTeam(uuid)).thenReturn(expected);
 
         Team actual = teamRepository.getTeam(uuid);
 
         assertEquals(expected, actual);
-        verify(gatewayClient).getTeam(uuid);
-        verifyNoMoreInteractions(gatewayClient);
+        verify(teamsClient).getTeam(uuid);
+        verifyNoMoreInteractions(teamsClient);
     }
 
     @Test
@@ -119,7 +120,7 @@ public class RestTeamRepositoryTest {
                         "}";
 
         FeignException feignException = mock(FeignException.class);
-        when(gatewayClient.getTeam(uuid)).thenThrow(feignException);
+        when(teamsClient.getTeam(uuid)).thenThrow(feignException);
         when(feignException.getMessage()).thenReturn(expectedJsonResponseBody);
 
         expectedException.expect(TeamExchangeException.class);
@@ -128,8 +129,8 @@ public class RestTeamRepositoryTest {
         try {
             teamRepository.getTeam(uuid);
         } finally {
-            verify(gatewayClient).getTeam(uuid);
-            verifyNoMoreInteractions(gatewayClient);
+            verify(teamsClient).getTeam(uuid);
+            verifyNoMoreInteractions(teamsClient);
         }
     }
 
@@ -139,7 +140,7 @@ public class RestTeamRepositoryTest {
         String uuid = "uuid";
         RuntimeException runtimeException =
                 new RuntimeException("I'm, sorry. I cannot parse api error message from remote service :(");
-        when(gatewayClient.getTeam(uuid)).thenThrow(runtimeException);
+        when(teamsClient.getTeam(uuid)).thenThrow(runtimeException);
 
         expectedException.expect(RuntimeException.class);
         expectedException.expectMessage(containsString("I'm, sorry. I cannot parse api error message from remote service :("));
@@ -147,8 +148,8 @@ public class RestTeamRepositoryTest {
         try {
             teamRepository.getTeam(uuid);
         } finally {
-            verify(gatewayClient).getTeam(uuid);
-            verifyNoMoreInteractions(gatewayClient);
+            verify(teamsClient).getTeam(uuid);
+            verifyNoMoreInteractions(teamsClient);
         }
     }
 
@@ -160,13 +161,13 @@ public class RestTeamRepositoryTest {
         DeactivateTeamRequest deactivateTeamRequest = new DeactivateTeamRequest(uuidFrom, uuid);
         Set<String> members = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4"));
         Team expected = new Team(members, uuidFrom, "id", new Date(), new Date());
-        when(gatewayClient.deactivateTeam(deactivateTeamRequest)).thenReturn(expected);
+        when(teamsClient.deactivateTeam(deactivateTeamRequest)).thenReturn(expected);
 
         Team actual = teamRepository.deactivateTeam(deactivateTeamRequest);
 
         assertEquals(expected, actual);
-        verify(gatewayClient).deactivateTeam(deactivateTeamRequest);
-        verifyNoMoreInteractions(gatewayClient);
+        verify(teamsClient).deactivateTeam(deactivateTeamRequest);
+        verifyNoMoreInteractions(teamsClient);
     }
 
     @Test
@@ -186,7 +187,7 @@ public class RestTeamRepositoryTest {
                         "}";
 
         FeignException feignException = mock(FeignException.class);
-        when(gatewayClient.deactivateTeam(deactivateTeamRequest)).thenThrow(feignException);
+        when(teamsClient.deactivateTeam(deactivateTeamRequest)).thenThrow(feignException);
         when(feignException.getMessage()).thenReturn(expectedJsonResponseBody);
 
         expectedException.expect(TeamExchangeException.class);
@@ -196,8 +197,8 @@ public class RestTeamRepositoryTest {
         try {
             teamRepository.deactivateTeam(deactivateTeamRequest);
         } finally {
-            verify(gatewayClient).deactivateTeam(deactivateTeamRequest);
-            verifyNoMoreInteractions(gatewayClient);
+            verify(teamsClient).deactivateTeam(deactivateTeamRequest);
+            verifyNoMoreInteractions(teamsClient);
         }
     }
 }

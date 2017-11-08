@@ -29,7 +29,8 @@ import ua.com.juja.microservices.teams.slackbot.model.teams.Team;
 import ua.com.juja.microservices.teams.slackbot.model.users.User;
 import ua.com.juja.microservices.teams.slackbot.model.users.UserSlackNameRequest;
 import ua.com.juja.microservices.teams.slackbot.model.users.UserUuidRequest;
-import ua.com.juja.microservices.teams.slackbot.repository.impl.GatewayClient;
+import ua.com.juja.microservices.teams.slackbot.repository.feign.TeamsClient;
+import ua.com.juja.microservices.teams.slackbot.repository.feign.UsersClient;
 import ua.com.juja.microservices.utils.TestUtils;
 
 import javax.inject.Inject;
@@ -59,7 +60,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Ivan Shapovalov
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {TeamSlackBotApplication.class}, properties = {"eureka.client.enabled=false"})
+@SpringBootTest(classes = {TeamSlackBotApplication.class})
 @AutoConfigureMockMvc
 @TestPropertySource(value = {"classpath:application.properties", "classpath:messages/message.properties"})
 public class TeamsSlackBotIntegrationTest {
@@ -88,24 +89,12 @@ public class TeamsSlackBotIntegrationTest {
     private String DEACTIVATE_TEAM_INSTANT_MESSAGE;
     @Value("${message.deactivate.team.delayed}")
     private String DEACTIVATE_TEAM_DELAYED_MESSAGE;
-    @Value("${teams.slackbot.endpoint.activateTeam}")
-    private String teamsSlackbotActivateTeamUrl;
-    @Value("${teams.slackbot.endpoint.getTeam}")
-    private String teamsSlackbotGetTeamUrl;
-    @Value("${teams.slackbot.endpoint.getMyTeam}")
-    private String teamsSlackbotGetMyTeamUrl;
-    @Value("${teams.slackbot.endpoint.deactivateTeam}")
-    private String teamsSlackbotDeactivateTeamUrl;
-    @Value("${teams.endpoint.activateTeam}")
-    private String teamsActivateTeamUrl;
-    @Value("${teams.endpoint.deactivateTeam}")
-    private String teamsDeactivateTeamUrl;
-    @Value("${teams.endpoint.getTeam}")
-    private String teamsGetTeamUrl;
-    @Value("${users.endpoint.usersBySlackNames}")
-    private String usersUrlFindUsersBySlackNames;
-    @Value("${users.endpoint.usersByUuids}")
-    private String usersUrlFindUsersByUuids;
+
+    private String teamsSlackbotActivateTeamUrl = "/v1/commands/teams/activate";
+    private String teamsSlackbotDeactivateTeamUrl = "/v1/commands/teams/deactivate";
+    private String teamsSlackbotGetTeamUrl = "/v1/commands/teams";
+    private String teamsSlackbotGetMyTeamUrl = "/v1/commands/myteam";
+
     @Inject
     private RestTemplate restTemplate;
     @Inject
@@ -113,7 +102,9 @@ public class TeamsSlackBotIntegrationTest {
     private MockRestServiceServer mockServer;
 
     @MockBean
-    private GatewayClient gatewayClient;
+    private TeamsClient teamsClient;
+    @MockBean
+    private UsersClient usersClient;
 
     @BeforeClass
     public static void oneTimeSetUp() {
@@ -182,12 +173,12 @@ public class TeamsSlackBotIntegrationTest {
         String responseUrl = "http://example.com";
         List<String> slackNames = Arrays.asList(user1.getSlack(), user2.getSlack(), user3.getSlack(), userFrom.getSlack());
         ArgumentCaptor<UserSlackNameRequest> captorUserSlackNameRequest = ArgumentCaptor.forClass(UserSlackNameRequest.class);
-        when(gatewayClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenReturn(usersInText);
+        when(usersClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenReturn(usersInText);
         Set<String> members = new HashSet<>(Arrays.asList(user1.getUuid(), user2.getUuid(), user3.getUuid(),
                 userFrom.getUuid()));
         Team activatedTeam = new Team(members, userFrom.getUuid(), "id", new Date(), new Date());
         ArgumentCaptor<ActivateTeamRequest> captorActivateTeamRequest = ArgumentCaptor.forClass(ActivateTeamRequest.class);
-        when(gatewayClient.activateTeam(captorActivateTeamRequest.capture())).thenReturn(activatedTeam);
+        when(teamsClient.activateTeam(captorActivateTeamRequest.capture())).thenReturn(activatedTeam);
         mockSlackResponseUrl(responseUrl, new RichMessage(String.format(ACTIVATE_TEAM_DELAYED_MESSAGE, commandText)));
 
         //when
@@ -209,9 +200,9 @@ public class TeamsSlackBotIntegrationTest {
                     .as("'captorActivateTeamRequest' uuids not contains 'members'")
                     .containsExactlyInAnyOrder(members.toArray(new String[members.size()]));
         });
-        verify(gatewayClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
-        verify(gatewayClient).activateTeam(captorActivateTeamRequest.capture());
-        verifyNoMoreInteractions(gatewayClient);
+        verify(usersClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
+        verify(teamsClient).activateTeam(captorActivateTeamRequest.capture());
+        verifyNoMoreInteractions(teamsClient, usersClient);
     }
 
     @Test
@@ -224,12 +215,12 @@ public class TeamsSlackBotIntegrationTest {
         List<String> slackNames = Arrays.asList(user1.getSlack(), user2.getSlack(), user3.getSlack(),
                 user4.getSlack(), userFrom.getSlack());
         ArgumentCaptor<UserSlackNameRequest> captorUserSlackNameRequest = ArgumentCaptor.forClass(UserSlackNameRequest.class);
-        when(gatewayClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenReturn(usersInText);
+        when(usersClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenReturn(usersInText);
         Set<String> members = new HashSet<>(Arrays.asList(user1.getUuid(), user2.getUuid(), user3.getUuid(),
                 user4.getUuid()));
         Team activatedTeam = new Team(members, userFrom.getUuid(), "id", new Date(), new Date());
         ArgumentCaptor<ActivateTeamRequest> captorActivateTeamRequest = ArgumentCaptor.forClass(ActivateTeamRequest.class);
-        when(gatewayClient.activateTeam(captorActivateTeamRequest.capture())).thenReturn(activatedTeam);
+        when(teamsClient.activateTeam(captorActivateTeamRequest.capture())).thenReturn(activatedTeam);
         mockSlackResponseUrl(responseUrl, new RichMessage(String.format(ACTIVATE_TEAM_DELAYED_MESSAGE, commandText)));
 
         //when
@@ -251,9 +242,9 @@ public class TeamsSlackBotIntegrationTest {
                     .as("'captorActivateTeamRequest' uuids not contains 'members'")
                     .containsExactlyInAnyOrder(members.toArray(new String[members.size()]));
         });
-        verify(gatewayClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
-        verify(gatewayClient).activateTeam(captorActivateTeamRequest.capture());
-        verifyNoMoreInteractions(gatewayClient);
+        verify(usersClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
+        verify(teamsClient).activateTeam(captorActivateTeamRequest.capture());
+        verifyNoMoreInteractions(teamsClient, usersClient);
     }
 
     @Test
@@ -268,14 +259,14 @@ public class TeamsSlackBotIntegrationTest {
         List<String> slackNames = Arrays.asList(user1.getSlack(), user2.getSlack(), user3.getSlack(),
                 user4.getSlack(), userFrom.getSlack());
         ArgumentCaptor<UserSlackNameRequest> captorUserSlackNameRequest = ArgumentCaptor.forClass(UserSlackNameRequest.class);
-        when(gatewayClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenReturn(users);
+        when(usersClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenReturn(users);
         Set<String> requestMembers = new HashSet<>(Arrays.asList(user1.getUuid(), user2.getUuid(), user3.getUuid(),
                 user4.getUuid()));
         Set<String> responseMembers = new HashSet<>(Arrays.asList(user1.getUuid(), user2.getUuid(), user3.getUuid(),
                 "illegal-uuid"));
         Team activatedTeam = new Team(responseMembers, userFrom.getUuid(), "id", new Date(), new Date());
         ArgumentCaptor<ActivateTeamRequest> captorActivateTeamRequest = ArgumentCaptor.forClass(ActivateTeamRequest.class);
-        when(gatewayClient.activateTeam(captorActivateTeamRequest.capture())).thenReturn(activatedTeam);
+        when(teamsClient.activateTeam(captorActivateTeamRequest.capture())).thenReturn(activatedTeam);
         mockSlackResponseUrl(responseUrl,
                 new RichMessage("Team members is not equals in request and response from Teams Service"));
 
@@ -298,9 +289,9 @@ public class TeamsSlackBotIntegrationTest {
                     .as("'captorActivateTeamRequest' uuids not contains 'requestMembers'")
                     .containsExactlyInAnyOrder(requestMembers.toArray(new String[requestMembers.size()]));
         });
-        verify(gatewayClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
-        verify(gatewayClient).activateTeam(captorActivateTeamRequest.capture());
-        verifyNoMoreInteractions(gatewayClient);
+        verify(usersClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
+        verify(teamsClient).activateTeam(captorActivateTeamRequest.capture());
+        verifyNoMoreInteractions(teamsClient, usersClient);
     }
 
     @Test
@@ -317,7 +308,7 @@ public class TeamsSlackBotIntegrationTest {
         ArgumentCaptor<UserSlackNameRequest> captorUserSlackNameRequest =
                 ArgumentCaptor.forClass(UserSlackNameRequest.class);
         List<User> users = Arrays.asList(user1, user2, user3, user4, userFrom);
-        when(gatewayClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenReturn(users);
+        when(usersClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenReturn(users);
         ArgumentCaptor<ActivateTeamRequest> captorActivateTeamRequest = ArgumentCaptor.forClass(ActivateTeamRequest.class);
         String expectedJsonResponseBody =
                 "status 400 reading GatewayClient#activateTeam(ActivateTeamRequest); content:" +
@@ -331,12 +322,12 @@ public class TeamsSlackBotIntegrationTest {
                         "}";
 
         FeignException feignException = mock(FeignException.class);
-        when(gatewayClient.activateTeam(captorActivateTeamRequest.capture())).thenThrow(feignException);
+        when(teamsClient.activateTeam(captorActivateTeamRequest.capture())).thenThrow(feignException);
         when(feignException.getMessage()).thenReturn(expectedJsonResponseBody);
 
         ArgumentCaptor<UserUuidRequest> captorUserUuidRequest = ArgumentCaptor.forClass(UserUuidRequest.class);
         List<User> usersInMessage = Arrays.asList(user1, user2, user3, user4);
-        when(gatewayClient.findUsersByUuids(captorUserUuidRequest.capture())).thenReturn(usersInMessage);
+        when(usersClient.findUsersByUuids(captorUserUuidRequest.capture())).thenReturn(usersInMessage);
 
         mockSlackResponseUrl(responseUrl,
                 new RichMessage(String.format("User(s) '%s' exist(s) in another teams",
@@ -366,10 +357,10 @@ public class TeamsSlackBotIntegrationTest {
                     .as("'captorUserUuidRequest' uuids not contains 'uuids'")
                     .containsExactlyInAnyOrder(uuids.toArray(new String[uuids.size()]));
         });
-        verify(gatewayClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
-        verify(gatewayClient).activateTeam(captorActivateTeamRequest.capture());
-        verify(gatewayClient).findUsersByUuids(captorUserUuidRequest.capture());
-        verifyNoMoreInteractions(gatewayClient);
+        verify(usersClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
+        verify(teamsClient).activateTeam(captorActivateTeamRequest.capture());
+        verify(usersClient).findUsersByUuids(captorUserUuidRequest.capture());
+        verifyNoMoreInteractions(teamsClient, usersClient);
     }
 
     @Test
@@ -386,7 +377,7 @@ public class TeamsSlackBotIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(ACTIVATE_TEAM_INSTANT_MESSAGE));
 
-        verifyZeroInteractions(gatewayClient);
+        verifyZeroInteractions(teamsClient);
     }
 
     @Test
@@ -407,7 +398,7 @@ public class TeamsSlackBotIntegrationTest {
         FeignException feignException = mock(FeignException.class);
         ArgumentCaptor<UserSlackNameRequest> captorUserSlackNameRequest =
                 ArgumentCaptor.forClass(UserSlackNameRequest.class);
-        when(gatewayClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenThrow(feignException);
+        when(usersClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenThrow(feignException);
         when(feignException.getMessage()).thenReturn(expectedJsonResponseBody);
         mockSlackResponseUrl(responseUrl, new RichMessage("very big and scare error"));
 
@@ -421,8 +412,8 @@ public class TeamsSlackBotIntegrationTest {
         //then
         Assertions.assertThat(captorUserSlackNameRequest.getValue().getSlackNames())
                 .containsExactlyInAnyOrder(slackNames.toArray(new String[slackNames.size()]));
-        verify(gatewayClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
-        verifyNoMoreInteractions(gatewayClient);
+        verify(usersClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
+        verifyNoMoreInteractions(teamsClient, usersClient);
     }
 
     @Test
@@ -435,15 +426,15 @@ public class TeamsSlackBotIntegrationTest {
         List<String> uuids = Arrays.asList(user1.getUuid(), user2.getUuid(), user3.getUuid(), user4.getUuid());
         ArgumentCaptor<UserSlackNameRequest> captorUserSlackNameRequest =
                 ArgumentCaptor.forClass(UserSlackNameRequest.class);
-        when(gatewayClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenReturn(usersInCommand);
+        when(usersClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenReturn(usersInCommand);
         Team deactivatedTeam = new Team(new HashSet<>(uuids), userFrom.getUuid(), "id", new Date(), new Date());
         ArgumentCaptor<DeactivateTeamRequest> captorDeactivateTeamRequest =
                 ArgumentCaptor.forClass(DeactivateTeamRequest.class);
-        when(gatewayClient.deactivateTeam(captorDeactivateTeamRequest.capture())).thenReturn(deactivatedTeam);
+        when(teamsClient.deactivateTeam(captorDeactivateTeamRequest.capture())).thenReturn(deactivatedTeam);
 
         ArgumentCaptor<UserUuidRequest> captorUserUuidRequest = ArgumentCaptor.forClass(UserUuidRequest.class);
         List<User> usersInTeam = Arrays.asList(user1, user2, user3, user4);
-        when(gatewayClient.findUsersByUuids(captorUserUuidRequest.capture())).thenReturn(usersInTeam);
+        when(usersClient.findUsersByUuids(captorUserUuidRequest.capture())).thenReturn(usersInTeam);
 
         mockSlackResponseUrl(responseUrl, new RichMessage(
                 String.format(DEACTIVATE_TEAM_DELAYED_MESSAGE,
@@ -470,10 +461,10 @@ public class TeamsSlackBotIntegrationTest {
                     .containsExactlyInAnyOrder(uuids.toArray(new String[uuids.size()]));
 
         });
-        verify(gatewayClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
-        verify(gatewayClient).deactivateTeam(captorDeactivateTeamRequest.capture());
-        verify(gatewayClient).findUsersByUuids(captorUserUuidRequest.capture());
-        verifyNoMoreInteractions(gatewayClient);
+        verify(usersClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
+        verify(teamsClient).deactivateTeam(captorDeactivateTeamRequest.capture());
+        verify(usersClient).findUsersByUuids(captorUserUuidRequest.capture());
+        verifyNoMoreInteractions(teamsClient, usersClient);
     }
 
     @Test
@@ -490,7 +481,7 @@ public class TeamsSlackBotIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(String.format(DEACTIVATE_TEAM_INSTANT_MESSAGE, commandText)));
 
-        verifyZeroInteractions(gatewayClient);
+        verifyZeroInteractions(teamsClient);
     }
 
     @Test
@@ -503,7 +494,7 @@ public class TeamsSlackBotIntegrationTest {
         List<String> slackNames = Arrays.asList(user1.getSlack(), userFrom.getSlack());
         ArgumentCaptor<UserSlackNameRequest> captorUserSlackNameRequest =
                 ArgumentCaptor.forClass(UserSlackNameRequest.class);
-        when(gatewayClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenReturn(usersInCommand);
+        when(usersClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenReturn(usersInCommand);
         String expectedJsonResponseBody =
                 "status 400 reading GatewayClient#activateTeam(ActivateTeamRequest); content:" +
                         "{\n" +
@@ -517,7 +508,7 @@ public class TeamsSlackBotIntegrationTest {
         ArgumentCaptor<DeactivateTeamRequest> captorDeactivateTeamRequest = ArgumentCaptor.forClass(DeactivateTeamRequest
                 .class);
         FeignException feignException = mock(FeignException.class);
-        when(gatewayClient.deactivateTeam(captorDeactivateTeamRequest.capture())).thenThrow(feignException);
+        when(teamsClient.deactivateTeam(captorDeactivateTeamRequest.capture())).thenThrow(feignException);
         when(feignException.getMessage()).thenReturn(expectedJsonResponseBody);
 
         mockSlackResponseUrl(responseUrl,
@@ -541,9 +532,9 @@ public class TeamsSlackBotIntegrationTest {
                     .as("'captorDeactivateTeamRequest' is not equals 'expectedDeactivateTeamRequest'")
                     .isEqualTo(expectedDeactivateTeamRequest);
         });
-        verify(gatewayClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
-        verify(gatewayClient).deactivateTeam(captorDeactivateTeamRequest.capture());
-        verifyNoMoreInteractions(gatewayClient);
+        verify(usersClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
+        verify(teamsClient).deactivateTeam(captorDeactivateTeamRequest.capture());
+        verifyNoMoreInteractions(teamsClient, usersClient);
     }
 
     @Test
@@ -556,13 +547,13 @@ public class TeamsSlackBotIntegrationTest {
         List<String> uuids = Arrays.asList(userFrom.getUuid(), user2.getUuid(), user3.getUuid(), user4.getUuid());
         ArgumentCaptor<UserSlackNameRequest> captorUserSlackNameRequest =
                 ArgumentCaptor.forClass(UserSlackNameRequest.class);
-        when(gatewayClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenReturn(usersInCommand);
+        when(usersClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenReturn(usersInCommand);
         Team myTeam = new Team(new HashSet<>(uuids), userFrom.getUuid(), "id", new Date(), new Date());
-        when(gatewayClient.getTeam(userFrom.getUuid())).thenReturn(myTeam);
+        when(teamsClient.getTeam(userFrom.getUuid())).thenReturn(myTeam);
 
         ArgumentCaptor<UserUuidRequest> captorUserUuidRequest = ArgumentCaptor.forClass(UserUuidRequest.class);
         List<User> usersInTeam = Arrays.asList(user1, user2, user3, user4);
-        when(gatewayClient.findUsersByUuids(captorUserUuidRequest.capture())).thenReturn(usersInTeam);
+        when(usersClient.findUsersByUuids(captorUserUuidRequest.capture())).thenReturn(usersInTeam);
 
         mockSlackResponseUrl(responseUrl,
                 new RichMessage(String.format(GET_MY_TEAM_DELAYED_MESSAGE, from, slackNames)));
@@ -584,10 +575,10 @@ public class TeamsSlackBotIntegrationTest {
                     .containsExactlyInAnyOrder(uuids.toArray(new String[uuids.size()]));
 
         });
-        verify(gatewayClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
-        verify(gatewayClient).getTeam(userFrom.getUuid());
-        verify(gatewayClient).findUsersByUuids(captorUserUuidRequest.capture());
-        verifyNoMoreInteractions(gatewayClient);
+        verify(usersClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
+        verify(teamsClient).getTeam(userFrom.getUuid());
+        verify(usersClient).findUsersByUuids(captorUserUuidRequest.capture());
+        verifyNoMoreInteractions(teamsClient, usersClient);
     }
 
     @Test
@@ -607,7 +598,7 @@ public class TeamsSlackBotIntegrationTest {
         FeignException feignException = mock(FeignException.class);
         ArgumentCaptor<UserSlackNameRequest> captorUserSlackNameRequest =
                 ArgumentCaptor.forClass(UserSlackNameRequest.class);
-        when(gatewayClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenThrow(feignException);
+        when(usersClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenThrow(feignException);
         when(feignException.getMessage()).thenReturn(expectedJsonResponseBody);
 
         mockSlackResponseUrl(responseUrl, new RichMessage("very big and scare error"));
@@ -622,8 +613,8 @@ public class TeamsSlackBotIntegrationTest {
         //then
         Assertions.assertThat(captorUserSlackNameRequest.getValue().getSlackNames())
                 .containsExactlyInAnyOrder(slackNames.toArray(new String[slackNames.size()]));
-        verify(gatewayClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
-        verifyNoMoreInteractions(gatewayClient);
+        verify(usersClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
+        verifyNoMoreInteractions(teamsClient, usersClient);
     }
 
     @Test
@@ -636,7 +627,7 @@ public class TeamsSlackBotIntegrationTest {
         List<String> slackNames = Collections.singletonList(userFrom.getSlack());
         ArgumentCaptor<UserSlackNameRequest> captorUserSlackNameRequest =
                 ArgumentCaptor.forClass(UserSlackNameRequest.class);
-        when(gatewayClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenReturn(usersInCommand);
+        when(usersClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenReturn(usersInCommand);
         String expectedJsonResponseBody =
                 "status 400 reading GatewayClient#activateTeam(ActivateTeamRequest); content:" +
                         "{\n" +
@@ -648,7 +639,7 @@ public class TeamsSlackBotIntegrationTest {
                         "  \"detailErrors\": []\n" +
                         "}";
         FeignException feignException = mock(FeignException.class);
-        when(gatewayClient.getTeam(userFrom.getUuid())).thenThrow(feignException);
+        when(teamsClient.getTeam(userFrom.getUuid())).thenThrow(feignException);
         when(feignException.getMessage()).thenReturn(expectedJsonResponseBody);
         mockSlackResponseUrl(responseUrl,
                 new RichMessage("You cannot get/deactivate team if the user not a member of any team!"));
@@ -663,9 +654,9 @@ public class TeamsSlackBotIntegrationTest {
         //then
         Assertions.assertThat(captorUserSlackNameRequest.getValue().getSlackNames())
                 .containsExactlyInAnyOrder(slackNames.toArray(new String[slackNames.size()]));
-        verify(gatewayClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
-        verify(gatewayClient).getTeam(userFrom.getUuid());
-        verifyNoMoreInteractions(gatewayClient);
+        verify(usersClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
+        verify(teamsClient).getTeam(userFrom.getUuid());
+        verifyNoMoreInteractions(teamsClient, usersClient);
     }
 
     @Test
@@ -678,13 +669,13 @@ public class TeamsSlackBotIntegrationTest {
         List<String> uuids = Arrays.asList(user1.getUuid(), user2.getUuid(), user3.getUuid(), user4.getUuid());
         ArgumentCaptor<UserSlackNameRequest> captorUserSlackNameRequest =
                 ArgumentCaptor.forClass(UserSlackNameRequest.class);
-        when(gatewayClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenReturn(usersInCommand);
+        when(usersClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenReturn(usersInCommand);
         Team usersTeam = new Team(new HashSet<>(uuids), userFrom.getUuid(), "id", new Date(), new Date());
-        when(gatewayClient.getTeam(user1.getUuid())).thenReturn(usersTeam);
+        when(teamsClient.getTeam(user1.getUuid())).thenReturn(usersTeam);
 
         ArgumentCaptor<UserUuidRequest> captorUserUuidRequest = ArgumentCaptor.forClass(UserUuidRequest.class);
         List<User> usersInTeam = Arrays.asList(user1, user2, user3, user4);
-        when(gatewayClient.findUsersByUuids(captorUserUuidRequest.capture())).thenReturn(usersInTeam);
+        when(usersClient.findUsersByUuids(captorUserUuidRequest.capture())).thenReturn(usersInTeam);
 
         mockSlackResponseUrl(responseUrl,
                 new RichMessage(String.format(GET_TEAM_DELAYED_MESSAGE, commandText, slackNames)));
@@ -706,10 +697,10 @@ public class TeamsSlackBotIntegrationTest {
                     .containsExactlyInAnyOrder(uuids.toArray(new String[uuids.size()]));
 
         });
-        verify(gatewayClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
-        verify(gatewayClient).getTeam(user1.getUuid());
-        verify(gatewayClient).findUsersByUuids(captorUserUuidRequest.capture());
-        verifyNoMoreInteractions(gatewayClient);
+        verify(usersClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
+        verify(teamsClient).getTeam(user1.getUuid());
+        verify(usersClient).findUsersByUuids(captorUserUuidRequest.capture());
+        verifyNoMoreInteractions(teamsClient, usersClient);
     }
 
     @Test
@@ -726,7 +717,7 @@ public class TeamsSlackBotIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(String.format(GET_TEAM_INSTANT_MESSAGE, commandText)));
 
-        verifyZeroInteractions(gatewayClient);
+        verifyZeroInteractions(teamsClient);
     }
 
     @Test
@@ -746,7 +737,7 @@ public class TeamsSlackBotIntegrationTest {
         FeignException feignException = mock(FeignException.class);
         ArgumentCaptor<UserSlackNameRequest> captorUserSlackNameRequest =
                 ArgumentCaptor.forClass(UserSlackNameRequest.class);
-        when(gatewayClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenThrow(feignException);
+        when(usersClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenThrow(feignException);
         when(feignException.getMessage()).thenReturn(expectedJsonResponseBody);
         mockSlackResponseUrl(responseUrl, new RichMessage("very big and scare error"));
 
@@ -760,8 +751,8 @@ public class TeamsSlackBotIntegrationTest {
         //then
         Assertions.assertThat(captorUserSlackNameRequest.getValue().getSlackNames())
                 .containsExactlyInAnyOrder(slackNames.toArray(new String[slackNames.size()]));
-        verify(gatewayClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
-        verifyNoMoreInteractions(gatewayClient);
+        verify(usersClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
+        verifyNoMoreInteractions(teamsClient, usersClient);
     }
 
     @Test
@@ -774,7 +765,7 @@ public class TeamsSlackBotIntegrationTest {
         List<String> slackNames = Collections.singletonList(user1.getSlack());
         ArgumentCaptor<UserSlackNameRequest> captorUserSlackNameRequest =
                 ArgumentCaptor.forClass(UserSlackNameRequest.class);
-        when(gatewayClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenReturn(usersInCommand);
+        when(usersClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenReturn(usersInCommand);
         String expectedJsonResponseBody =
                 "status 400 reading GatewayClient#activateTeam(ActivateTeamRequest); content:" +
                         "{\n" +
@@ -787,7 +778,7 @@ public class TeamsSlackBotIntegrationTest {
                         "}";
 
         FeignException feignException = mock(FeignException.class);
-        when(gatewayClient.getTeam(user1.getUuid())).thenThrow(feignException);
+        when(teamsClient.getTeam(user1.getUuid())).thenThrow(feignException);
         when(feignException.getMessage()).thenReturn(expectedJsonResponseBody);
         mockSlackResponseUrl(responseUrl,
                 new RichMessage("You cannot get/deactivate team if the user not a member of any team!"));
@@ -802,9 +793,9 @@ public class TeamsSlackBotIntegrationTest {
         //then
         Assertions.assertThat(captorUserSlackNameRequest.getValue().getSlackNames())
                 .containsExactlyInAnyOrder(slackNames.toArray(new String[slackNames.size()]));
-        verify(gatewayClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
-        verify(gatewayClient).getTeam(user1.getUuid());
-        verifyNoMoreInteractions(gatewayClient);
+        verify(usersClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
+        verify(teamsClient).getTeam(user1.getUuid());
+        verifyNoMoreInteractions(teamsClient, usersClient);
     }
 
     private void mockSlackResponseUrl(String expectedURI, RichMessage delayedMessage) {
