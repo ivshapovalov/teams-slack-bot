@@ -6,7 +6,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -41,8 +40,7 @@ public class ExceptionHandlerTest {
 
     private final static String ACTIVATE_TEAM_MESSAGE = "Thanks, Activate Team job started!";
 
-    @Value("${teams.slackbot.endpoint.activateTeam}")
-    private String teamsSlackbotActivateTeamUrl;
+    private String teamsSlackbotActivateTeamUrl = "/v1/commands/teams/activate";
     @Inject
     private MockMvc mvc;
     @MockBean

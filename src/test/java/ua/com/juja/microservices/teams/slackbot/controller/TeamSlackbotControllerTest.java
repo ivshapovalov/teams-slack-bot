@@ -64,14 +64,10 @@ public class TeamSlackbotControllerTest {
     @Value("${message.deactivate.team.delayed}")
     private String DEACTIVATE_TEAM_DELAYED_MESSAGE;
 
-    @Value("${teams.slackbot.endpoint.activateTeam}")
-    private String teamsSlackbotActivateTeamUrl;
-    @Value("${teams.slackbot.endpoint.getTeam}")
-    private String teamsSlackbotGetTeamUrl;
-    @Value("${teams.slackbot.endpoint.getMyTeam}")
-    private String teamsSlackbotGetMyTeamUrl;
-    @Value("${teams.slackbot.endpoint.deactivateTeam}")
-    private String teamsSlackbotDeactivateTeamUrl;
+    private String teamsSlackbotActivateTeamUrl="/v1/commands/teams/activate";
+    private String teamsSlackbotDeactivateTeamUrl="/v1/commands/teams/deactivate";
+    private String teamsSlackbotGetTeamUrl="/v1/commands/teams";
+    private String teamsSlackbotGetMyTeamUrl="/v1/commands/myteam";
 
     @Inject
     private MockMvc mvc;

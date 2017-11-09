@@ -5,6 +5,7 @@ import me.ramswaroop.jbot.core.slack.models.RichMessage;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
+@RequestMapping(value = "v1/commands")
 public class TeamSlackbotController {
 
     private final RestTemplate restTemplate;
@@ -57,7 +59,7 @@ public class TeamSlackbotController {
         this.restTemplate = restTemplate;
     }
 
-    @PostMapping(value = "${teams.slackbot.endpoint.activateTeam}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @PostMapping(value = "/teams/activate", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void onReceiveSlashCommandActivateTeam(@RequestParam("token") String token,
                                                   @RequestParam("user_name") String fromUser,
                                                   @RequestParam("text") String text,
@@ -74,8 +76,7 @@ public class TeamSlackbotController {
         }
     }
 
-    @PostMapping(value = "${teams.slackbot.endpoint.deactivateTeam}",
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @PostMapping(value = "/teams/deactivate",            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void onReceiveSlashCommandDeactivateTeam(@RequestParam("token") String token,
                                                     @RequestParam("user_name") String fromUser,
                                                     @RequestParam("text") String text,
@@ -93,7 +94,7 @@ public class TeamSlackbotController {
         }
     }
 
-    @PostMapping(value = "${teams.slackbot.endpoint.getTeam}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @PostMapping(value = "/teams", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void onReceiveSlashCommandGetTeam(@RequestParam("token") String token,
                                              @RequestParam("user_name") String fromUser,
                                              @RequestParam("text") String text,
@@ -111,7 +112,7 @@ public class TeamSlackbotController {
         }
     }
 
-    @PostMapping(value = "${teams.slackbot.endpoint.getMyTeam}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @PostMapping(value = "/myteam", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void onReceiveSlashCommandGetMyTeam(@RequestParam("token") String token,
                                                @RequestParam("user_name") String fromUser,
                                                @RequestParam("response_url") String responseUrl,

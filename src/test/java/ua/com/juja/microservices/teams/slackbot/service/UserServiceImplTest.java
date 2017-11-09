@@ -23,7 +23,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
  * @author Ivan Shapovalov
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest({"eureka.client.enabled=false"})
+@SpringBootTest()
 public class UserServiceImplTest {
 
     @Inject
