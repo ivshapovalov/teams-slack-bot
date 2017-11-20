@@ -1,0 +1,8 @@
+{
+  "httpStatus": 400,
+  "internalErrorCode": "TMF-F1-D3",
+  "clientMessage": "Sorry, User server return an error",
+  "developerMessage": "Exception - UserExchangeException",
+  "exceptionMessage": "Something wrong on User server",
+  "detailErrors": []
+}
