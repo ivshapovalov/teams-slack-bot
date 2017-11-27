@@ -11,10 +11,10 @@ import java.util.List;
  */
 @AllArgsConstructor
 @ToString
-public class UserSlackNameRequest {
-    List<String> slackNames;
+public class UserSlackIdRequest {
+    List<String> slackIds;
 
-    public List<String> getSlackNames() {
-        return Collections.unmodifiableList(slackNames);
+    public List<String> getSlackIds() {
+        return Collections.unmodifiableList(slackIds);
     }
 }

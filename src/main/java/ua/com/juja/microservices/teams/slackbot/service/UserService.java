@@ -9,9 +9,9 @@ import java.util.List;
  */
 public interface UserService {
 
-    String replaceUuidsBySlackNamesInExceptionMessage(String message);
+    String replaceUuidsBySlackIdsInExceptionMessage(String message);
 
-    List<User> findUsersBySlackNames(List<String> slackNames);
+    List<User> findUsersBySlackIds(List<String> slackIds);
 
     List<User> findUsersByUuids(List<String> uuids);
 

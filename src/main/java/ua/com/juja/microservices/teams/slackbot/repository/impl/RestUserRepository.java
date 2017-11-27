@@ -12,10 +12,9 @@ import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.exceptions.ApiError;
 import ua.com.juja.microservices.teams.slackbot.exceptions.UserExchangeException;
 import ua.com.juja.microservices.teams.slackbot.model.users.User;
-import ua.com.juja.microservices.teams.slackbot.model.users.UserSlackNameRequest;
+import ua.com.juja.microservices.teams.slackbot.model.users.UserSlackIdRequest;
 import ua.com.juja.microservices.teams.slackbot.model.users.UserUuidRequest;
 import ua.com.juja.microservices.teams.slackbot.repository.UserRepository;
-import ua.com.juja.microservices.teams.slackbot.util.SlackNameHandler;
 import ua.com.juja.microservices.teams.slackbot.util.Utils;
 
 import javax.inject.Inject;
@@ -30,8 +29,8 @@ import java.util.List;
 @Profile({"production", "default"})
 public class RestUserRepository implements UserRepository {
     private final RestTemplate restTemplate;
-    @Value("${users.endpoint.usersBySlackNames}")
-    private String usersUrlFindUsersBySlackNames;
+    @Value("${users.endpoint.usersBySlackIds}")
+    private String usersUrlFindUsersBySlackIds;
     @Value("${users.endpoint.usersByUuids}")
     private String usersUrlFindUsersByUuids;
 
@@ -41,12 +40,11 @@ public class RestUserRepository implements UserRepository {
     }
 
     @Override
-    public List<User> findUsersBySlackNames(List<String> slackNames) {
-        SlackNameHandler.addAtToSlackNames(slackNames);
-        UserSlackNameRequest userSlackNameRequest = new UserSlackNameRequest(slackNames);
-        HttpEntity<UserSlackNameRequest> request = new HttpEntity<>(userSlackNameRequest, Utils.setupJsonHttpHeaders());
-        List<User> users = getUsers(request, usersUrlFindUsersBySlackNames);
-        log.info("Found Users: '{}' by slackNames: '{}'", users, slackNames);
+    public List<User> findUsersBySlackIds(List<String> slackIds) {
+        UserSlackIdRequest userSlackIdRequest = new UserSlackIdRequest(slackIds);
+        HttpEntity<UserSlackIdRequest> request = new HttpEntity<>(userSlackIdRequest, Utils.setupJsonHttpHeaders());
+        List<User> users = getUsers(request, usersUrlFindUsersBySlackIds);
+        log.info("Found Users: '{}' by slackIds: '{}'", users, slackIds);
         return users;
     }
 

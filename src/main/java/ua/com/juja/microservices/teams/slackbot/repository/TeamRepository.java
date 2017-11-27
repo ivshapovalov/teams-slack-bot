@@ -13,6 +13,6 @@ public interface TeamRepository {
 
     Team deactivateTeam(DeactivateTeamRequest deactivateTeamRequest);
 
-    Team getTeam(String slackName);
+    Team getTeam(String slackId);
 
 }

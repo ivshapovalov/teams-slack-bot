@@ -17,5 +17,6 @@ public class User {
     @JsonProperty
     private String uuid;
     @JsonProperty
-    private String slack;
+    private String slackId;
+
 }
