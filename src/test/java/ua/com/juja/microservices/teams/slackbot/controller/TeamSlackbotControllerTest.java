@@ -75,13 +75,10 @@ public class TeamSlackbotControllerTest {
 
     @Inject
     private MockMvc mvc;
-
     @MockBean
     private TeamService teamService;
-
     @MockBean
     private ExceptionsHandler exceptionsHandler;
-
     @MockBean
     private RestTemplate restTemplate;
 
@@ -140,8 +137,8 @@ public class TeamSlackbotControllerTest {
                 SlackIdHandler.wrapSlackId("slack-id1"),
                 SlackIdHandler.wrapSlackId("slack-id2"),
                 SlackIdHandler.wrapSlackId("slack-id3"),
-                SlackIdHandler.wrapSlackId("slack-id4")
-        );
+                SlackIdHandler.wrapSlackId("slack-id4"));
+
         Set<String> members = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4"));
         Team activatedTeam = new Team(members);
         String responseUrl = "http://example.com";

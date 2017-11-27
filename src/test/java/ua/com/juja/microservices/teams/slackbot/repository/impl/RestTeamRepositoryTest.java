@@ -14,9 +14,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.exceptions.TeamExchangeException;
+import ua.com.juja.microservices.teams.slackbot.model.teams.ActivateTeamRequest;
 import ua.com.juja.microservices.teams.slackbot.model.teams.DeactivateTeamRequest;
 import ua.com.juja.microservices.teams.slackbot.model.teams.Team;
-import ua.com.juja.microservices.teams.slackbot.model.teams.ActivateTeamRequest;
 import ua.com.juja.microservices.teams.slackbot.repository.TeamRepository;
 import ua.com.juja.microservices.utils.TestUtils;
 
@@ -158,7 +158,7 @@ public class RestTeamRepositoryTest {
     public void deactivateTeamSendRequestToRemoteTeamsServerAndReturnDeactivatedTeamExecutedCorrectly() throws
             IOException {
         String uuidFrom = "uuid-from";
-        String uuid ="uuid2";
+        String uuid = "uuid2";
         DeactivateTeamRequest deactivateTeamRequest = new DeactivateTeamRequest(uuidFrom, uuid);
         Set<String> expected = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4"));
 
@@ -177,7 +177,7 @@ public class RestTeamRepositoryTest {
     @Test
     public void deactivateTeamSendRequestToRemoteTeamsServerWhichReturnsErrorThrowsException() throws IOException {
         String uuidFrom = "uuid-from";
-        String uuid ="uuid2";
+        String uuid = "uuid2";
         DeactivateTeamRequest deactivateTeamRequest = new DeactivateTeamRequest(uuidFrom, uuid);
 
         String expectedJsonResponseBody = TestUtils.convertToString(ResourceUtils.resource
