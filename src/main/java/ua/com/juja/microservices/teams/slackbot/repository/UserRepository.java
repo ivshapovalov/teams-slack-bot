@@ -9,7 +9,7 @@ import java.util.List;
  */
 public interface UserRepository {
 
-    List<User> findUsersBySlackNames(List<String> slackNames);
+    List<User> findUsersBySlackIds(List<String> slackIds);
 
     List<User> findUsersByUuids(List<String> uuids);
 }
