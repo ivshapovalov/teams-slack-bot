@@ -14,7 +14,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import ua.com.juja.microservices.teams.slackbot.exceptions.UserExchangeException;
 import ua.com.juja.microservices.teams.slackbot.model.users.User;
-import ua.com.juja.microservices.teams.slackbot.model.users.UserSlackNameRequest;
+import ua.com.juja.microservices.teams.slackbot.model.users.UserSlackIdRequest;
 import ua.com.juja.microservices.teams.slackbot.model.users.UserUuidRequest;
 import ua.com.juja.microservices.teams.slackbot.repository.UserRepository;
 import ua.com.juja.microservices.teams.slackbot.repository.feign.UsersClient;
@@ -34,14 +34,15 @@ import static org.mockito.Mockito.when;
  * @author Ivan Shapovalov
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest()
+@SpringBootTest
 public class RestUserRepositoryTest {
+
     private static User user1;
     private static User user2;
     private static User user3;
     private static User user4;
     @Rule
-    final public ExpectedException expectedException = ExpectedException.none();
+    public ExpectedException expectedException = ExpectedException.none();
     @Inject
     private UserRepository userRepository;
     @MockBean
@@ -49,36 +50,44 @@ public class RestUserRepositoryTest {
 
     @BeforeClass
     public static void oneTimeSetup() {
-        user1 = new User("uuid1", "@slack1");
-        user2 = new User("uuid2", "@slack2");
-        user3 = new User("uuid3", "@slack3");
-        user4 = new User("uuid4", "@slack4");
+        user1 = new User("uuid1", "slack-id1");
+        user2 = new User("uuid2", "slack-id2");
+        user3 = new User("uuid3", "slack-id3");
+        user4 = new User("uuid4", "slack-id4");
     }
 
     @Test
-    public void findUsersBySlackNamesIfUserServerReturnsUsersCorrectly() throws IOException {
-        List<String> slackNames = Arrays.asList("@slack1", "@slack2", "@slack3", "@slack4");
+    public void findUsersBySlackIdsIfUserServerReturnsUsersCorrectly() throws IOException {
+        //given
         List<User> expected = Arrays.asList(user1, user2, user3, user4);
-        ArgumentCaptor<UserSlackNameRequest> captorUserSlackNameRequest = ArgumentCaptor.forClass(UserSlackNameRequest.class);
-        when(usersClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenReturn(expected);
+        List<String> slackIds = Arrays.asList(user1.getSlackId(), user2.getSlackId(),
+                user3.getSlackId(), user4.getSlackId());
+        ArgumentCaptor<UserSlackIdRequest> captorUserSlackIdRequest =
+                ArgumentCaptor.forClass(UserSlackIdRequest.class);
 
-        List<User> actual = userRepository.findUsersBySlackNames(slackNames);
+        when(usersClient.findUsersBySlackIds(captorUserSlackIdRequest.capture())).thenReturn(expected);
 
+        //when
+        List<User> actual = userRepository.findUsersBySlackIds(slackIds);
+
+        //then
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(actual)
                     .as("expected not equals actual")
                     .isEqualTo(expected);
-            soft.assertThat(captorUserSlackNameRequest.getValue().getSlackNames())
-                    .as("'captorUserSlackNameRequest' slacknames not contains 'slackNames'")
-                    .containsExactlyInAnyOrder(slackNames.toArray(new String[slackNames.size()]));
+            soft.assertThat(captorUserSlackIdRequest.getValue().getSlackIds())
+                    .as("'captorUserSlackIdRequest' slackIds not contains 'slackIds'")
+                    .containsExactlyInAnyOrder(slackIds.toArray(new String[slackIds.size()]));
         });
-        verify(usersClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
+        verify(usersClient).findUsersBySlackIds(captorUserSlackIdRequest.capture());
         verifyNoMoreInteractions(usersClient);
     }
 
     @Test
-    public void findUsersBySlackNamesIfUserServerReturnsFeignExceptionWithCorrectContent() throws IOException {
-        List<String> slackNames = Arrays.asList("@slack1", "@slack2", "@slack3", "@slack4");
+    public void findUsersBySlackIdsIfUserServerReturnsFeignExceptionWithCorrectContent() throws IOException {
+        //given
+        List<String> slackIds = Arrays.asList(user1.getSlackId(), user2.getSlackId(),
+                user3.getSlackId(), user4.getSlackId());
         String expectedJsonResponseBody =
                 "status 400 reading GatewayClient#activateTeam(ActivateTeamRequest); content:" +
                         "{\n" +
@@ -90,31 +99,39 @@ public class RestUserRepositoryTest {
                         "  \"detailErrors\": []\n" +
                         "}";
         FeignException feignException = mock(FeignException.class);
-        ArgumentCaptor<UserSlackNameRequest> captorUserSlackNameRequest = ArgumentCaptor.forClass(UserSlackNameRequest.class);
-        when(usersClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenThrow(feignException);
+        ArgumentCaptor<UserSlackIdRequest> captorUserSlackIdRequest =
+                ArgumentCaptor.forClass(UserSlackIdRequest.class);
+
+        when(usersClient.findUsersBySlackIds(captorUserSlackIdRequest.capture())).thenThrow(feignException);
         when(feignException.getMessage()).thenReturn(expectedJsonResponseBody);
 
         expectedException.expect(UserExchangeException.class);
         expectedException.expectMessage(containsString("Sorry, User server return an error"));
 
         try {
-            userRepository.findUsersBySlackNames(slackNames);
+            //when
+            userRepository.findUsersBySlackIds(slackIds);
         } finally {
-            Assertions.assertThat(captorUserSlackNameRequest.getValue().getSlackNames())
-                    .containsExactlyInAnyOrder((slackNames.toArray(new String[slackNames.size()])));
-            verify(usersClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
+            //then
+            Assertions.assertThat(captorUserSlackIdRequest.getValue().getSlackIds())
+                    .containsExactlyInAnyOrder((slackIds.toArray(new String[slackIds.size()])));
+            verify(usersClient).findUsersBySlackIds(captorUserSlackIdRequest.capture());
             verifyNoMoreInteractions(usersClient);
         }
     }
 
     @Test
-    public void findUsersBySlackNamesIfUserServerReturnsFeignExceptionWithIncorrectContent() throws IOException {
-        List<String> slackNames = Arrays.asList("@slack1", "@slack2", "@slack3", "@slack4");
+    public void findUsersBySlackIdsIfUserServerReturnsFeignExceptionWithIncorrectContent() throws IOException {
+        //given
+        List<String> slackIds = Arrays.asList(user1.getSlackId(), user2.getSlackId(),
+                user3.getSlackId(), user4.getSlackId());
         String expectedJsonResponseBody =
                 "status 400 reading GatewayClient#activateTeam(ActivateTeamRequest); content: \n";
         FeignException feignException = mock(FeignException.class);
-        ArgumentCaptor<UserSlackNameRequest> captorUserSlackNameRequest = ArgumentCaptor.forClass(UserSlackNameRequest.class);
-        when(usersClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenThrow(feignException);
+        ArgumentCaptor<UserSlackIdRequest> captorUserSlackIdRequest =
+                ArgumentCaptor.forClass(UserSlackIdRequest.class);
+
+        when(usersClient.findUsersBySlackIds(captorUserSlackIdRequest.capture())).thenThrow(feignException);
         when(feignException.getMessage()).thenReturn(expectedJsonResponseBody);
 
         expectedException.expect(UserExchangeException.class);
@@ -122,22 +139,28 @@ public class RestUserRepositoryTest {
                 containsString("I'm, sorry. I cannot parse api error message from remote service :("));
 
         try {
-            userRepository.findUsersBySlackNames(slackNames);
+            //when
+            userRepository.findUsersBySlackIds(slackIds);
         } finally {
-            Assertions.assertThat(captorUserSlackNameRequest.getValue().getSlackNames())
-                    .containsExactlyInAnyOrder((slackNames.toArray(new String[slackNames.size()])));
-            verify(usersClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
+            //then
+            Assertions.assertThat(captorUserSlackIdRequest.getValue().getSlackIds())
+                    .containsExactlyInAnyOrder((slackIds.toArray(new String[slackIds.size()])));
+            verify(usersClient).findUsersBySlackIds(captorUserSlackIdRequest.capture());
             verifyNoMoreInteractions(usersClient);
         }
     }
 
     @Test
-    public void findUsersBySlackNamesIfUserServerReturnsFeignExceptionWithoutContent() throws IOException {
-        List<String> slackNames = Arrays.asList("@slack1", "@slack2", "@slack3", "@slack4");
+    public void findUsersBySlackIdsIfUserServerReturnsFeignExceptionWithoutContent() throws IOException {
+        //given
+        List<String> slackIds = Arrays.asList(user1.getSlackId(), user2.getSlackId(),
+                user3.getSlackId(), user4.getSlackId());
         String expectedJsonResponseBody = "";
         FeignException feignException = mock(FeignException.class);
-        ArgumentCaptor<UserSlackNameRequest> captorUserSlackNameRequest = ArgumentCaptor.forClass(UserSlackNameRequest.class);
-        when(usersClient.findUsersBySlackNames(captorUserSlackNameRequest.capture())).thenThrow(feignException);
+        ArgumentCaptor<UserSlackIdRequest> captorUserSlackIdRequest =
+                ArgumentCaptor.forClass(UserSlackIdRequest.class);
+
+        when(usersClient.findUsersBySlackIds(captorUserSlackIdRequest.capture())).thenThrow(feignException);
         when(feignException.getMessage()).thenReturn(expectedJsonResponseBody);
 
         expectedException.expect(UserExchangeException.class);
@@ -145,11 +168,13 @@ public class RestUserRepositoryTest {
                 containsString("I'm, sorry. I cannot parse api error message from remote service :("));
 
         try {
-            userRepository.findUsersBySlackNames(slackNames);
+            //when
+            userRepository.findUsersBySlackIds(slackIds);
         } finally {
-            Assertions.assertThat(captorUserSlackNameRequest.getValue().getSlackNames())
-                    .containsExactlyInAnyOrder((slackNames.toArray(new String[slackNames.size()])));
-            verify(usersClient).findUsersBySlackNames(captorUserSlackNameRequest.capture());
+            //then
+            Assertions.assertThat(captorUserSlackIdRequest.getValue().getSlackIds())
+                    .containsExactlyInAnyOrder((slackIds.toArray(new String[slackIds.size()])));
+            verify(usersClient).findUsersBySlackIds(captorUserSlackIdRequest.capture());
             verifyNoMoreInteractions(usersClient);
         }
     }
@@ -159,10 +184,13 @@ public class RestUserRepositoryTest {
         List<String> uuids = Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4");
         List<User> expected = Arrays.asList(user1, user2, user3, user4);
         ArgumentCaptor<UserUuidRequest> captorUserUuidRequest = ArgumentCaptor.forClass(UserUuidRequest.class);
+        
         when(usersClient.findUsersByUuids(captorUserUuidRequest.capture())).thenReturn(expected);
 
+        //when
         List<User> actual = userRepository.findUsersByUuids(uuids);
 
+        //then
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(actual)
                     .as("expected not equals actual")
@@ -177,6 +205,7 @@ public class RestUserRepositoryTest {
 
     @Test
     public void findUsersByUuidsIfUserServerReturnsException() throws IOException {
+        //given
         List<String> uuids = Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4");
         String expectedJsonResponseBody =
                 "status 400 reading GatewayClient#activateTeam(ActivateTeamRequest); content:" +
@@ -190,6 +219,7 @@ public class RestUserRepositoryTest {
                         "}";
         FeignException feignException = mock(FeignException.class);
         ArgumentCaptor<UserUuidRequest> captorUserUuidRequest = ArgumentCaptor.forClass(UserUuidRequest.class);
+
         when(usersClient.findUsersByUuids(captorUserUuidRequest.capture())).thenThrow(feignException);
         when(feignException.getMessage()).thenReturn(expectedJsonResponseBody);
 
@@ -197,8 +227,10 @@ public class RestUserRepositoryTest {
         expectedException.expectMessage(containsString("Sorry, User server return an error"));
 
         try {
+            //when
             userRepository.findUsersByUuids(uuids);
         } finally {
+            //then
             Assertions.assertThat(captorUserUuidRequest.getValue().getUuids())
                     .containsExactlyInAnyOrder(uuids.toArray(new String[uuids.size()]));
             verify(usersClient).findUsersByUuids(captorUserUuidRequest.capture());

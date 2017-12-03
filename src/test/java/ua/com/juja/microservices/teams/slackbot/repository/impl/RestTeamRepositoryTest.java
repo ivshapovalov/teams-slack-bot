@@ -33,26 +33,29 @@ import static org.mockito.Mockito.when;
  * @author Ivan Shapovalov
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest()
+@SpringBootTest
 public class RestTeamRepositoryTest {
     @Rule
     public final ExpectedException expectedException = ExpectedException.none();
     @Inject
     private TeamRepository teamRepository;
-
     @MockBean
     private TeamsClient teamsClient;
 
     @Test
     public void activateTeamSendRequestToRemoteTeamsServerAndReturnActivatedTeamExecutedCorrectly() throws IOException {
+        //given
         String uuidFrom = "uuid-from";
         Set<String> members = new LinkedHashSet<>(Arrays.asList("uuid5", "uuid2", "uuid3", "uuid4"));
         ActivateTeamRequest activateTeamRequest = new ActivateTeamRequest(uuidFrom, members);
         Team expected = new Team(members, uuidFrom, "id", new Date(), new Date());
+
         when(teamsClient.activateTeam(activateTeamRequest)).thenReturn(expected);
 
+        //when
         Team actual = teamRepository.activateTeam(activateTeamRequest);
 
+        //then
         assertEquals(expected, actual);
         verify(teamsClient).activateTeam(activateTeamRequest);
         verifyNoMoreInteractions(teamsClient);
@@ -60,6 +63,7 @@ public class RestTeamRepositoryTest {
 
     @Test
     public void activateTeamSendRequestToRemoteTeamsServerWhichReturnsErrorThrowsException() throws IOException {
+        //given
         String uuidFrom = "uuid-from";
         Set<String> members = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4"));
         ActivateTeamRequest activateTeamRequest = new ActivateTeamRequest(uuidFrom, members);
@@ -73,8 +77,8 @@ public class RestTeamRepositoryTest {
                         "  \"exceptionMessage\": \"User(s) '#uuid1,uuid2,uuid3,uuid4#' exist(s) in another teams\",\n" +
                         "  \"detailErrors\": []\n" +
                         "}";
-
         FeignException feignException = mock(FeignException.class);
+
         when(teamsClient.activateTeam(activateTeamRequest)).thenThrow(feignException);
         when(feignException.getMessage()).thenReturn(expectedJsonResponseBody);
 
@@ -82,24 +86,29 @@ public class RestTeamRepositoryTest {
         expectedException.expectMessage(containsString("Sorry, but the user already exists in team"));
 
         try {
+            //when
             teamRepository.activateTeam(activateTeamRequest);
         } finally {
+            //then
             verify(teamsClient).activateTeam(activateTeamRequest);
             verifyNoMoreInteractions(teamsClient);
         }
     }
 
     @Test
-    public void getTeamSendRequestToRemoteTeamsServerAndReturnTeamExecutedCorrectly() throws
-            IOException {
+    public void getTeamSendRequestToRemoteTeamsServerAndReturnTeamExecutedCorrectly() throws IOException {
+        //given
         String uuid = "uuid5";
         String uuidFrom = "uuid-from";
         Set<String> members = new LinkedHashSet<>(Arrays.asList("uuid5", "uuid2", "uuid3", "uuid4"));
         Team expected = new Team(members, uuidFrom, "id", new Date(), new Date());
+
         when(teamsClient.getTeam(uuid)).thenReturn(expected);
 
+        //when
         Team actual = teamRepository.getTeam(uuid);
 
+        //then
         assertEquals(expected, actual);
         verify(teamsClient).getTeam(uuid);
         verifyNoMoreInteractions(teamsClient);
@@ -107,6 +116,7 @@ public class RestTeamRepositoryTest {
 
     @Test
     public void getTeamSendRequestToRemoteTeamsServerWhichReturnsErrorThrowsException() throws IOException {
+        //given
         String uuid = "uuid";
         String expectedJsonResponseBody =
                 "status 400 reading GatewayClient#activateTeam(ActivateTeamRequest); content:" +
@@ -118,8 +128,8 @@ public class RestTeamRepositoryTest {
                         "  \"exceptionMessage\": \"The reason of the exception is that user not in team\",\n" +
                         "  \"detailErrors\": []\n" +
                         "}";
-
         FeignException feignException = mock(FeignException.class);
+
         when(teamsClient.getTeam(uuid)).thenThrow(feignException);
         when(feignException.getMessage()).thenReturn(expectedJsonResponseBody);
 
@@ -127,8 +137,10 @@ public class RestTeamRepositoryTest {
         expectedException.expectMessage(containsString("You cannot get/deactivate team if the user not a member of any team!"));
 
         try {
+            //when
             teamRepository.getTeam(uuid);
         } finally {
+            //then
             verify(teamsClient).getTeam(uuid);
             verifyNoMoreInteractions(teamsClient);
         }
@@ -137,17 +149,21 @@ public class RestTeamRepositoryTest {
     @Test
     public void getTeamRemoteTeamsServerReturnsErrorWhichUnableToConvertToApiErrorThrowsTeamException() throws
             IOException {
+        //given
         String uuid = "uuid";
         RuntimeException runtimeException =
                 new RuntimeException("I'm, sorry. I cannot parse api error message from remote service :(");
+
         when(teamsClient.getTeam(uuid)).thenThrow(runtimeException);
 
         expectedException.expect(RuntimeException.class);
         expectedException.expectMessage(containsString("I'm, sorry. I cannot parse api error message from remote service :("));
 
         try {
+            //when
             teamRepository.getTeam(uuid);
         } finally {
+            //then
             verify(teamsClient).getTeam(uuid);
             verifyNoMoreInteractions(teamsClient);
         }
@@ -156,15 +172,19 @@ public class RestTeamRepositoryTest {
     @Test
     public void deactivateTeamSendRequestToRemoteTeamsServerAndReturnDeactivatedTeamExecutedCorrectly() throws
             IOException {
+        //given
         String uuidFrom = "uuid-from";
         String uuid = "uuid2";
         DeactivateTeamRequest deactivateTeamRequest = new DeactivateTeamRequest(uuidFrom, uuid);
         Set<String> members = new LinkedHashSet<>(Arrays.asList("uuid1", "uuid2", "uuid3", "uuid4"));
         Team expected = new Team(members, uuidFrom, "id", new Date(), new Date());
+
         when(teamsClient.deactivateTeam(deactivateTeamRequest)).thenReturn(expected);
 
+        //when
         Team actual = teamRepository.deactivateTeam(deactivateTeamRequest);
 
+        //then
         assertEquals(expected, actual);
         verify(teamsClient).deactivateTeam(deactivateTeamRequest);
         verifyNoMoreInteractions(teamsClient);
@@ -172,6 +192,7 @@ public class RestTeamRepositoryTest {
 
     @Test
     public void deactivateTeamSendRequestToRemoteTeamsServerWhichReturnsErrorThrowsException() throws IOException {
+        //given
         String uuidFrom = "uuid-from";
         String uuid = "uuid2";
         DeactivateTeamRequest deactivateTeamRequest = new DeactivateTeamRequest(uuidFrom, uuid);
@@ -185,18 +206,19 @@ public class RestTeamRepositoryTest {
                         "  \"exceptionMessage\": \"The reason of the exception is that user not in team\",\n" +
                         "  \"detailErrors\": []\n" +
                         "}";
-
         FeignException feignException = mock(FeignException.class);
+
         when(teamsClient.deactivateTeam(deactivateTeamRequest)).thenThrow(feignException);
         when(feignException.getMessage()).thenReturn(expectedJsonResponseBody);
 
         expectedException.expect(TeamExchangeException.class);
         expectedException.expectMessage(containsString("You cannot get/deactivate team if the user not a member of any team!"));
 
-        teamRepository.deactivateTeam(deactivateTeamRequest);
         try {
+            //when
             teamRepository.deactivateTeam(deactivateTeamRequest);
         } finally {
+            //then
             verify(teamsClient).deactivateTeam(deactivateTeamRequest);
             verifyNoMoreInteractions(teamsClient);
         }
