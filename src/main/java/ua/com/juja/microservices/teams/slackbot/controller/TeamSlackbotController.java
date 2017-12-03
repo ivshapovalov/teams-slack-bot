@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.exceptions.ExceptionsHandler;
 import ua.com.juja.microservices.teams.slackbot.service.TeamService;
+import ua.com.juja.microservices.teams.slackbot.util.SlackIdHandler;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
@@ -61,72 +62,90 @@ public class TeamSlackbotController {
 
     @PostMapping(value = "/teams/activate", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void onReceiveSlashCommandActivateTeam(@RequestParam("token") String token,
-                                                  @RequestParam("user_name") String fromUser,
+                                                  @RequestParam("user_id") String fromUserId,
                                                   @RequestParam("text") String text,
                                                   @RequestParam("response_url") String responseUrl,
                                                   HttpServletResponse response) throws IOException {
         exceptionsHandler.setResponseUrl(responseUrl);
-        if (isRequestCorrect(token, response, fromUser, responseUrl)) {
+        if (isRequestCorrect(token, response, fromUserId, responseUrl)) {
             sendInstantResponseMessage(response, ACTIVATE_TEAM_INSTANT_MESSAGE);
-            teamService.activateTeam(fromUser,text);
-            RichMessage message = new RichMessage(String.format(ACTIVATE_TEAM_DELAYED_MESSAGE, text));
+            Set<String> slackIds = teamService.activateTeam(fromUserId, text);
+            RichMessage message = new RichMessage(String.format(ACTIVATE_TEAM_DELAYED_MESSAGE,
+                    slackIds.stream().sorted()
+                            .map(SlackIdHandler::wrapSlackIdInFullPattern)
+                            .collect(Collectors.joining(" "))));
             sendDelayedResponseMessage(responseUrl, message);
-            log.info("'Activate team' command processed : fromUser: '{}', text: '{}', response_url: '{}' and sent " +
-                    "message to slack: '{}'", fromUser, text, responseUrl, message.getText());
+            log.info("'Activate team' command processed : fromUserId: '{}', text: '{}', response_url: '{}' and sent " +
+                    "message to slack: '{}'", fromUserId, text, responseUrl, message.getText());
         }
     }
 
-    @PostMapping(value = "/teams/deactivate",            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @PostMapping(value = "/teams/deactivate", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void onReceiveSlashCommandDeactivateTeam(@RequestParam("token") String token,
-                                                    @RequestParam("user_name") String fromUser,
+                                                    @RequestParam("user_id") String fromUserId,
                                                     @RequestParam("text") String text,
                                                     @RequestParam("response_url") String responseUrl,
                                                     HttpServletResponse response) throws IOException {
         exceptionsHandler.setResponseUrl(responseUrl);
-        if (isRequestCorrect(token, response, fromUser, responseUrl)) {
+        if (isRequestCorrect(token, response, fromUserId, responseUrl)) {
             sendInstantResponseMessage(response, String.format(DEACTIVATE_TEAM_INSTANT_MESSAGE, text));
-            Set<String> slackNames = teamService.deactivateTeam(fromUser, text);
+            Set<String> slackIds = teamService.deactivateTeam(fromUserId, text);
             RichMessage message = new RichMessage(String.format(DEACTIVATE_TEAM_DELAYED_MESSAGE,
-                    slackNames.stream().sorted().collect(Collectors.joining(" "))));
+                    slackIds.stream().sorted()
+                            .map(SlackIdHandler::wrapSlackIdInFullPattern)
+                            .collect(Collectors.joining(" "))));
             sendDelayedResponseMessage(responseUrl, message);
-            log.info("'Deactivate team' command processed : fromUser: '{}', text: '{}', response_url: '{}' and sent " +
-                    "message to slack: '{}'", fromUser, text, responseUrl, message.getText());
+            log.info("'Deactivate team' command processed : fromUserId: '{}', text: '{}', response_url: '{}' and sent " +
+                    "message to slack: '{}'", fromUserId, text, responseUrl, message.getText());
         }
     }
 
     @PostMapping(value = "/teams", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void onReceiveSlashCommandGetTeam(@RequestParam("token") String token,
-                                             @RequestParam("user_name") String fromUser,
+                                             @RequestParam("user_id") String fromUserId,
                                              @RequestParam("text") String text,
                                              @RequestParam("response_url") String responseUrl,
                                              HttpServletResponse response) throws IOException {
         exceptionsHandler.setResponseUrl(responseUrl);
-        if (isRequestCorrect(token, response, fromUser, responseUrl)) {
+        if (isRequestCorrect(token, response, fromUserId, responseUrl)) {
             sendInstantResponseMessage(response, String.format(GET_TEAM_INSTANT_MESSAGE, text));
-            Set<String> slackNames = teamService.getTeam(text);
+            Set<String> slackIds = teamService.getTeam(text);
+
+            String textUserId = slackIds.stream()
+                    .filter(slackId ->
+                            text.contains(SlackIdHandler.wrapSlackIdInFullPattern(slackId)) ||
+                                    text.contains(SlackIdHandler.wrapSlackIdInPartialPattern(slackId)))
+                    .findFirst().orElse(null);
+            textUserId = textUserId == null ? text : SlackIdHandler.wrapSlackIdInFullPattern(textUserId);
+
             RichMessage message = new RichMessage(String.format(GET_TEAM_DELAYED_MESSAGE,
-                    text, slackNames.stream().sorted().collect(Collectors.joining(" "))));
+                    textUserId,
+                    slackIds.stream().sorted()
+                            .map(SlackIdHandler::wrapSlackIdInFullPattern)
+                            .collect(Collectors.joining(" "))));
             sendDelayedResponseMessage(responseUrl, message);
-            log.info("'Get team' command processed : fromUser: '{}', text: '{}', response_url: '{}' and sent " +
-                    "message to slack: '{}'", fromUser, text, responseUrl, message.getText());
+            log.info("'Get team' command processed : fromUserId: '{}', text: '{}', response_url: '{}' and sent " +
+                    "message to slack: '{}'", fromUserId, text, responseUrl, message.getText());
         }
     }
 
     @PostMapping(value = "/myteam", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void onReceiveSlashCommandGetMyTeam(@RequestParam("token") String token,
-                                               @RequestParam("user_name") String fromUser,
+                                               @RequestParam("user_id") String fromUserId,
                                                @RequestParam("response_url") String responseUrl,
                                                HttpServletResponse response) throws IOException {
         exceptionsHandler.setResponseUrl(responseUrl);
-        if (isRequestCorrect(token, response, fromUser, responseUrl)) {
-            fromUser = fromUser.startsWith("@") ? fromUser : "@" + fromUser;
-            sendInstantResponseMessage(response, String.format(GET_MY_TEAM_INSTANT_MESSAGE, fromUser));
-            Set<String> slackNames = teamService.getTeam(fromUser);
+        if (isRequestCorrect(token, response, fromUserId, responseUrl)) {
+            String wrappedFromUserId = SlackIdHandler.wrapSlackIdInFullPattern(fromUserId);
+            sendInstantResponseMessage(response, String.format(GET_MY_TEAM_INSTANT_MESSAGE, wrappedFromUserId));
+            Set<String> slackIds = teamService.getTeam(wrappedFromUserId);
             RichMessage message = new RichMessage(String.format(GET_MY_TEAM_DELAYED_MESSAGE,
-                    fromUser, slackNames.stream().sorted().collect(Collectors.joining(" "))));
+                    wrappedFromUserId, slackIds.stream().sorted()
+                            .map(SlackIdHandler::wrapSlackIdInFullPattern)
+                            .collect(Collectors.joining(" "))));
             sendDelayedResponseMessage(responseUrl, message);
-            log.info("'Get my team' command processed : fromUser: '{}', text: '{}', response_url: '{}' and sent " +
-                    "message to slack: '{}'", fromUser, responseUrl, message.getText());
+            log.info("'Get my team' command processed : fromUserId: '{}', response_url: '{}' and sent " +
+                    "message to slack: '{}'", fromUserId, responseUrl, message.getText());
         }
     }
 
