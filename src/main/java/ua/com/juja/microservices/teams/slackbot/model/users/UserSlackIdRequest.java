@@ -9,10 +9,10 @@ import java.util.List;
  * @author Ivan Shapovalov
  */
 @AllArgsConstructor
-public class UserSlackNameRequest {
-    List<String> slackNames;
+public class UserSlackIdRequest {
+    List<String> slackIds;
 
-    public List<String> getSlackNames() {
-        return Collections.unmodifiableList(slackNames);
+    public List<String> getSlackIds() {
+        return Collections.unmodifiableList(slackIds);
     }
 }
