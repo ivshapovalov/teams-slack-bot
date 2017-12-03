@@ -28,7 +28,7 @@ public class TestUtils {
                 "any_domain",
                 "UHASHB8JB",
                 "test-channel",
-                "UNJSD9OKM",
+                "from-id",
                 "@slack-from",
                 command,
                 description,

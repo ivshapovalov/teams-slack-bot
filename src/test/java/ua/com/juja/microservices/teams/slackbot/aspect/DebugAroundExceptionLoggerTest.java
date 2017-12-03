@@ -58,16 +58,14 @@ public class DebugAroundExceptionLoggerTest {
 
     @Test
     public void logExceptionHandleMethodIfOneArgumentWhichIsBaseBotExceptionWithErrorExecutedCorrectly() throws Throwable {
-
+        //given
         String exceptionMessage = "Some error";
         ApiError apiError = new ApiError(
                 400, "USF-F1-D1",
                 exceptionMessage,
                 "User not found",
                 "Something went wrong",
-                Collections.emptyList()
-        );
-
+                Collections.emptyList());
         BaseBotException exception = new UserExchangeException(apiError, new RuntimeException(exceptionMessage));
         Object result = new Object();
         Object[] args = {exception};
@@ -78,8 +76,10 @@ public class DebugAroundExceptionLoggerTest {
         when(proceedingJoinPoint.toShortString()).thenReturn(message);
         when(proceedingJoinPoint.proceed()).thenReturn(result);
 
+        //when
         debugAroundExceptionLogger.logExceptionHandleMethods(proceedingJoinPoint);
 
+        //then
         verify(proceedingJoinPoint).getArgs();
         verify(proceedingJoinPoint).toShortString();
         verify(proceedingJoinPoint).proceed();
@@ -90,7 +90,7 @@ public class DebugAroundExceptionLoggerTest {
 
     @Test
     public void logExceptionHandleMethodsIfTwoArgumentsExecutedCorrectly() throws Throwable {
-
+        //given
         Object result = new Object();
         Object[] args = {"Exception1", "Exception2"};
         String message = "execution(method)";
@@ -100,8 +100,10 @@ public class DebugAroundExceptionLoggerTest {
         when(proceedingJoinPoint.toShortString()).thenReturn(message);
         when(proceedingJoinPoint.proceed()).thenReturn(result);
 
+        //when
         debugAroundExceptionLogger.logExceptionHandleMethods(proceedingJoinPoint);
 
+        //then
         verify(proceedingJoinPoint).getArgs();
         verify(proceedingJoinPoint).toShortString();
         verify(proceedingJoinPoint).proceed();
@@ -112,7 +114,7 @@ public class DebugAroundExceptionLoggerTest {
 
     @Test
     public void logExceptionHandleMethodsIfOneArgumentNotBaseBotExceptionExecutedCorrectly() throws Throwable {
-
+        //given
         Object result = new Object();
         Object[] args = {"Exception1"};
         String message = "execution(method)";
@@ -122,8 +124,10 @@ public class DebugAroundExceptionLoggerTest {
         when(proceedingJoinPoint.toShortString()).thenReturn(message);
         when(proceedingJoinPoint.proceed()).thenReturn(result);
 
+        //when
         debugAroundExceptionLogger.logExceptionHandleMethods(proceedingJoinPoint);
 
+        //then
         verify(proceedingJoinPoint).getArgs();
         verify(proceedingJoinPoint).toShortString();
         verify(proceedingJoinPoint).proceed();
