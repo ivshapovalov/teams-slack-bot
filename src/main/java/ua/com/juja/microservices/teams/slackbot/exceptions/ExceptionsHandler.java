@@ -53,9 +53,10 @@ public class ExceptionsHandler {
         String exceptionMessage = ex.getExceptionMessage();
         if (exceptionMessage != null && exceptionMessage.contains("#")) {
             try {
-                message = userService.replaceUuidsBySlackNamesInExceptionMessage(exceptionMessage);
-            } catch (Exception e) {
-                log.warn("Nested exception : '{}'", e.getMessage());
+                message = userService.replaceUuidsBySlackIdsInExceptionMessage(exceptionMessage);
+            } catch (Exception nestedException) {
+                log.warn("Nested exception : '{}'", nestedException.getMessage());
+                message = nestedException.getMessage();
             }
         }
         sendErrorResponseAsRichMessage(new RichMessage(message));
