@@ -18,6 +18,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ua.com.juja.microservices.teams.slackbot.util.SlackUserHandler;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -85,7 +86,11 @@ public class DebugAroundMethodLoggerTest {
         Object result = Void.TYPE;
         MethodSignature methodSignature = PowerMockito.mock(MethodSignature.class, withSettings().extraInterfaces
                 (Signature.class, MemberSignature.class, CodeSignature.class, MethodSignature.class));
-        Object[] args = {"<@slack-id1>", "<@slack-id2>", "<@slack-id3>"};
+        Object[] args = {
+                String.format(
+                        SlackUserHandler.wrapSlackUserInFullPattern("slack1"),
+                        SlackUserHandler.wrapSlackUserInFullPattern("slack2"),
+                        SlackUserHandler.wrapSlackUserInFullPattern("slack3"))};
         String returnType = "void";
         String message = "execution(method)";
         String beforeMessage = "{} called with args '{}'!";
@@ -123,7 +128,11 @@ public class DebugAroundMethodLoggerTest {
         //given
         MethodSignature methodSignature = PowerMockito.mock(MethodSignature.class, withSettings().extraInterfaces
                 (Signature.class, MemberSignature.class, CodeSignature.class, MethodSignature.class));
-        Object[] args = {"<@slack-id1>", "<@slack-id2>", "<@slack-id3>"};
+        Object[] args = {
+                String.format(
+                        SlackUserHandler.wrapSlackUserInFullPattern("slack1"),
+                        SlackUserHandler.wrapSlackUserInFullPattern("slack2"),
+                        SlackUserHandler.wrapSlackUserInFullPattern("slack3"))};
         String result = "@d";
         String message = "execution(method)";
         String beforeMessage = "{} called with args '{}'!";

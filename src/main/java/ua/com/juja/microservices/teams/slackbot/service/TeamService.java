@@ -7,9 +7,9 @@ import java.util.Set;
  */
 public interface TeamService {
 
-    Set<String> activateTeam(String fromUserId, String text);
+    Set<String> activateTeam(String fromSlackUser, String text);
 
     Set<String> getTeam(String text);
 
-    Set<String> deactivateTeam(String fromUserId, String text);
+    Set<String> deactivateTeam(String fromSlackUser, String text);
 }

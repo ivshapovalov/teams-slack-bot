@@ -29,9 +29,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> findUsersBySlackIds(List<String> slackIds) {
-        Utils.checkNull(slackIds, "SlackIds must not be null!");
-        List<User> users = userRepository.findUsersBySlackIds(slackIds);
+    public List<User> findUsersBySlackUsers(List<String> slackUsers) {
+        Utils.checkNull(slackUsers, "Slack users must not be null!");
+        List<User> users = userRepository.findUsersBySlackUsers(slackUsers);
         log.info("Found '{}' users in User repository", users.size());
         return users;
     }
@@ -45,14 +45,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String replaceUuidsBySlackIdsInExceptionMessage(String message) {
+    public String replaceUuidsBySlackUsersInExceptionMessage(String message) {
         Set<String> uuids = Utils.extractUuidsFromExceptionMessage(message);
         if (!uuids.isEmpty()) {
             List<User> users = findUsersByUuids(new ArrayList<>(uuids));
-            Set<String> slackIds = new LinkedHashSet<>(users.stream()
-                    .map(User::getSlackId)
+            Set<String> slackUsers = new LinkedHashSet<>(users.stream()
+                    .map(User::getSlackUser)
                     .collect(Collectors.toList()));
-            message = Utils.replaceUuidsBySlackIdsInExceptionMessage(message, slackIds);
+            message = Utils.replaceUuidsBySlackUsersInExceptionMessage(message, slackUsers);
         }
         return message;
     }

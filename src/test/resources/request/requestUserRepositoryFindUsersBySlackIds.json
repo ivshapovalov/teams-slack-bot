@@ -1,8 +1,8 @@
 {
-  "slackIds": [
-    "slack-id1",
-    "slack-id2",
-    "slack-id3",
-    "slack-id4"
+  "slackUsers": [
+    "slack1",
+    "slack2",
+    "slack3",
+    "slack4"
   ]
 }

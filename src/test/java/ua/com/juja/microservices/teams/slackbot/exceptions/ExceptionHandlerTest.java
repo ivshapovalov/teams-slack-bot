@@ -17,7 +17,7 @@ import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.controller.TeamSlackbotController;
 import ua.com.juja.microservices.teams.slackbot.service.TeamService;
 import ua.com.juja.microservices.teams.slackbot.service.UserService;
-import ua.com.juja.microservices.teams.slackbot.util.SlackIdHandler;
+import ua.com.juja.microservices.teams.slackbot.util.SlackUserHandler;
 import ua.com.juja.microservices.utils.TestUtils;
 
 import javax.inject.Inject;
@@ -58,19 +58,19 @@ public class ExceptionHandlerTest {
     @Test
     public void handleTeamExchangeException() throws Exception {
         //given
-        String from = "from-id";
+        String from = "slack-from";
         String activateTeamCommandText = String.format("%s %s %s %s",
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id1"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id2"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id3"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id4"));
+                SlackUserHandler.wrapSlackUserInFullPattern("slack1"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack2"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack3"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack4"));
         String responseUrl = "example.com";
         String messageWithUuids = "User(s) '#uuid1,uuid2,uuid3,uuid4#' exist(s) in another teams";
-        String messageWithSlackIds = String.format("User(s) '#%s %s %s %s#'  exist(s) in another teams",
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id1"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id2"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id3"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id4"));
+        String messageWithSlackUsers = String.format("User(s) '#%s %s %s %s#'  exist(s) in another teams",
+                SlackUserHandler.wrapSlackUserInFullPattern("slack1"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack2"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack3"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack4"));
         ApiError apiError = new ApiError(
                 400, "TMF-F2-D3",
                 "Sorry, but the user already exists in team!",
@@ -81,7 +81,7 @@ public class ExceptionHandlerTest {
 
         when(teamService.activateTeam(from, activateTeamCommandText)).thenThrow(exception);
         when(restTemplate.postForObject(eq(responseUrl), any(RichMessage.class), eq(String.class))).thenReturn("");
-        when(userService.replaceUuidsBySlackIdsInExceptionMessage(messageWithUuids)).thenReturn(messageWithSlackIds);
+        when(userService.replaceUuidsBySlackUsersInExceptionMessage(messageWithUuids)).thenReturn(messageWithSlackUsers);
 
         //when
         mvc.perform(MockMvcRequestBuilders.post(TestUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
@@ -93,22 +93,22 @@ public class ExceptionHandlerTest {
 
         //then
         verify(teamService).activateTeam(from, activateTeamCommandText);
-        verify(userService).replaceUuidsBySlackIdsInExceptionMessage(messageWithUuids);
+        verify(userService).replaceUuidsBySlackUsersInExceptionMessage(messageWithUuids);
         ArgumentCaptor<RichMessage> captor = ArgumentCaptor.forClass(RichMessage.class);
         verify(restTemplate).postForObject(eq(responseUrl), captor.capture(), eq(String.class));
-        assertTrue(captor.getValue().getText().contains(messageWithSlackIds));
+        assertTrue(captor.getValue().getText().contains(messageWithSlackUsers));
         verifyNoMoreInteractions(teamService, restTemplate, userService);
     }
 
     @Test
     public void handleUserExchangeException() throws Exception {
         //given
-        String from = "from-id";
+        String from = "slack-from";
         String activateTeamCommandText = String.format("%s %s %s %s",
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id1"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id2"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id3"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id4"));
+                SlackUserHandler.wrapSlackUserInFullPattern("slack1"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack2"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack3"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack4"));
         String responseUrl = "example.com";
         ApiError apiError = new ApiError(
                 400, "USF-F1-D1",
@@ -140,12 +140,12 @@ public class ExceptionHandlerTest {
     @Test
     public void handleWrongCommandFormatException() throws Exception {
         //given
-        String from = "from-id";
+        String from = "slack-from";
         String activateTeamCommandText = String.format("%s %s %s %s",
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id1"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id2"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id3"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id4"));
+                SlackUserHandler.wrapSlackUserInFullPattern("slack1"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack2"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack3"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack4"));
         String responseUrl = "example.com";
         WrongCommandFormatException exception = new WrongCommandFormatException("wrong command");
 
@@ -171,12 +171,12 @@ public class ExceptionHandlerTest {
     @Test
     public void handleResourceAccessException() throws Exception {
         //given
-        String from = "from-id";
+        String from = "slack-from";
         String activateTeamCommandText = String.format("%s %s %s %s",
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id1"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id2"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id3"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id4"));
+                SlackUserHandler.wrapSlackUserInFullPattern("slack1"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack2"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack3"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack4"));
         String responseUrl = "example.com";
         ResourceAccessException exception = new ResourceAccessException("Some service unavailable");
 
@@ -202,12 +202,12 @@ public class ExceptionHandlerTest {
     @Test
     public void handleAllOtherExceptions() throws Exception {
         //given
-        String from = "from-id";
+        String from = "slack-from";
         String activateTeamCommandText = String.format("%s %s %s %s",
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id1"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id2"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id3"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id4"));
+                SlackUserHandler.wrapSlackUserInFullPattern("slack1"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack2"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack3"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack4"));
         String responseUrl = "example.com";
         RuntimeException exception = new RuntimeException("other command");
 
@@ -233,12 +233,12 @@ public class ExceptionHandlerTest {
     @Test
     public void handleNestedUserExceptionAfterTeamException() throws Exception {
         //given
-        String from = "from-id";
+        String from = "slack-from";
         String activateTeamCommandText = String.format("%s %s %s %s",
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id1"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id2"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id3"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id4"));
+                SlackUserHandler.wrapSlackUserInFullPattern("slack1"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack2"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack3"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack4"));
         String responseUrl = "example.com";
         String messageWithUuids = String.format("User(s) '#%s#' exist(s) in another teams",
                 "uuid1,uuid2,uuid3,uuid4");
@@ -253,7 +253,7 @@ public class ExceptionHandlerTest {
 
         when(teamService.activateTeam(from, activateTeamCommandText)).thenThrow(teamException);
         when(restTemplate.postForObject(eq(responseUrl), any(RichMessage.class), eq(String.class))).thenReturn("");
-        when(userService.replaceUuidsBySlackIdsInExceptionMessage(messageWithUuids)).thenThrow(userException);
+        when(userService.replaceUuidsBySlackUsersInExceptionMessage(messageWithUuids)).thenThrow(userException);
 
         //when
         mvc.perform(MockMvcRequestBuilders.post(TestUtils.getUrlTemplate(teamsSlackbotActivateTeamUrl),
@@ -265,7 +265,7 @@ public class ExceptionHandlerTest {
 
         //then
         verify(teamService).activateTeam(from, activateTeamCommandText);
-        verify(userService).replaceUuidsBySlackIdsInExceptionMessage(anyString());
+        verify(userService).replaceUuidsBySlackUsersInExceptionMessage(anyString());
         ArgumentCaptor<RichMessage> captor = ArgumentCaptor.forClass(RichMessage.class);
         verify(restTemplate).postForObject(eq(responseUrl), captor.capture(), eq(String.class));
         assertTrue(captor.getValue().getText().contains(apiError.getClientMessage()));
@@ -275,20 +275,20 @@ public class ExceptionHandlerTest {
     @Test
     public void handleNestedOtherAfterTeamException() throws Exception {
         //given
-        String from = "from-id";
+        String from = "slack-from";
         String activateTeamCommandText = String.format("%s %s %s %s",
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id1"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id2"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id3"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id4"));
+                SlackUserHandler.wrapSlackUserInFullPattern("slack1"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack2"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack3"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack4"));
         String responseUrl = "example.com";
         String messageWithUuids = String.format("User(s) '#%s#' exist(s) in another teams",
                 "uuid1,uuid2,uuid3,uuid4");
-        String messageWithSlackIds = String.format("User(s) '#%s,%s,%s,%s#' exist(s) in another teams",
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id1"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id2"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id3"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id4"));
+        String messageWithSlackUsers = String.format("User(s) '#%s,%s,%s,%s#' exist(s) in another teams",
+                SlackUserHandler.wrapSlackUserInFullPattern("slack1"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack2"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack3"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack4"));
         ApiError apiError = new ApiError(
                 400, "TMF-F2-D3",
                 "Sorry, but the user already exists in team!",
@@ -299,7 +299,7 @@ public class ExceptionHandlerTest {
         Exception exception = new RuntimeException("Oops something went wrong :(");
 
         when(teamService.activateTeam(from, activateTeamCommandText)).thenThrow(teamException);
-        when(userService.replaceUuidsBySlackIdsInExceptionMessage(messageWithUuids)).thenReturn(messageWithSlackIds);
+        when(userService.replaceUuidsBySlackUsersInExceptionMessage(messageWithUuids)).thenReturn(messageWithSlackUsers);
         when(restTemplate.postForObject(eq(responseUrl), any(RichMessage.class), eq(String.class))).thenThrow(exception);
 
         //when
@@ -312,10 +312,10 @@ public class ExceptionHandlerTest {
 
         //then
         verify(teamService).activateTeam(from, activateTeamCommandText);
-        verify(userService).replaceUuidsBySlackIdsInExceptionMessage(messageWithUuids);
+        verify(userService).replaceUuidsBySlackUsersInExceptionMessage(messageWithUuids);
         ArgumentCaptor<RichMessage> captor = ArgumentCaptor.forClass(RichMessage.class);
         verify(restTemplate).postForObject(eq(responseUrl), captor.capture(), eq(String.class));
-        assertTrue(captor.getValue().getText().contains(messageWithSlackIds));
+        assertTrue(captor.getValue().getText().contains(messageWithSlackUsers));
         verifyNoMoreInteractions(teamService, restTemplate, userService);
     }
 }

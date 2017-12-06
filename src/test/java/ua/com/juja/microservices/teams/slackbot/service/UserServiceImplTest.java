@@ -7,7 +7,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import ua.com.juja.microservices.teams.slackbot.model.users.User;
 import ua.com.juja.microservices.teams.slackbot.repository.UserRepository;
-import ua.com.juja.microservices.teams.slackbot.util.SlackIdHandler;
+import ua.com.juja.microservices.teams.slackbot.util.SlackUserHandler;
 
 import javax.inject.Inject;
 import java.util.Arrays;
@@ -33,20 +33,20 @@ public class UserServiceImplTest {
     private UserRepository userRepository;
 
     @Test
-    public void findUsersBySlackIdsExecutedCorrectly() throws Exception {
+    public void findUsersBySlackUsersExecutedCorrectly() throws Exception {
         //given
-        List<String> slackIdsRequest = Arrays.asList("user-id1", "user-id2");
-        List<User> expected = Arrays.asList(new User("uuid1", "user-id1"),
-                new User("uuid2", "user-id2"));
+        List<String> slackUsersRequest = Arrays.asList("slack1", "slack2");
+        List<User> expected = Arrays.asList(new User("uuid1", "slack1"),
+                new User("uuid2", "slack2"));
 
-        given(userRepository.findUsersBySlackIds(slackIdsRequest)).willReturn(expected);
+        given(userRepository.findUsersBySlackUsers(slackUsersRequest)).willReturn(expected);
 
         //when
-        List<User> actual = userService.findUsersBySlackIds(slackIdsRequest);
+        List<User> actual = userService.findUsersBySlackUsers(slackUsersRequest);
 
         //then
         assertThat(actual, is(expected));
-        verify(userRepository).findUsersBySlackIds(slackIdsRequest);
+        verify(userRepository).findUsersBySlackUsers(slackUsersRequest);
         verifyNoMoreInteractions(userRepository);
     }
 
@@ -54,8 +54,8 @@ public class UserServiceImplTest {
     public void findUsersByUuidsExecutedCorrectly() throws Exception {
         //given
         List<String> uuidsRequest = Arrays.asList("uuid1", "uuid2");
-        List<User> expected = Arrays.asList(new User("uuid1", "user-id1"),
-                new User("uuid2", "user-id2"));
+        List<User> expected = Arrays.asList(new User("uuid1", "slack1"),
+                new User("uuid2", "slack2"));
 
         given(userRepository.findUsersByUuids(uuidsRequest)).willReturn(expected);
 
@@ -69,23 +69,23 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void replaceUuidsBySlackIdsInExceptionMessageExecutedCorrectly() throws Exception {
+    public void replaceUuidsBySlackUsersInExceptionMessageExecutedCorrectly() throws Exception {
         //given
         String exceptionMessage = String.format("User(s) '#%s#' exist(s) in another teams",
                 "uuid1,uuid2,uuid3,uuid4");
         String expected = String.format("User(s) '%s,%s,%s,%s' exist(s) in another teams",
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id1"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id2"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id3"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id4"));
-        List<User> users = Arrays.asList(new User("uuid1", "slack-id1"),
-                new User("uuid2", "slack-id2"), new User("uuid3", "slack-id3"),
-                new User("uuid4", "slack-id4"));
+                SlackUserHandler.wrapSlackUserInFullPattern("slack1"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack2"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack3"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack4"));
+        List<User> users = Arrays.asList(new User("uuid1", "slack1"),
+                new User("uuid2", "slack2"), new User("uuid3", "slack3"),
+                new User("uuid4", "slack4"));
 
         given(userRepository.findUsersByUuids(anyListOf(String.class))).willReturn(users);
 
         //when
-        String actual = userService.replaceUuidsBySlackIdsInExceptionMessage(exceptionMessage);
+        String actual = userService.replaceUuidsBySlackUsersInExceptionMessage(exceptionMessage);
 
         //then
         assertThat(actual, is(expected));

@@ -15,7 +15,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.client.RestTemplate;
 import ua.com.juja.microservices.teams.slackbot.exceptions.ExceptionsHandler;
 import ua.com.juja.microservices.teams.slackbot.service.TeamService;
-import ua.com.juja.microservices.teams.slackbot.util.SlackIdHandler;
+import ua.com.juja.microservices.teams.slackbot.util.SlackUserHandler;
 import ua.com.juja.microservices.utils.TestUtils;
 
 import javax.inject.Inject;
@@ -80,7 +80,7 @@ public class TeamSlackbotControllerTest {
     @Test
     public void onReceiveAllSlashCommandsWhenIncorrectTokenShouldReturnSorryMessage() throws Exception {
         //givaen
-        String commandText = SlackIdHandler.wrapSlackIdInFullPattern("slack-id1");
+        String commandText = SlackUserHandler.wrapSlackUserInFullPattern("slack1");
         String responseUrl = "http://example.com";
         List<String> urls = Arrays.asList(
                 teamsSlackbotActivateTeamUrl,
@@ -109,7 +109,7 @@ public class TeamSlackbotControllerTest {
     @Test
     public void onReceiveAllSlashCommandsWhenAnyParamIsNullShouldReturnSorryMessage() throws Exception {
         //given
-        String commandText = SlackIdHandler.wrapSlackIdInFullPattern("slack-id1");
+        String commandText = SlackUserHandler.wrapSlackUserInFullPattern("slack1");
         String responseUrl = "";
         List<String> urls = Arrays.asList(
                 teamsSlackbotActivateTeamUrl,
@@ -138,16 +138,16 @@ public class TeamSlackbotControllerTest {
     @Test
     public void onReceiveSlashCommandActivateTeamWhenAllCorrectShouldReturnOkMessage() throws Exception {
         //given
-        String from = "from-id";
+        String from = "slack-from";
         String commandText = String.format("%s %s %s %s",
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id1"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id2"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id3"),
-                SlackIdHandler.wrapSlackIdInFullPattern("slack-id4"));
+                SlackUserHandler.wrapSlackUserInFullPattern("slack1"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack2"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack3"),
+                SlackUserHandler.wrapSlackUserInFullPattern("slack4"));
         String responseUrl = "http://example.com";
-        Set<String> slackIds = new LinkedHashSet<>(Arrays.asList("slack-id1", "slack-id2", "slack-id3", "slack-id4"));
+        Set<String> slackUsers = new LinkedHashSet<>(Arrays.asList("slack1", "slack2", "slack3", "slack4"));
 
-        when(teamService.activateTeam(from, commandText)).thenReturn(slackIds);
+        when(teamService.activateTeam(from, commandText)).thenReturn(slackUsers);
         when(restTemplate.postForObject(eq(responseUrl), any(RichMessage.class), eq(String.class))).thenReturn("");
 
         //when
@@ -169,12 +169,11 @@ public class TeamSlackbotControllerTest {
     @Test
     public void onReceiveSlashCommandGetTeamWhenAllCorrectShouldReturnOkMessage() throws Exception {
         //given
-        String commandText = SlackIdHandler.wrapSlackIdInFullPattern("slack-id2");
-        Set<String> slackIds = new LinkedHashSet<>(Arrays.asList("slack-id1", "slack-id2",
-                "slack-id3", "slack-id4"));
+        String commandText = SlackUserHandler.wrapSlackUserInFullPattern("slack2");
+        Set<String> slackUsers = new LinkedHashSet<>(Arrays.asList("slack1", "slack2", "slack3", "slack4"));
         String responseUrl = "http://example.com";
 
-        when(teamService.getTeam(commandText)).thenReturn(slackIds);
+        when(teamService.getTeam(commandText)).thenReturn(slackUsers);
         when(restTemplate.postForObject(eq(responseUrl), any(RichMessage.class), eq(String.class))).thenReturn("");
 
         //when
@@ -184,7 +183,7 @@ public class TeamSlackbotControllerTest {
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
                 .andExpect(content().string(String.format(GET_TEAM_INSTANT_MESSAGE,
-                        SlackIdHandler.wrapSlackIdInFullPattern("slack-id2"))));
+                        SlackUserHandler.wrapSlackUserInFullPattern("slack2"))));
 
         //then
         verify(exceptionsHandler).setResponseUrl(responseUrl);
@@ -192,8 +191,8 @@ public class TeamSlackbotControllerTest {
         ArgumentCaptor<RichMessage> captor = ArgumentCaptor.forClass(RichMessage.class);
         verify(restTemplate).postForObject(eq(responseUrl), captor.capture(), eq(String.class));
         assertTrue(captor.getValue().getText().contains(String.format(GET_TEAM_DELAYED_MESSAGE, commandText,
-                slackIds.stream().sorted()
-                        .map(SlackIdHandler::wrapSlackIdInFullPattern)
+                slackUsers.stream().sorted()
+                        .map(SlackUserHandler::wrapSlackUserInFullPattern)
                         .collect(Collectors.joining(" ")))));
         verifyNoMoreInteractions(teamService, exceptionsHandler, restTemplate);
     }
@@ -201,16 +200,15 @@ public class TeamSlackbotControllerTest {
     @Test
     public void onReceiveSlashCommandGetMyTeamWhenAllCorrectShouldReturnOkMessage() throws Exception {
         //given
-        String from = "from-id";
-        String wrappedFrom = SlackIdHandler.wrapSlackIdInFullPattern("from-id");
-        Set<String> slackIds = new LinkedHashSet<>(Arrays.asList("slack-id1", "slack-id2",
-                "slack-id3", "slack-id4"));
-        String wrappedSlackIdsAsText = slackIds.stream().sorted()
-                .map(SlackIdHandler::wrapSlackIdInFullPattern)
+        String from = "slack-from";
+        String wrappedFrom = SlackUserHandler.wrapSlackUserInFullPattern("slack-from");
+        Set<String> slackUsers = new LinkedHashSet<>(Arrays.asList("slack1", "slack2", "slack3", "slack4"));
+        String wrappedSlackUsersAsText = slackUsers.stream().sorted()
+                .map(SlackUserHandler::wrapSlackUserInFullPattern)
                 .collect(Collectors.joining(" "));
         String responseUrl = "http://example.com";
 
-        when(teamService.getTeam(wrappedFrom)).thenReturn(slackIds);
+        when(teamService.getTeam(wrappedFrom)).thenReturn(slackUsers);
         when(restTemplate.postForObject(eq(responseUrl), any(RichMessage.class), eq(String.class))).thenReturn("");
 
         //when
@@ -227,19 +225,19 @@ public class TeamSlackbotControllerTest {
         ArgumentCaptor<RichMessage> captor = ArgumentCaptor.forClass(RichMessage.class);
         verify(restTemplate).postForObject(eq(responseUrl), captor.capture(), eq(String.class));
         assertTrue(captor.getValue().getText().contains(String.format(GET_MY_TEAM_DELAYED_MESSAGE,
-                wrappedFrom, wrappedSlackIdsAsText)));
+                wrappedFrom, wrappedSlackUsersAsText)));
         verifyNoMoreInteractions(teamService, exceptionsHandler, restTemplate);
     }
 
     @Test
     public void onReceiveSlashCommandDeactivateTeamWhenAllCorrectShouldReturnOkMessage() throws Exception {
         //given
-        String from = "from-id";
-        String commandText = SlackIdHandler.wrapSlackIdInFullPattern("slack-id1");
-        Set<String> slackIds = new LinkedHashSet<>(Collections.singletonList("slack1"));
+        String from = "slack-from";
+        String commandText = SlackUserHandler.wrapSlackUserInFullPattern("slack1");
+        Set<String> slackUsers = new LinkedHashSet<>(Collections.singletonList("slack1"));
         String responseUrl = "http://example.com";
 
-        when(teamService.deactivateTeam(from, commandText)).thenReturn(slackIds);
+        when(teamService.deactivateTeam(from, commandText)).thenReturn(slackUsers);
         when(restTemplate.postForObject(eq(responseUrl), any(RichMessage.class), eq(String.class))).thenReturn("");
 
         //when
@@ -249,7 +247,7 @@ public class TeamSlackbotControllerTest {
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
                 .andExpect(content().string(String.format(DEACTIVATE_TEAM_INSTANT_MESSAGE,
-                        SlackIdHandler.wrapSlackIdInFullPattern("slack-id1"))));
+                        SlackUserHandler.wrapSlackUserInFullPattern("slack1"))));
 
         //then
         verify(exceptionsHandler).setResponseUrl(responseUrl);
@@ -257,8 +255,8 @@ public class TeamSlackbotControllerTest {
         ArgumentCaptor<RichMessage> captor = ArgumentCaptor.forClass(RichMessage.class);
         verify(restTemplate).postForObject(eq(responseUrl), captor.capture(), eq(String.class));
         assertTrue(captor.getValue().getText().contains(String.format(DEACTIVATE_TEAM_DELAYED_MESSAGE,
-                slackIds.stream().sorted()
-                        .map(SlackIdHandler::wrapSlackIdInFullPattern)
+                slackUsers.stream().sorted()
+                        .map(SlackUserHandler::wrapSlackUserInFullPattern)
                         .collect(Collectors.joining(" ")))));
         verifyNoMoreInteractions(teamService, exceptionsHandler, restTemplate);
     }

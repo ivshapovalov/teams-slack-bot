@@ -11,37 +11,37 @@ import java.util.Set;
 /**
  * @author Ivan Shapovalov
  */
-public class SlackIdHandlerTest {
+public class SlackUserHandlerTest {
 
     @Test
-    public void getSlackIdsFromTextWhenTextIsEmpty() {
+    public void getSlackUsersFromTextWhenTextIsEmpty() {
         String text = "";
         Set<String> expected = new HashSet<>();
 
-        Assert.assertEquals(expected, SlackIdHandler.getSlackIdsFromText(text));
+        Assert.assertEquals(expected, SlackUserHandler.getSlackUsersFromText(text));
     }
 
     @Test
-    public void getSlackIdsFromTextWhenFullNameInText() {
+    public void getSlackUsersFromTextWhenFullNameInText() {
         String text = " <@id|ivan> Hello <";
         Set<String> expected = new HashSet<>(Collections.singletonList("id"));
 
-        Assert.assertEquals(expected, SlackIdHandler.getSlackIdsFromText(text));
+        Assert.assertEquals(expected, SlackUserHandler.getSlackUsersFromText(text));
     }
 
     @Test
-    public void getSlackIdsFromTextWhenNameInText() {
+    public void getSlackUsersFromTextWhenNameInText() {
         String text = " <@id> Hello >";
         Set<String> expected = new HashSet<>(Collections.singletonList("id"));
 
-        Assert.assertEquals(expected, SlackIdHandler.getSlackIdsFromText(text));
+        Assert.assertEquals(expected, SlackUserHandler.getSlackUsersFromText(text));
     }
 
     @Test
-    public void getSlackIdsFromTextWhenTwoNamesInText() {
+    public void getSlackUsersFromTextWhenTwoNamesInText() {
         String text = " <@id1|ivan> Hello <@id2|alex> afda <> adfa <";
         Set<String> expected = new HashSet<>(Arrays.asList("id1", "id2"));
 
-        Assert.assertEquals(expected, SlackIdHandler.getSlackIdsFromText(text));
+        Assert.assertEquals(expected, SlackUserHandler.getSlackUsersFromText(text));
     }
 }

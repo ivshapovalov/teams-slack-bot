@@ -48,7 +48,7 @@ public class Utils {
 
     private static String listToStringWithDelimeter(Set<String> list, String delimeter) {
         return list.stream()
-                .map(SlackIdHandler::wrapSlackIdInFullPattern)
+                .map(SlackUserHandler::wrapSlackUserInFullPattern)
                 .collect(Collectors.joining(delimeter));
     }
 
@@ -66,11 +66,11 @@ public class Utils {
         return uuids;
     }
 
-    public static String replaceUuidsBySlackIdsInExceptionMessage(String message, Set<String> slackIds) {
+    public static String replaceUuidsBySlackUsersInExceptionMessage(String message, Set<String> slackUsers) {
         String messageDelimeter = "#";
         String[] messageParts = message.split(messageDelimeter);
         if (messageParts.length > 1) {
-            messageParts[1] = Utils.listToStringWithDelimeter(slackIds, ",");
+            messageParts[1] = Utils.listToStringWithDelimeter(slackUsers, ",");
             message = Utils.arrayToStringWithDelimeter(messageParts, "");
         }
         return message;
