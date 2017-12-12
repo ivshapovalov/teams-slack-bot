@@ -1,5 +1,6 @@
 package ua.com.juja.microservices.teams.slackbot.model.users;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 
 import java.util.Collections;
@@ -10,6 +11,7 @@ import java.util.List;
  */
 @AllArgsConstructor
 public class UserSlackRequest {
+    @JsonProperty("slackIds")
     List<String> slackUsers;
 
     public List<String> getSlackUsers() {
